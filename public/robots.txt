@@ -1,0 +1,11 @@
+# Applies to all bots
+User-agent: *
+
+# Block admin dashboard
+Disallow: /admin/
+
+# Block enrollment form pages (to avoid duplicate/low-value indexing)
+Disallow: /[locale]/clases/*/enroll/
+
+# Allow everything else
+Allow: /
