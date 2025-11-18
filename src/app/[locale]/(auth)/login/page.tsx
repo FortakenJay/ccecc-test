@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Toast, useToast } from "@/components/ui/toast";
 import {useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "../../../../lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const { toast, showToast, hideToast } = useToast();
@@ -27,7 +27,7 @@ export default function LoginPage() {
       showToast(`Error: ${error.message}`, "error");
     } else {
       showToast("Login successful!", "success");
-      router.push("/dashboard");
+      router.push("/panel");
     }
   }
 
@@ -69,7 +69,7 @@ export default function LoginPage() {
                 required
               />
             </div>
-            <Button className="w-full" type="submit">log in</Button>
+            <Button className="w-full cursor-pointer" type="submit">log in</Button>
           </form>
         </CardContent>
       </Card>

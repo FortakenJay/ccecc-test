@@ -1,8 +1,46 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import type { Database } from '@/types/database.types';
+import {
+  isValidUUID,
+  isValidLocale,
+  isValidTextLength,
+  sanitizeError,
+  SUPPORTED_LOCALES,
+  MAX_TEXT_LENGTH,
+  MAX_LIMIT as MAX_PAGINATION_LIMIT
+} from '@/lib/api-utils';
+
+// Constants for input validation
+const MAX_FEATURES_SIZE = 100000;
+
+// Validate features object (depth and size)
+const isValidFeatures = (features: any): boolean => {
+  if (!features) return true;
+  if (typeof features !== 'object') return false;
+  
+  const json = JSON.stringify(features);
+  if (json.length > MAX_FEATURES_SIZE) return false;
+  
+  const checkDepth = (obj: any, depth = 0): boolean => {
+    if (depth > 5) return false;
+    if (typeof obj !== 'object' || obj === null) return true;
+    return Object.values(obj).every(v => checkDepth(v, depth + 1));
+  };
+  
+  return checkDepth(features);
+};
+
+// Validate pagination parameters
+const validatePagination = (pagination?: PaginationOptions): ValidatedPagination => {
+  if (!pagination) return { limit: 50, offset: 0 };
+  
+  const limit = Math.min(Math.max(pagination.limit || 50, 1), MAX_PAGINATION_LIMIT);
+  const offset = Math.max(pagination.offset || 0, 0);
+  
+  return { limit, offset };
+};
 
 type ClassRow = Database['public']['Tables']['classes']['Row'];
 type ClassInsert = Database['public']['Tables']['classes']['Insert'];
@@ -13,37 +51,56 @@ interface ClassWithTranslations extends ClassRow {
   translations?: ClassTranslation[];
 }
 
+// Strict type for translations and features to prevent XSS via unsanitized input
+interface ClassTranslationInput {
+  title: string;
+  description?: string;
+  schedule?: string;
+  features?: Record<string, string | number | boolean>;
+}
+
+interface PaginationOptions {
+  limit?: number;
+  offset?: number;
+}
+
+interface ValidatedPagination {
+  limit: number;
+  offset: number;
+}
+
 export function useClasses(locale?: string) {
   const [classes, setClasses] = useState<ClassWithTranslations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
 
-  // Fetch all classes with translations
-  const fetchClasses = async (activeOnly = false) => {
+  // Fetch all classes with translations (with pagination support)
+  const fetchClasses = async (activeOnly = false, pagination?: PaginationOptions) => {
     try {
       setLoading(true);
-      let query = supabase
-        .from('classes')
-        .select(`
-          *,
-          translations:class_translations(*)
-        `)
-        .order('created_at', { ascending: false });
+      const { limit, offset } = validatePagination(pagination);
 
-      if (activeOnly) {
-        query = query.eq('is_active', true);
+      const params = new URLSearchParams();
+      if (activeOnly) params.append('active_only', 'true');
+      if (locale && isValidLocale(locale)) params.append('locale', locale);
+      params.append('limit', limit.toString());
+      params.append('offset', offset.toString());
+
+      const response = await fetch(`/api/clases?${params.toString()}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch classes');
       }
 
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) throw fetchError;
-
-      setClasses(data || []);
+      setClasses(result.data || []);
       setError(null);
     } catch (err: any) {
-      setError(err.message);
-      console.error('Error fetching classes:', err);
+      const safeError = sanitizeError(err);
+      setError(safeError);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error fetching classes:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -52,54 +109,75 @@ export function useClasses(locale?: string) {
   // Get single class by ID
   const getClass = async (id: string) => {
     try {
-      const { data, error: fetchError } = await supabase
-        .from('classes')
-        .select(`
-          *,
-          translations:class_translations(*)
-        `)
-        .eq('id', id)
-        .single();
+      if (!isValidUUID(id)) {
+        return { data: null, error: 'Invalid class ID format' };
+      }
 
-      if (fetchError) throw fetchError;
-      return { data, error: null };
+      const params = new URLSearchParams();
+      if (locale && isValidLocale(locale)) params.append('locale', locale);
+
+      const response = await fetch(`/api/clases/${id}?${params.toString()}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch class');
+      }
+
+      return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
   // Create new class with translations
   const createClass = async (
     classData: Omit<ClassInsert, 'id' | 'created_at' | 'updated_at'>,
-    translations: Record<string, { title: string; description?: string; schedule?: string; features?: any }>
+    translations: Record<string, ClassTranslationInput>
   ) => {
     try {
-      // Insert class
-      const { data: newClass, error: classError } = await supabase
-        .from('classes')
-        .insert(classData)
-        .select()
-        .single();
+      if (Object.keys(translations).length === 0) {
+        return { data: null, error: 'At least one translation is required' };
+      }
 
-      if (classError) throw classError;
+      for (const loc of Object.keys(translations)) {
+        if (!isValidLocale(loc)) {
+          return { data: null, error: `Invalid locale: ${loc}` };
+        }
+      }
 
-      // Insert translations
-      const translationsData = Object.entries(translations).map(([locale, trans]) => ({
-        class_id: newClass.id,
-        locale,
-        ...trans,
-      }));
+      for (const trans of Object.values(translations)) {
+        if (!isValidTextLength(trans.title, MAX_TEXT_LENGTH)) {
+          return { data: null, error: `Title exceeds maximum length of ${MAX_TEXT_LENGTH}` };
+        }
+        if (!isValidTextLength(trans.description, MAX_TEXT_LENGTH)) {
+          return { data: null, error: `Description exceeds maximum length of ${MAX_TEXT_LENGTH}` };
+        }
+        if (!isValidTextLength(trans.schedule, MAX_TEXT_LENGTH)) {
+          return { data: null, error: `Schedule exceeds maximum length of ${MAX_TEXT_LENGTH}` };
+        }
+        if (!isValidFeatures(trans.features)) {
+          return { data: null, error: `Features object is invalid or too large` };
+        }
+      }
 
-      const { error: transError } = await supabase
-        .from('class_translations')
-        .insert(translationsData);
+      const payload = { classData, translations };
 
-      if (transError) throw transError;
+      const response = await fetch('/api/clases', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create class');
+      }
 
       await fetchClasses();
-      return { data: newClass, error: null };
+      return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
@@ -107,62 +185,87 @@ export function useClasses(locale?: string) {
   const updateClass = async (
     id: string,
     classData: ClassUpdate,
-    translations?: Record<string, { title?: string; description?: string; schedule?: string; features?: any }>
+    translations?: Record<string, Partial<ClassTranslationInput>>
   ) => {
     try {
-      // Update class
-      const { data: updatedClass, error: classError } = await supabase
-        .from('classes')
-        .update(classData)
-        .eq('id', id)
-        .select()
-        .single();
+      if (!isValidUUID(id)) {
+        return { data: null, error: 'Invalid class ID format' };
+      }
 
-      if (classError) throw classError;
-
-      // Update translations if provided
       if (translations) {
-        for (const [locale, trans] of Object.entries(translations)) {
-          const { error: transError } = await supabase
-            .from('class_translations')
-            .upsert({
-              class_id: id,
-              locale,
-              ...trans,
-            }, {
-              onConflict: 'class_id,locale'
-            });
+        for (const loc of Object.keys(translations)) {
+          if (!isValidLocale(loc)) {
+            return { data: null, error: `Invalid locale: ${loc}` };
+          }
+        }
 
-          if (transError) throw transError;
+        for (const trans of Object.values(translations)) {
+          if (trans.title !== undefined && !isValidTextLength(trans.title, MAX_TEXT_LENGTH)) {
+            return { data: null, error: `Title exceeds maximum length of ${MAX_TEXT_LENGTH}` };
+          }
+          if (trans.description !== undefined && !isValidTextLength(trans.description, MAX_TEXT_LENGTH)) {
+            return { data: null, error: `Description exceeds maximum length of ${MAX_TEXT_LENGTH}` };
+          }
+          if (trans.schedule !== undefined && !isValidTextLength(trans.schedule, MAX_TEXT_LENGTH)) {
+            return { data: null, error: `Schedule exceeds maximum length of ${MAX_TEXT_LENGTH}` };
+          }
+          if (trans.features !== undefined && !isValidFeatures(trans.features)) {
+            return { data: null, error: `Features object is invalid or too large` };
+          }
         }
       }
 
+      const payload = { classData, translations };
+
+      const response = await fetch(`/api/clases/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update class');
+      }
+
       await fetchClasses();
-      return { data: updatedClass, error: null };
+      return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
   // Delete class
   const deleteClass = async (id: string) => {
     try {
-      const { error: deleteError } = await supabase
-        .from('classes')
-        .delete()
-        .eq('id', id);
+      if (!isValidUUID(id)) {
+        return { error: 'Invalid class ID format' };
+      }
 
-      if (deleteError) throw deleteError;
+      const response = await fetch(`/api/clases/${id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete class');
+      }
 
       await fetchClasses();
       return { error: null };
     } catch (err: any) {
-      return { error: err.message };
+      return { error: sanitizeError(err) };
     }
   };
 
   // Toggle active status
   const toggleActive = async (id: string, isActive: boolean) => {
+    // Validate UUID format
+    if (!isValidUUID(id)) {
+      return { error: 'Invalid class ID format' };
+    }
     return updateClass(id, { is_active: isActive });
   };
 

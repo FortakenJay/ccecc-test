@@ -3,12 +3,32 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Database } from '@/types/database.types';
+import {
+  isValidUUID,
+  isValidFutureDate,
+  isValidSlots,
+  isValidHSKStatus,
+  sanitizeError,
+  parsePaginationParams
+} from '@/lib/api-utils';
 
 type HSKSession = Database['public']['Tables']['hsk_exam_sessions']['Row'];
 type HSKSessionInsert = Database['public']['Tables']['hsk_exam_sessions']['Insert'];
 type HSKSessionUpdate = Database['public']['Tables']['hsk_exam_sessions']['Update'];
 type HSKRegistration = Database['public']['Tables']['hsk_registrations']['Row'];
 type HSKRegistrationInsert = Database['public']['Tables']['hsk_registrations']['Insert'];
+
+// Security constants
+
+const MIN_SLOTS = 1;
+const MAX_SLOTS = 1000;
+
+// Validator functions
+const isValidStatus = isValidHSKStatus;
+
+const validatePagination = (limit?: number, offset?: number) => {
+  return parsePaginationParams(limit, offset);
+};
 
 export function useHSK() {
   const [sessions, setSessions] = useState<HSKSession[]>([]);
@@ -18,13 +38,16 @@ export function useHSK() {
   const supabase = createClient();
 
   // Fetch all exam sessions
-  const fetchSessions = async (activeOnly = false) => {
+  const fetchSessions = async (activeOnly = false, limit?: number, offset?: number) => {
     try {
       setLoading(true);
+      const { limit: validLimit, offset: validOffset } = validatePagination(limit, offset);
+
       let query = supabase
         .from('hsk_exam_sessions')
-        .select('*')
-        .order('exam_date', { ascending: true });
+        .select('*', { count: 'estimated' })
+        .order('exam_date', { ascending: true })
+        .range(validOffset, validOffset + validLimit - 1);
 
       if (activeOnly) {
         query = query.eq('is_active', true);
@@ -37,7 +60,7 @@ export function useHSK() {
       setSessions(data || []);
       setError(null);
     } catch (err: any) {
-      setError(err.message);
+      setError(sanitizeError(err));
       console.error('Error fetching HSK sessions:', err);
     } finally {
       setLoading(false);
@@ -45,12 +68,20 @@ export function useHSK() {
   };
 
   // Fetch registrations for a specific session
-  const fetchRegistrations = async (sessionId?: string) => {
+  const fetchRegistrations = async (sessionId?: string, limit?: number, offset?: number) => {
     try {
+      // Validate sessionId if provided
+      if (sessionId && !isValidUUID(sessionId)) {
+        return { data: null, error: 'Invalid session ID format' };
+      }
+
+      const { limit: validLimit, offset: validOffset } = validatePagination(limit, offset);
+
       let query = supabase
         .from('hsk_registrations')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'estimated' })
+        .order('created_at', { ascending: false })
+        .range(validOffset, validOffset + validLimit - 1);
 
       if (sessionId) {
         query = query.eq('exam_session_id', sessionId);
@@ -63,106 +94,165 @@ export function useHSK() {
       setRegistrations(data || []);
       return { data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
   // Create exam session
   const createSession = async (sessionData: Omit<HSKSessionInsert, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data, error: createError } = await supabase
-        .from('hsk_exam_sessions')
-        .insert(sessionData)
-        .select()
-        .single();
+      // Validate exam_date is in the future
+      if (sessionData.exam_date && !isValidFutureDate(sessionData.exam_date)) {
+        return { data: null, error: 'Exam date must be in the future' };
+      }
 
-      if (createError) throw createError;
+      // Validate available_slots
+      if (sessionData.available_slots && !isValidSlots(sessionData.available_slots)) {
+        return { data: null, error: `Available slots must be between ${MIN_SLOTS} and ${MAX_SLOTS}` };
+      }
+
+      const response = await fetch('/api/hsk/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sessionData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create session');
+      }
 
       await fetchSessions();
-      return { data, error: null };
+      return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
   // Update exam session
   const updateSession = async (id: string, sessionData: HSKSessionUpdate) => {
     try {
-      const { data, error: updateError } = await supabase
-        .from('hsk_exam_sessions')
-        .update(sessionData)
-        .eq('id', id)
-        .select()
-        .single();
+      // Validate session ID
+      if (!isValidUUID(id)) {
+        return { data: null, error: 'Invalid session ID format' };
+      }
 
-      if (updateError) throw updateError;
+      // Validate exam_date if provided
+      if (sessionData.exam_date && !isValidFutureDate(sessionData.exam_date)) {
+        return { data: null, error: 'Exam date must be in the future' };
+      }
+
+      // Validate available_slots if provided
+      if (sessionData.available_slots && !isValidSlots(sessionData.available_slots)) {
+        return { data: null, error: `Available slots must be between ${MIN_SLOTS} and ${MAX_SLOTS}` };
+      }
+
+      const response = await fetch(`/api/hsk/sessions/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sessionData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update session');
+      }
 
       await fetchSessions();
-      return { data, error: null };
+      return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
   // Delete exam session
   const deleteSession = async (id: string) => {
     try {
-      const { error: deleteError } = await supabase
-        .from('hsk_exam_sessions')
-        .delete()
-        .eq('id', id);
+      // Validate session ID
+      if (!isValidUUID(id)) {
+        return { error: 'Invalid session ID format' };
+      }
 
-      if (deleteError) throw deleteError;
+      const response = await fetch(`/api/hsk/sessions/${id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete session');
+      }
 
       await fetchSessions();
       return { error: null };
     } catch (err: any) {
-      return { error: err.message };
+      return { error: sanitizeError(err) };
     }
   };
 
   // Create registration
   const createRegistration = async (registrationData: Omit<HSKRegistrationInsert, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data, error: createError } = await supabase
-        .from('hsk_registrations')
-        .insert(registrationData)
-        .select()
-        .single();
+      // Validate session ID
+      if (!isValidUUID(registrationData.exam_session_id)) {
+        return { data: null, error: 'Invalid session ID format' };
+      }
 
-      if (createError) throw createError;
+      // Validate status if provided
+      if (registrationData.status && !isValidStatus(registrationData.status)) {
+        return { data: null, error: 'Invalid registration status' };
+      }
 
-      // Update available slots
-      const session = sessions.find(s => s.id === registrationData.exam_session_id);
-      if (session) {
-        await updateSession(session.id, {
-          available_slots: session.available_slots - 1
-        });
+      const response = await fetch('/api/hsk/registration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registrationData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create registration');
       }
 
       await fetchRegistrations(registrationData.exam_session_id || undefined);
-      return { data, error: null };
+      return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
   // Update registration status
   const updateRegistrationStatus = async (id: string, status: string) => {
     try {
-      const { data, error: updateError } = await supabase
-        .from('hsk_registrations')
-        .update({ status })
-        .eq('id', id)
-        .select()
-        .single();
+      // Validate registration ID
+      if (!isValidUUID(id)) {
+        return { data: null, error: 'Invalid registration ID format' };
+      }
 
-      if (updateError) throw updateError;
+      // Validate status
+      if (!isValidStatus(status)) {
+        return { data: null, error: 'Invalid status' };
+      }
+
+      const response = await fetch(`/api/hsk/registration/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update registration status');
+      }
 
       await fetchRegistrations();
-      return { data, error: null };
+      return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 

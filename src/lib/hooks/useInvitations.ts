@@ -3,8 +3,30 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Database } from '@/types/database.types';
+import {
+  isValidUUID,
+  isValidEmail,
+  isValidRole,
+  isValidPassword,
+  isValidPayloadSize,
+  sanitizeError,
+  VALID_ROLES,
+  MAX_EMAIL_LENGTH
+} from '@/lib/api-utils';
 
 type Invitation = Database['public']['Tables']['invitations']['Row'];
+
+// Security constants
+const MAX_PASSWORD_LENGTH = 72;
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_TOKEN_LENGTH = 500;
+const TOKEN_VALIDATION_REGEX = /^[a-zA-Z0-9_\-]+$/;
+
+// Validator functions
+const isValidToken = (token: string): boolean => {
+  if (!token || token.length > MAX_TOKEN_LENGTH) return false;
+  return TOKEN_VALIDATION_REGEX.test(token);
+};
 
 export function useInvitations() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
@@ -28,7 +50,7 @@ export function useInvitations() {
       setInvitations(data || []);
       setError(null);
     } catch (err: any) {
-      setError(err.message);
+      setError(sanitizeError(err));
       console.error('Error fetching invitations:', err);
     } finally {
       setLoading(false);
@@ -38,10 +60,23 @@ export function useInvitations() {
   // Send invitation
   const sendInvitation = async (email: string, role: 'admin' | 'officer') => {
     try {
+      // Validate inputs
+      if (!isValidEmail(email)) {
+        return { data: null, error: 'Invalid email address' };
+      }
+      if (!isValidRole(role)) {
+        return { data: null, error: 'Invalid role' };
+      }
+
+      const payload = { email, role };
+      if (!isValidPayloadSize(payload)) {
+        return { data: null, error: 'Request too large' };
+      }
+
       const response = await fetch('/api/invitaciones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, role }),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
@@ -53,14 +88,19 @@ export function useInvitations() {
       await fetchInvitations();
       return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
   // Revoke invitation
-  const revokeInvitation = async (token: string) => {
+  const revokeInvitation = async (invitationId: string) => {
     try {
-      const response = await fetch(`/api/invitaciones/${token}`, {
+      // Validate invitation ID format
+      if (!isValidUUID(invitationId)) {
+        return { error: 'Invalid invitation ID format' };
+      }
+
+      const response = await fetch(`/api/invitaciones/${invitationId}`, {
         method: 'DELETE',
       });
 
@@ -72,17 +112,35 @@ export function useInvitations() {
       await fetchInvitations();
       return { error: null };
     } catch (err: any) {
-      return { error: err.message };
+      return { error: sanitizeError(err) };
     }
   };
 
   // Accept invitation (for public use)
   const acceptInvitation = async (token: string, password: string) => {
     try {
+      // Validate token format before API call
+      if (!isValidToken(token)) {
+        return { data: null, error: 'Invalid invitation token format' };
+      }
+
+      // Validate password strength before API call
+      if (!isValidPassword(password)) {
+        return {
+          data: null,
+          error: 'Password must be 8-72 characters with uppercase, lowercase, digit, and special character',
+        };
+      }
+
+      const payload = { token, password };
+      if (!isValidPayloadSize(payload)) {
+        return { data: null, error: 'Request too large' };
+      }
+
       const response = await fetch('/api/invitaciones/accept', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
@@ -93,13 +151,18 @@ export function useInvitations() {
 
       return { data: result, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
   // Validate invitation token
   const validateToken = async (token: string) => {
     try {
+      // Validate token format
+      if (!isValidToken(token)) {
+        return { data: null, error: 'Invalid token format' };
+      }
+
       const response = await fetch(`/api/invitaciones/${token}`);
       const result = await response.json();
 
@@ -109,17 +172,27 @@ export function useInvitations() {
 
       return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
   // Resend invitation email
   const resendInvitation = async (invitationId: string) => {
     try {
+      // Validate invitation ID format
+      if (!isValidUUID(invitationId)) {
+        return { data: null, error: 'Invalid invitation ID format' };
+      }
+
+      const payload = { invitationId };
+      if (!isValidPayloadSize(payload)) {
+        return { data: null, error: 'Request too large' };
+      }
+
       const response = await fetch('/api/invitaciones/resend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ invitationId }),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
@@ -130,7 +203,7 @@ export function useInvitations() {
 
       return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 

@@ -1,8 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import type { Database } from '@/types/database.types';
+import {
+  isValidUUID,
+  isValidLocale,
+  isValidTextLength,
+  sanitizeError,
+  SUPPORTED_LOCALES,
+  MAX_NAME_LENGTH,
+  MAX_BIO_LENGTH
+} from '@/lib/api-utils';
 
 type TeamMember = Database['public']['Tables']['team_members']['Row'];
 type TeamMemberInsert = Database['public']['Tables']['team_members']['Insert'];
@@ -13,36 +21,38 @@ interface TeamMemberWithTranslations extends TeamMember {
   translations?: TeamMemberTranslation[];
 }
 
+const MAX_ROLE_LENGTH = 50;
+
+interface TeamTranslationInput {
+  name: string;
+  role: string;
+  bio?: string;
+}
+
 export function useTeam() {
   const [teamMembers, setTeamMembers] = useState<TeamMemberWithTranslations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
 
   // Fetch all team members
-  const fetchTeamMembers = async (activeOnly = false) => {
+  const fetchTeamMembers = async (activeOnly = false, locale?: string) => {
     try {
       setLoading(true);
-      let query = supabase
-        .from('team_members')
-        .select(`
-          *,
-          translations:team_member_translations(*)
-        `)
-        .order('display_order', { ascending: true });
+      const params = new URLSearchParams();
+      if (activeOnly) params.append('active_only', 'true');
+      if (locale && isValidLocale(locale)) params.append('locale', locale);
 
-      if (activeOnly) {
-        query = query.eq('is_active', true);
+      const response = await fetch(`/api/equipo?${params.toString()}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch team members');
       }
 
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) throw fetchError;
-
-      setTeamMembers(data || []);
+      setTeamMembers(result.data || []);
       setError(null);
     } catch (err: any) {
-      setError(err.message);
+      setError(sanitizeError(err));
       console.error('Error fetching team members:', err);
     } finally {
       setLoading(false);
@@ -52,35 +62,46 @@ export function useTeam() {
   // Create team member with translations
   const createTeamMember = async (
     memberData: Omit<TeamMemberInsert, 'id' | 'created_at' | 'updated_at'>,
-    translations: Record<string, { name: string; role: string; bio?: string }>
+    translations: Record<string, TeamTranslationInput>
   ) => {
     try {
-      // Insert team member
-      const { data: newMember, error: memberError } = await supabase
-        .from('team_members')
-        .insert(memberData)
-        .select()
-        .single();
+      if (Object.keys(translations).length === 0) {
+        return { data: null, error: 'At least one translation is required' };
+      }
 
-      if (memberError) throw memberError;
+      for (const [loc, trans] of Object.entries(translations)) {
+        if (!isValidLocale(loc)) {
+          return { data: null, error: `Invalid locale: ${loc}` };
+        }
+        if (!isValidTextLength(trans.name, MAX_NAME_LENGTH)) {
+          return { data: null, error: `Name exceeds max length of ${MAX_NAME_LENGTH}` };
+        }
+        if (!isValidTextLength(trans.role, MAX_ROLE_LENGTH)) {
+          return { data: null, error: `Role exceeds max length of ${MAX_ROLE_LENGTH}` };
+        }
+        if (!isValidTextLength(trans.bio, MAX_BIO_LENGTH)) {
+          return { data: null, error: `Bio exceeds max length of ${MAX_BIO_LENGTH}` };
+        }
+      }
 
-      // Insert translations
-      const translationsData = Object.entries(translations).map(([locale, trans]) => ({
-        team_member_id: newMember.id,
-        locale,
-        ...trans,
-      }));
+      const payload = { memberData, translations };
 
-      const { error: transError } = await supabase
-        .from('team_member_translations')
-        .insert(translationsData);
+      const response = await fetch('/api/equipo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-      if (transError) throw transError;
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create team member');
+      }
 
       await fetchTeamMembers();
-      return { data: newMember, error: null };
+      return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
@@ -88,62 +109,80 @@ export function useTeam() {
   const updateTeamMember = async (
     id: string,
     memberData: TeamMemberUpdate,
-    translations?: Record<string, { name?: string; role?: string; bio?: string }>
+    translations?: Record<string, Partial<TeamTranslationInput>>
   ) => {
     try {
-      // Update team member
-      const { data: updatedMember, error: memberError } = await supabase
-        .from('team_members')
-        .update(memberData)
-        .eq('id', id)
-        .select()
-        .single();
+      if (!isValidUUID(id)) {
+        return { data: null, error: 'Invalid team member ID format' };
+      }
 
-      if (memberError) throw memberError;
-
-      // Update translations if provided
       if (translations) {
-        for (const [locale, trans] of Object.entries(translations)) {
-          const { error: transError } = await supabase
-            .from('team_member_translations')
-            .upsert({
-              team_member_id: id,
-              locale,
-              ...trans,
-            }, {
-              onConflict: 'team_member_id,locale'
-            });
-
-          if (transError) throw transError;
+        for (const [loc, trans] of Object.entries(translations)) {
+          if (!isValidLocale(loc)) {
+            return { data: null, error: `Invalid locale: ${loc}` };
+          }
+          if (trans.name && !isValidTextLength(trans.name, MAX_NAME_LENGTH)) {
+            return { data: null, error: `Name exceeds max length of ${MAX_NAME_LENGTH}` };
+          }
+          if (trans.role && !isValidTextLength(trans.role, MAX_ROLE_LENGTH)) {
+            return { data: null, error: `Role exceeds max length of ${MAX_ROLE_LENGTH}` };
+          }
+          if (trans.bio && !isValidTextLength(trans.bio, MAX_BIO_LENGTH)) {
+            return { data: null, error: `Bio exceeds max length of ${MAX_BIO_LENGTH}` };
+          }
         }
       }
 
+      const payload = { memberData, translations };
+
+      const response = await fetch(`/api/equipo/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update team member');
+      }
+
       await fetchTeamMembers();
-      return { data: updatedMember, error: null };
+      return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
   // Delete team member
   const deleteTeamMember = async (id: string) => {
     try {
-      const { error: deleteError } = await supabase
-        .from('team_members')
-        .delete()
-        .eq('id', id);
+      if (!isValidUUID(id)) {
+        return { error: 'Invalid team member ID format' };
+      }
 
-      if (deleteError) throw deleteError;
+      const response = await fetch(`/api/equipo/${id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete team member');
+      }
 
       await fetchTeamMembers();
       return { error: null };
     } catch (err: any) {
-      return { error: err.message };
+      return { error: sanitizeError(err) };
     }
   };
 
   // Update display order
   const updateDisplayOrder = async (id: string, order: number) => {
+    if (!isValidUUID(id)) {
+      return { data: null, error: 'Invalid team member ID format' };
+    }
     return updateTeamMember(id, { display_order: order });
   };
 

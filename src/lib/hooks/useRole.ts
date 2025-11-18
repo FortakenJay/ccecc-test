@@ -2,20 +2,33 @@
 
 import { useAuth } from './useAuth';
 
+// CRITICAL SECURITY WARNING
+// ===========================
+// ALL PERMISSION CHECKS IN THIS FILE ARE CLIENT-SIDE ONLY FOR UI PURPOSES
+// NEVER RELY ON THESE CHECKS FOR AUTHORIZATION OR SECURITY
+// ALWAYS verify permissions server-side using:
+// 1. Supabase Row-Level Security (RLS) policies
+// 2. Server-side API route permission checks
+// 3. JWT token validation
+//
+// A malicious user can bypass these checks via browser dev tools or direct API calls
+// Your API and database MUST enforce authorization independently
+
+// Export role hierarchy for centralized management
+export const ROLE_HIERARCHY = {
+  owner: 3,
+  admin: 2,
+  officer: 1,
+} as const;
+
 export function useRole() {
   const { profile, loading } = useAuth();
 
   const hasPermission = (requiredRole: 'owner' | 'admin' | 'officer') => {
     if (!profile) return false;
 
-    const roleHierarchy = {
-      owner: 3,
-      admin: 2,
-      officer: 1,
-    };
-
-    const userLevel = roleHierarchy[profile.role];
-    const requiredLevel = roleHierarchy[requiredRole];
+    const userLevel = ROLE_HIERARCHY[profile.role];
+    const requiredLevel = ROLE_HIERARCHY[requiredRole];
 
     return userLevel >= requiredLevel;
   };

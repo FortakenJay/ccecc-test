@@ -1,8 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import type { Database } from '@/types/database.types';
+import {
+  isValidUUID,
+  isValidLocale,
+  isValidTextLength,
+  sanitizeError,
+  SUPPORTED_LOCALES,
+  MAX_TITLE_LENGTH,
+  MAX_DESCRIPTION_LENGTH
+} from '@/lib/api-utils';
 
 type EventRow = Database['public']['Tables']['events']['Row'];
 type EventInsert = Database['public']['Tables']['events']['Insert'];
@@ -13,37 +21,39 @@ interface EventWithTranslations extends EventRow {
   translations?: EventTranslation[];
 }
 
+interface EventTranslationInput {
+  title: string;
+  description?: string;
+}
+
 export function useEvents(locale?: string) {
   const [events, setEvents] = useState<EventWithTranslations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
 
   // Fetch all events with translations
   const fetchEvents = async (activeOnly = false) => {
     try {
       setLoading(true);
-      let query = supabase
-        .from('events')
-        .select(`
-          *,
-          translations:event_translations(*)
-        `)
-        .order('event_date', { ascending: false });
+      const params = new URLSearchParams();
+      if (activeOnly) params.append('active_only', 'true');
+      if (locale && isValidLocale(locale)) params.append('locale', locale);
 
-      if (activeOnly) {
-        query = query.eq('is_active', true);
+      const response = await fetch(`/api/eventos?${params.toString()}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch events');
       }
 
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) throw fetchError;
-
-      setEvents(data || []);
+      setEvents(result.data || []);
       setError(null);
     } catch (err: any) {
-      setError(err.message);
-      console.error('Error fetching events:', err);
+      const safeError = sanitizeError(err);
+      setError(safeError);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error fetching events:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -52,54 +62,66 @@ export function useEvents(locale?: string) {
   // Get single event by ID
   const getEvent = async (id: string) => {
     try {
-      const { data, error: fetchError } = await supabase
-        .from('events')
-        .select(`
-          *,
-          translations:event_translations(*)
-        `)
-        .eq('id', id)
-        .single();
+      if (!isValidUUID(id)) {
+        return { data: null, error: 'Invalid event ID format' };
+      }
 
-      if (fetchError) throw fetchError;
-      return { data, error: null };
+      const params = new URLSearchParams();
+      if (locale && isValidLocale(locale)) params.append('locale', locale);
+
+      const response = await fetch(`/api/eventos/${id}?${params.toString()}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch event');
+      }
+
+      return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
   // Create new event with translations
   const createEvent = async (
     eventData: Omit<EventInsert, 'id' | 'created_at' | 'updated_at'>,
-    translations: Record<string, { title: string; description?: string }>
+    translations: Record<string, EventTranslationInput>
   ) => {
     try {
-      // Insert event
-      const { data: newEvent, error: eventError } = await supabase
-        .from('events')
-        .insert(eventData)
-        .select()
-        .single();
+      if (Object.keys(translations).length === 0) {
+        return { data: null, error: 'At least one translation is required' };
+      }
 
-      if (eventError) throw eventError;
+      for (const [loc, trans] of Object.entries(translations)) {
+        if (!isValidLocale(loc)) {
+          return { data: null, error: `Invalid locale: ${loc}` };
+        }
+        if (!trans.title || !isValidTextLength(trans.title, MAX_TITLE_LENGTH)) {
+          return { data: null, error: `Title is required and must not exceed ${MAX_TITLE_LENGTH} characters` };
+        }
+        if (!isValidTextLength(trans.description, MAX_DESCRIPTION_LENGTH)) {
+          return { data: null, error: `Description exceeds max length of ${MAX_DESCRIPTION_LENGTH}` };
+        }
+      }
 
-      // Insert translations
-      const translationsData = Object.entries(translations).map(([locale, trans]) => ({
-        event_id: newEvent.id,
-        locale,
-        ...trans,
-      }));
+      const payload = { eventData, translations };
 
-      const { error: transError } = await supabase
-        .from('event_translations')
-        .insert(translationsData);
+      const response = await fetch('/api/eventos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-      if (transError) throw transError;
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create event');
+      }
 
       await fetchEvents();
-      return { data: newEvent, error: null };
+      return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
@@ -107,57 +129,69 @@ export function useEvents(locale?: string) {
   const updateEvent = async (
     id: string,
     eventData: EventUpdate,
-    translations?: Record<string, { title?: string; description?: string }>
+    translations?: Record<string, Partial<EventTranslationInput>>
   ) => {
     try {
-      // Update event
-      const { data: updatedEvent, error: eventError } = await supabase
-        .from('events')
-        .update(eventData)
-        .eq('id', id)
-        .select()
-        .single();
+      if (!isValidUUID(id)) {
+        return { data: null, error: 'Invalid event ID format' };
+      }
 
-      if (eventError) throw eventError;
-
-      // Update translations if provided
       if (translations) {
-        for (const [locale, trans] of Object.entries(translations)) {
-          const { error: transError } = await supabase
-            .from('event_translations')
-            .upsert({
-              event_id: id,
-              locale,
-              ...trans,
-            }, {
-              onConflict: 'event_id,locale'
-            });
-
-          if (transError) throw transError;
+        for (const [loc, trans] of Object.entries(translations)) {
+          if (!isValidLocale(loc)) {
+            return { data: null, error: `Invalid locale: ${loc}` };
+          }
+          if (trans.title && !isValidTextLength(trans.title, MAX_TITLE_LENGTH)) {
+            return { data: null, error: `Title exceeds max length of ${MAX_TITLE_LENGTH}` };
+          }
+          if (trans.description && !isValidTextLength(trans.description, MAX_DESCRIPTION_LENGTH)) {
+            return { data: null, error: `Description exceeds max length of ${MAX_DESCRIPTION_LENGTH}` };
+          }
         }
       }
 
+      const payload = { eventData, translations };
+
+      const response = await fetch(`/api/eventos/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update event');
+      }
+
       await fetchEvents();
-      return { data: updatedEvent, error: null };
+      return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
   // Delete event
   const deleteEvent = async (id: string) => {
     try {
-      const { error: deleteError } = await supabase
-        .from('events')
-        .delete()
-        .eq('id', id);
+      if (!isValidUUID(id)) {
+        return { error: 'Invalid event ID format' };
+      }
 
-      if (deleteError) throw deleteError;
+      const response = await fetch(`/api/eventos/${id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete event');
+      }
 
       await fetchEvents();
       return { error: null };
     } catch (err: any) {
-      return { error: err.message };
+      return { error: sanitizeError(err) };
     }
   };
 

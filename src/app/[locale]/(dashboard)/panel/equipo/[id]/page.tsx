@@ -8,31 +8,32 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textArea';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendar, faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons';
+import { faUsers, faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons';
 
-export default function EditEventPage() {
+export default function EditTeamMemberPage() {
   const router = useRouter();
   const params = useParams();
-  const eventId = params.id as string;
+  const memberId = params.id as string;
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
-  // Event data
-  const [eventDate, setEventDate] = useState('');
-  const [location, setLocation] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [maxAttendees, setMaxAttendees] = useState('');
+  // Team member data
+  const [photoUrl, setPhotoUrl] = useState('');
+  const [displayOrder, setDisplayOrder] = useState('');
   const [isActive, setIsActive] = useState(true);
 
   // Translations
-  const [titleEn, setTitleEn] = useState('');
-  const [titleEs, setTitleEs] = useState('');
-  const [titleZh, setTitleZh] = useState('');
-  const [descEn, setDescEn] = useState('');
-  const [descEs, setDescEs] = useState('');
-  const [descZh, setDescZh] = useState('');
+  const [nameEn, setNameEn] = useState('');
+  const [nameEs, setNameEs] = useState('');
+  const [nameZh, setNameZh] = useState('');
+  const [roleEn, setRoleEn] = useState('');
+  const [roleEs, setRoleEs] = useState('');
+  const [roleZh, setRoleZh] = useState('');
+  const [bioEn, setBioEn] = useState('');
+  const [bioEs, setBioEs] = useState('');
+  const [bioZh, setBioZh] = useState('');
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
@@ -40,32 +41,23 @@ export default function EditEventPage() {
   };
 
   useEffect(() => {
-    fetchEvent();
-  }, [eventId]);
+    fetchTeamMember();
+  }, [memberId]);
 
-  const fetchEvent = async () => {
+  const fetchTeamMember = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/eventos/${eventId}`);
-      if (!res.ok) throw new Error('Failed to fetch event');
+      const res = await fetch(`/api/equipo/${memberId}`);
+      if (!res.ok) throw new Error('Failed to fetch team member');
       
       const { data } = await res.json();
       
-      // Format datetime-local value (remove timezone info)
-      if (data.event_date) {
-        const date = new Date(data.event_date);
-        const formattedDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-          .toISOString()
-          .slice(0, 16);
-        setEventDate(formattedDate);
-      }
-      setLocation(data.location || '');
-      setImageUrl(data.image_url || '');
-      setMaxAttendees(data.max_attendees?.toString() || '');
+      setPhotoUrl(data.photo_url || '');
+      setDisplayOrder(data.display_order?.toString() || '');
       setIsActive(data.is_active ?? true);
       
       // Load translations
-      const transRes = await fetch(`/api/eventos/${eventId}/translations`);
+      const transRes = await fetch(`/api/equipo/${memberId}/translations`);
       if (transRes.ok) {
         const { data: translations } = await transRes.json();
         const en = translations.find((t: any) => t.language === 'en');
@@ -73,20 +65,23 @@ export default function EditEventPage() {
         const zh = translations.find((t: any) => t.language === 'zh');
         
         if (en) {
-          setTitleEn(en.title || '');
-          setDescEn(en.description || '');
+          setNameEn(en.name || '');
+          setRoleEn(en.role || '');
+          setBioEn(en.bio || '');
         }
         if (es) {
-          setTitleEs(es.title || '');
-          setDescEs(es.description || '');
+          setNameEs(es.name || '');
+          setRoleEs(es.role || '');
+          setBioEs(es.bio || '');
         }
         if (zh) {
-          setTitleZh(zh.title || '');
-          setDescZh(zh.description || '');
+          setNameZh(zh.name || '');
+          setRoleZh(zh.role || '');
+          setBioZh(zh.bio || '');
         }
       }
     } catch (error) {
-      showToast('Failed to load event', 'error');
+      showToast('Failed to load team member', 'error');
     } finally {
       setLoading(false);
     }
@@ -95,32 +90,25 @@ export default function EditEventPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!titleEn || !titleEs || !titleZh) {
-      showToast('Please provide titles in all languages', 'error');
-      return;
-    }
-
-    if (!eventDate) {
-      showToast('Please select an event date', 'error');
+    if (!nameEn || !nameEs || !nameZh) {
+      showToast('Please provide names in all languages', 'error');
       return;
     }
 
     try {
       setSaving(true);
 
-      const res = await fetch(`/api/eventos/${eventId}`, {
+      const res = await fetch(`/api/equipo/${memberId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          event_date: eventDate,
-          location: location || null,
-          image_url: imageUrl || null,
-          max_attendees: maxAttendees ? parseInt(maxAttendees) : null,
+          photo_url: photoUrl || null,
+          display_order: displayOrder ? parseInt(displayOrder) : null,
           is_active: isActive,
           translations: {
-            en: { title: titleEn, description: descEn || null },
-            es: { title: titleEs, description: descEs || null },
-            zh: { title: titleZh, description: descZh || null }
+            en: { name: nameEn, role: roleEn || null, bio: bioEn || null },
+            es: { name: nameEs, role: roleEs || null, bio: bioEs || null },
+            zh: { name: nameZh, role: roleZh || null, bio: bioZh || null }
           }
         }),
       });
@@ -128,12 +116,12 @@ export default function EditEventPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        showToast(data.error || 'Failed to update event', 'error');
+        showToast(data.error || 'Failed to update team member', 'error');
         return;
       }
 
-      showToast('Event updated successfully!', 'success');
-      setTimeout(() => router.push('/panel/eventos'), 1500);
+      showToast('Team member updated successfully!', 'success');
+      setTimeout(() => router.push('/panel/equipo'), 1500);
     } catch (error) {
       showToast('An error occurred. Please try again.', 'error');
     } finally {
@@ -164,18 +152,18 @@ export default function EditEventPage() {
       <div className="mb-8">
         <Button
           variant="outline"
-          onClick={() => router.push('/panel/eventos')}
+          onClick={() => router.push('/panel/equipo')}
           className="mb-4"
         >
           <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
-          Back to Events
+          Back to Team
         </Button>
         
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <FontAwesomeIcon icon={faCalendar} className="w-8 h-8 text-red-600" />
-          Edit Event
+          <FontAwesomeIcon icon={faUsers} className="w-8 h-8 text-red-600" />
+          Edit Team Member
         </h1>
-        <p className="text-gray-600 mt-2">Update event information and translations</p>
+        <p className="text-gray-600 mt-2">Update team member information and translations</p>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -183,54 +171,32 @@ export default function EditEventPage() {
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Event Details</CardTitle>
+              <CardTitle>Basic Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="eventDate">Event Date & Time *</Label>
+                  <Label htmlFor="photoUrl">Photo URL</Label>
                   <Input
-                    id="eventDate"
-                    type="datetime-local"
-                    value={eventDate}
-                    onChange={(e) => setEventDate(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Event venue or address"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="imageUrl">Image URL</Label>
-                  <Input
-                    id="imageUrl"
+                    id="photoUrl"
                     type="url"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://example.com/image.jpg"
+                    value={photoUrl}
+                    onChange={(e) => setPhotoUrl(e.target.value)}
+                    placeholder="https://example.com/photo.jpg"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="maxAttendees">Max Attendees</Label>
+                  <Label htmlFor="displayOrder">Display Order</Label>
                   <Input
-                    id="maxAttendees"
+                    id="displayOrder"
                     type="number"
-                    value={maxAttendees}
-                    onChange={(e) => setMaxAttendees(e.target.value)}
-                    placeholder="Leave empty for unlimited"
-                    min="1"
+                    value={displayOrder}
+                    onChange={(e) => setDisplayOrder(e.target.value)}
+                    placeholder="0"
+                    min="0"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Lower numbers appear first</p>
                 </div>
               </div>
 
@@ -254,22 +220,31 @@ export default function EditEventPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="titleEn">Title *</Label>
+                <Label htmlFor="nameEn">Name *</Label>
                 <Input
-                  id="titleEn"
-                  value={titleEn}
-                  onChange={(e) => setTitleEn(e.target.value)}
-                  placeholder="Event title in English"
+                  id="nameEn"
+                  value={nameEn}
+                  onChange={(e) => setNameEn(e.target.value)}
+                  placeholder="Full name in English"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="descEn">Description</Label>
+                <Label htmlFor="roleEn">Role/Title</Label>
+                <Input
+                  id="roleEn"
+                  value={roleEn}
+                  onChange={(e) => setRoleEn(e.target.value)}
+                  placeholder="e.g., Director, Teacher"
+                />
+              </div>
+              <div>
+                <Label htmlFor="bioEn">Bio</Label>
                 <Textarea
-                  id="descEn"
-                  value={descEn}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescEn(e.target.value)}
-                  placeholder="Event description in English"
+                  id="bioEn"
+                  value={bioEn}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBioEn(e.target.value)}
+                  placeholder="Short biography in English"
                   rows={4}
                 />
               </div>
@@ -283,22 +258,31 @@ export default function EditEventPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="titleEs">Título *</Label>
+                <Label htmlFor="nameEs">Nombre *</Label>
                 <Input
-                  id="titleEs"
-                  value={titleEs}
-                  onChange={(e) => setTitleEs(e.target.value)}
-                  placeholder="Título del evento en español"
+                  id="nameEs"
+                  value={nameEs}
+                  onChange={(e) => setNameEs(e.target.value)}
+                  placeholder="Nombre completo en español"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="descEs">Descripción</Label>
+                <Label htmlFor="roleEs">Cargo/Título</Label>
+                <Input
+                  id="roleEs"
+                  value={roleEs}
+                  onChange={(e) => setRoleEs(e.target.value)}
+                  placeholder="ej., Director, Profesor"
+                />
+              </div>
+              <div>
+                <Label htmlFor="bioEs">Biografía</Label>
                 <Textarea
-                  id="descEs"
-                  value={descEs}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescEs(e.target.value)}
-                  placeholder="Descripción del evento en español"
+                  id="bioEs"
+                  value={bioEs}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBioEs(e.target.value)}
+                  placeholder="Biografía breve en español"
                   rows={4}
                 />
               </div>
@@ -312,22 +296,31 @@ export default function EditEventPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="titleZh">标题 *</Label>
+                <Label htmlFor="nameZh">姓名 *</Label>
                 <Input
-                  id="titleZh"
-                  value={titleZh}
-                  onChange={(e) => setTitleZh(e.target.value)}
-                  placeholder="中文活动标题"
+                  id="nameZh"
+                  value={nameZh}
+                  onChange={(e) => setNameZh(e.target.value)}
+                  placeholder="中文全名"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="descZh">描述</Label>
+                <Label htmlFor="roleZh">职位</Label>
+                <Input
+                  id="roleZh"
+                  value={roleZh}
+                  onChange={(e) => setRoleZh(e.target.value)}
+                  placeholder="例如：主任、教师"
+                />
+              </div>
+              <div>
+                <Label htmlFor="bioZh">简介</Label>
                 <Textarea
-                  id="descZh"
-                  value={descZh}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescZh(e.target.value)}
-                  placeholder="中文活动描述"
+                  id="bioZh"
+                  value={bioZh}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBioZh(e.target.value)}
+                  placeholder="中文简短介绍"
                   rows={4}
                 />
               </div>
@@ -339,7 +332,7 @@ export default function EditEventPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push('/panel/eventos')}
+              onClick={() => router.push('/panel/equipo')}
               disabled={saving}
             >
               Cancel

@@ -1,138 +1,140 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import type { Database } from '@/types/database.types';
+import {
+  isValidUUID,
+  isValidEmail,
+  isValidRole,
+  sanitizeError,
+  MAX_EMAIL_LENGTH,
+  VALID_ROLES
+} from '@/lib/api-utils';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
-type Invitation = Database['public']['Tables']['invitations']['Row'];
+
+interface PaginationOptions {
+  limit?: number;
+  offset?: number;
+}
+
+interface ValidatedPagination {
+  limit: number;
+  offset: number;
+}
+
+const validatePagination = (pagination?: PaginationOptions): ValidatedPagination => {
+  if (!pagination) return { limit: 50, offset: 0 };
+  const limit = Math.min(Math.max(pagination.limit || 50, 1), 500);
+  const offset = Math.max(pagination.offset || 0, 0);
+  return { limit, offset };
+};
 
 export function useUsers() {
   const [users, setUsers] = useState<Profile[]>([]);
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
 
   // Fetch all users
-  const fetchUsers = async () => {
+  const fetchUsers = async (pagination?: PaginationOptions) => {
     try {
       setLoading(true);
-      const { data, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { limit, offset } = validatePagination(pagination);
 
-      if (fetchError) throw fetchError;
+      const params = new URLSearchParams();
+      params.append('limit', limit.toString());
+      params.append('offset', offset.toString());
 
-      setUsers(data || []);
+      const response = await fetch(`/api/usuarios?${params.toString()}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch users');
+      }
+
+      setUsers(result.data || []);
       setError(null);
     } catch (err: any) {
-      setError(err.message);
-      console.error('Error fetching users:', err);
+      const safeError = sanitizeError(err);
+      setError(safeError);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error fetching users:', err);
+      }
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Fetch pending invitations
-  const fetchInvitations = async () => {
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('invitations')
-        .select('*')
-        .is('accepted_at', null)
-        .gt('expires_at', new Date().toISOString())
-        .order('created_at', { ascending: false });
-
-      if (fetchError) throw fetchError;
-
-      setInvitations(data || []);
-      return { data, error: null };
-    } catch (err: any) {
-      return { data: null, error: err.message };
     }
   };
 
   // Update user profile
   const updateUser = async (id: string, updates: ProfileUpdate) => {
     try {
-      const { data, error: updateError } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+      if (!isValidUUID(id)) {
+        return { data: null, error: 'Invalid user ID format' };
+      }
 
-      if (updateError) throw updateError;
-
-      await fetchUsers();
-      return { data, error: null };
-    } catch (err: any) {
-      return { data: null, error: err.message };
-    }
-  };
-
-  // Toggle user active status
-  const toggleUserStatus = async (id: string, isActive: boolean) => {
-    return updateUser(id, { is_active: isActive });
-  };
-
-  // Send invitation
-  const sendInvitation = async (email: string, role: 'admin' | 'officer') => {
-    try {
-      const response = await fetch('/api/invitaciones', {
-        method: 'POST',
+      const response = await fetch(`/api/usuarios/${id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, role }),
+        body: JSON.stringify(updates),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to send invitation');
+        throw new Error(result.error || 'Failed to update user');
       }
 
-      await fetchInvitations();
+      await fetchUsers();
       return { data: result.data, error: null };
     } catch (err: any) {
-      return { data: null, error: err.message };
+      return { data: null, error: sanitizeError(err) };
     }
   };
 
-  // Revoke invitation
-  const revokeInvitation = async (id: string) => {
+  // Toggle user active status
+  const toggleUserStatus = async (id: string, isActive: boolean) => {
+    if (!isValidUUID(id)) {
+      return { data: null, error: 'Invalid user ID format' };
+    }
+    return updateUser(id, { is_active: isActive });
+  };
+
+  // Delete user
+  const deleteUser = async (id: string) => {
     try {
-      const { error: deleteError } = await supabase
-        .from('invitations')
-        .delete()
-        .eq('id', id);
+      if (!isValidUUID(id)) {
+        return { error: 'Invalid user ID format' };
+      }
 
-      if (deleteError) throw deleteError;
+      const response = await fetch(`/api/usuarios/${id}`, {
+        method: 'DELETE',
+      });
 
-      await fetchInvitations();
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete user');
+      }
+
+      await fetchUsers();
       return { error: null };
     } catch (err: any) {
-      return { error: err.message };
+      return { error: sanitizeError(err) };
     }
   };
 
   useEffect(() => {
     fetchUsers();
-    fetchInvitations();
   }, []);
 
   return {
     users,
-    invitations,
     loading,
     error,
     fetchUsers,
-    fetchInvitations,
     updateUser,
     toggleUserStatus,
-    sendInvitation,
-    revokeInvitation,
+    deleteUser,
   };
 }
