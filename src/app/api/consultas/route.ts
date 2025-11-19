@@ -23,9 +23,9 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
 
-    // Check authentication - admin only
+    // Check authentication - admin, owner, and officer can view
     const user = await checkAuth(supabase);
-    await checkAuthorization(supabase, user.id, ['admin', 'owner']);
+    await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     // Get pagination params
     const url = new URL(request.url);
@@ -154,8 +154,8 @@ export async function PATCH(request: NextRequest) {
     // Check authentication
     const user = await checkAuth(supabase);
 
-    // Check authorization - admin/owner
-    await checkAuthorization(supabase, user.id, ['admin', 'owner']);
+    // Check authorization - admin/owner/officer
+    await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = await request.json();
 
@@ -215,8 +215,8 @@ export async function DELETE(request: NextRequest) {
     // Check authentication
     const user = await checkAuth(supabase);
 
-    // Check authorization - admin/owner
-    await checkAuthorization(supabase, user.id, ['admin', 'owner']);
+    // Check authorization - admin/owner/officer
+    await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = await request.json();
 

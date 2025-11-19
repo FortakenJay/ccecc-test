@@ -14,7 +14,8 @@ import {
   faCheckCircle,
   faExclamationCircle,
   faSpinner,
-  faEnvelope
+  faEnvelope,
+  faCircleInfo
 } from '@fortawesome/free-solid-svg-icons';
 import { createClient } from '@/lib/supabase/client';
 
@@ -128,50 +129,125 @@ export default function AcceptInvitationPage() {
       return;
     }
 
+    if (!invitation.role || !['owner', 'admin', 'officer'].includes(invitation.role)) {
+      showToast('Invalid invitation role', 'error');
+      return;
+    }
+
+    console.log('Starting invitation acceptance with:', {
+      invitationId: invitation.id,
+      role: invitation.role,
+      invitedBy: invitation.invited_by,
+      email: email
+    });
+
     try {
       setLoading(true);
       const supabase = createClient();
 
-      // Update password
+      // Get current user session info
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !currentUser) {
+        showToast('Authentication session invalid. Please sign in again.', 'error');
+        return;
+      }
+
+      console.log('Current user session:', {
+        id: currentUser.id,
+        email: currentUser.email,
+        emailConfirmed: currentUser.email_confirmed_at,
+        lastSignIn: currentUser.last_sign_in_at,
+        factors: currentUser.factors?.length || 0
+      });
+
+      // Update password with detailed error handling
+      let passwordSetSuccessfully = true;
       const { error: passwordError } = await supabase.auth.updateUser({
         password: password
       });
 
       if (passwordError) {
-        showToast('Failed to set password', 'error');
-        return;
+        passwordSetSuccessfully = false;
+        console.error('Password update error:', passwordError);
+        
+        // Provide more specific error messages based on error type
+        let errorMessage = 'Failed to set password';
+        let shouldContinue = true;
+        
+        if (passwordError.message) {
+          if (passwordError.message.includes('email_change_confirm_status_not_found')) {
+            errorMessage = 'Please complete email verification first';
+          } else if (passwordError.message.includes('session_not_found')) {
+            errorMessage = 'Session expired. Please sign in again';
+            shouldContinue = false;
+          } else if (passwordError.message.includes('New password should be different')) {
+            // This happens when OTP creates a temporary password - skip and continue
+            errorMessage = 'Password will be set on first manual login';
+            passwordSetSuccessfully = false;
+          } else if (passwordError.message.includes('password')) {
+            errorMessage = `Password error: ${passwordError.message}`;
+          } else {
+            errorMessage = `Authentication error: ${passwordError.message}`;
+          }
+        }
+        
+        if (!shouldContinue) {
+          showToast(errorMessage, 'error');
+          return;
+        }
+        
+        // Show warning but continue with profile creation for non-critical errors
+        if (!passwordError.message.includes('New password should be different')) {
+          showToast(`Note: ${errorMessage}. You can set a password later in your profile.`, 'warning');
+        }
       }
 
-      // Update profile with role and full name
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        showToast('User not found', 'error');
-        return;
-      }
+      // Update profile with role and full name via special invitation API
+      console.log('Creating profile with data:', {
+        id: currentUser.id,
+        email: currentUser.email,
+        full_name: fullName.trim(),
+        role: invitation.role,
+        invited_by: invitation.invited_by,
+        invitation_id: invitation.id
+      });
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          email: user.email,
-          full_name: fullName.trim(),
-          role: invitation.role,
-          invited_by: invitation.invited_by
+      try {
+        const profileResponse = await fetch('/api/accept-invitation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: currentUser.id,
+            email: currentUser.email,
+            full_name: fullName.trim(),
+            role: invitation.role,
+            invited_by: invitation.invited_by,
+            invitation_id: invitation.id,
+            is_active: true
+          })
         });
 
-      if (profileError) {
-        showToast('Failed to create profile', 'error');
+        if (!profileResponse.ok) {
+          const errorData = await profileResponse.json().catch(() => ({}));
+          throw new Error(errorData.error || `HTTP ${profileResponse.status}: ${profileResponse.statusText}`);
+        }
+
+        const result = await profileResponse.json();
+        console.log('Profile created successfully via invitation API:', result);
+      } catch (apiError) {
+        console.error('Invitation API failed:', apiError);
+        showToast(`Failed to create profile: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`, 'error');
         return;
       }
 
-      // Mark invitation as accepted
-      await supabase
-        .from('invitations')
-        .update({ accepted_at: new Date().toISOString() })
-        .eq('id', invitation.id);
-
-      showToast('Account setup complete! Redirecting...', 'success');
+      const successMessage = passwordSetSuccessfully 
+        ? 'Account setup complete! Redirecting...' 
+        : 'Account setup complete! Password can be set later in your profile. Redirecting...';
+        
+      showToast(successMessage, 'success');
       setTimeout(() => router.push('/panel'), 2000);
     } catch (error) {
       showToast('An error occurred. Please try again.', 'error');
@@ -228,6 +304,10 @@ export default function AcceptInvitationPage() {
           <p className="text-sm text-gray-600 mt-2">
             You've been invited to join as <span className="font-semibold text-red-600">{role}</span>
           </p>
+          <div className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-md p-2 mt-3">
+            <FontAwesomeIcon icon={faCircleInfo} className="mr-1" />
+            You're authenticated via email link. Setting a password is optional for future convenience.
+          </div>
         </CardHeader>
 
         <CardContent>

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   isValidUUID,
@@ -165,13 +166,17 @@ export async function DELETE(
       return errorResponse('Failed to delete user profile', 400);
     }
 
-    // Delete user from Supabase Auth
-    const { error: authError } = await supabase.auth.admin.deleteUser(id);
+    // Delete user from Supabase Auth using admin client
+    const adminSupabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    
+    const { error: authError } = await adminSupabase.auth.admin.deleteUser(id);
 
     if (authError) {
       console.error('Auth deletion error:', authError);
-      // Profile already deleted, but auth deletion failed
-      // This is acceptable as the user can't log in without a profile
+      return errorResponse('Failed to delete user from authentication system', 400);
     }
 
     // Log deletion

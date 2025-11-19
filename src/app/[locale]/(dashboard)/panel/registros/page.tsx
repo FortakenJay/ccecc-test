@@ -23,7 +23,10 @@ interface AuditLog {
   action: string;
   table_name: string;
   record_id?: string;
-  user_email?: string;
+  user?: {
+    full_name: string;
+    email: string;
+  };
   ip_address?: string;
   user_agent?: string;
   created_at: string;
@@ -56,6 +59,9 @@ export default function RegistrosPage() {
       const res = await fetch('/api/registros?limit=100');
       if (!res.ok) throw new Error('Failed to fetch audit logs');
       const data = await res.json();
+      
+      console.log('API Response:', data);
+      console.log('First log entry:', data.data?.[0]);
       
       let allLogs = data.data || [];
       
@@ -201,11 +207,16 @@ export default function RegistrosPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm text-gray-900">{log.user_email || 'Unknown'}</div>
+                        <div className="text-sm text-gray-900">
+                          {log.user?.email || log.user?.full_name || (log.user_id ? 'Deleted User' : 'System')}
+                        </div>
                         <div className="text-xs text-gray-500 flex items-center gap-1">
                           <FontAwesomeIcon icon={faShield} className="w-3 h-3" />
                           {log.user_role}
                         </div>
+                        {log.user_id && !log.user && (
+                          <div className="text-xs text-gray-400 mt-1">ID: {log.user_id.substring(0, 8)}...</div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

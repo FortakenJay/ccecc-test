@@ -58,7 +58,7 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const { user, profile, loading: authLoading } = useAuth();
-  const { isAdmin, isOwner, loading: roleLoading } = useRole();
+  const { isAdmin, isOwner, isOfficer, loading: roleLoading } = useRole();
   const router = useRouter();
   
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -72,10 +72,10 @@ export default function DashboardPage() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    if (!roleLoading && !isAdmin && !isOwner) {
+    if (!roleLoading && !isAdmin && !isOwner && !isOfficer) {
       router.push('/');
     }
-  }, [isAdmin, isOwner, roleLoading, router]);
+  }, [isAdmin, isOwner, isOfficer, roleLoading, router]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -107,7 +107,10 @@ export default function DashboardPage() {
           fetchWithFallback('/api/equipo', 'Team'),
           fetchWithFallback('/api/hsk/registration', 'HSK'),
           fetchWithFallback('/api/consultas', 'Consultas'),
-          fetchWithFallback('/api/registros?limit=15', 'Audit Logs')
+          // Only fetch audit logs for admins and owners
+          (profile?.role === 'owner' || profile?.role === 'admin') 
+            ? fetchWithFallback('/api/registros?limit=15', 'Audit Logs')
+            : Promise.resolve({ data: [] })
         ]);
 
         // Process users stats
@@ -357,23 +360,24 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-          {/* Audit Logs */}
-          <Card className="p-6 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <FontAwesomeIcon icon={faClipboardList} className="w-5 h-5 text-red-600" />
-                Audit Log
-                {profile?.role === 'admin' && (
-                  <span className="text-xs font-normal text-gray-500 ml-2">(Officer actions only)</span>
-                )}
-              </h3>
-              <button
-                onClick={() => router.push('/panel/registros')}
-                className="text-sm text-red-600 hover:text-red-700 font-medium"
-              >
-                View All →
-              </button>
-            </div>
+          {/* Audit Logs - Only show for admins and owners */}
+          {(profile?.role === 'owner' || profile?.role === 'admin') && (
+            <Card className="p-6 mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <FontAwesomeIcon icon={faClipboardList} className="w-5 h-5 text-red-600" />
+                  Audit Log
+                  {profile?.role === 'admin' && (
+                    <span className="text-xs font-normal text-gray-500 ml-2">(Officer actions only)</span>
+                  )}
+                </h3>
+                <button
+                  onClick={() => router.push('/panel/registros')}
+                  className="text-sm text-red-600 hover:text-red-700 font-medium"
+                >
+                  View All →
+                </button>
+              </div>
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {stats.auditLogs.length > 0 ? (
                 stats.auditLogs.map((log) => (
@@ -416,17 +420,21 @@ export default function DashboardPage() {
               )}
             </div>
           </Card>
+          )}
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button
-              onClick={() => router.push('/panel/usuarios')}
-              className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
-            >
-              <FontAwesomeIcon icon={faUsers} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
-              <h4 className="font-semibold text-gray-900">Manage Users</h4>
-              <p className="text-sm text-gray-600 mt-1">View and edit user accounts</p>
-            </button>
+            {/* Manage Users - Only for admins and owners */}
+            {(profile?.role === 'owner' || profile?.role === 'admin') && (
+              <button
+                onClick={() => router.push('/panel/usuarios')}
+                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+              >
+                <FontAwesomeIcon icon={faUsers} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
+                <h4 className="font-semibold text-gray-900">Manage Users</h4>
+                <p className="text-sm text-gray-600 mt-1">View and edit user accounts</p>
+              </button>
+            )}
 
             <button
               onClick={() => router.push('/panel/clases')}

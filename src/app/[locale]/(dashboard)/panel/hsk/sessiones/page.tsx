@@ -32,7 +32,7 @@ interface Session {
 export default function HSKSessionsPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, isOwner, loading: roleLoading } = useRole();
+  const { isAdmin, isOwner, isOfficer, loading: roleLoading } = useRole();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,12 +55,12 @@ export default function HSKSessionsPage() {
   useEffect(() => {
     if (authLoading || roleLoading) return;
     
-    if (!user || (!isAdmin && !isOwner)) {
+    if (!user || (!isAdmin && !isOwner && !isOfficer)) {
       router.push('/');
       return;
     }
     fetchSessions();
-  }, [user, isAdmin, isOwner, authLoading, roleLoading]);
+  }, [user, isAdmin, isOwner, isOfficer, authLoading, roleLoading]);
 
   const fetchSessions = async () => {
     try {

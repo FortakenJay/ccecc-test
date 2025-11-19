@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     const user = await checkAuth(supabase);
 
     // Check authorization
-    await checkAuthorization(supabase, user.id, ['admin', 'owner']);
+    await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = await request.json();
     const { classData, translations } = body;

@@ -70,7 +70,7 @@ export async function PATCH(
     const user = await checkAuth(supabase);
 
     // Check authorization - admin or owner only
-    await checkAuthorization(supabase, user.id, ['admin', 'owner']);
+    await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = (await request.json()) as {
       title?: string;

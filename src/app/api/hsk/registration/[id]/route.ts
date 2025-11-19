@@ -69,7 +69,7 @@ export async function PATCH(
     const user = await checkAuth(supabase);
 
     // Check authorization - admin/owner
-    await checkAuthorization(supabase, user.id, ['admin', 'owner']);
+    await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = await request.json();
 
@@ -134,7 +134,7 @@ export async function DELETE(
     const user = await checkAuth(supabase);
 
     // Check authorization - admin/owner
-    await checkAuthorization(supabase, user.id, ['admin', 'owner']);
+    await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const { error } = await supabase
       .from('hsk_registrations')

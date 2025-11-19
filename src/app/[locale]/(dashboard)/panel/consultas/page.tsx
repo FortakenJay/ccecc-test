@@ -33,7 +33,7 @@ interface Inquiry {
 export default function ConsultasPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, isOwner, loading: roleLoading } = useRole();
+  const { isAdmin, isOwner, isOfficer, loading: roleLoading } = useRole();
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export default function ConsultasPage() {
   useEffect(() => {
     if (authLoading || roleLoading) return;
     
-    if (!user || (!isAdmin && !isOwner)) {
+    if (!user || (!isAdmin && !isOwner && !isOfficer)) {
       router.push('/');
       return;
     }

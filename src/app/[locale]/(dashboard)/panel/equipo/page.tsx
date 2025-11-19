@@ -29,7 +29,7 @@ interface TeamMember {
 export default function EquipoPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, isOwner, loading: roleLoading } = useRole();
+  const { isAdmin, isOwner, isOfficer, loading: roleLoading } = useRole();
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +37,7 @@ export default function EquipoPage() {
   useEffect(() => {
     if (authLoading || roleLoading) return;
     
-    if (!user || (!isAdmin && !isOwner)) {
+    if (!user || (!isAdmin && !isOwner && !isOfficer)) {
       router.push('/');
       return;
     }

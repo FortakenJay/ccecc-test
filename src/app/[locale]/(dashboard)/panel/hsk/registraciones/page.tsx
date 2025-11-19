@@ -34,7 +34,7 @@ interface Registration {
 export default function HSKRegistrationsPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, isOwner, loading: roleLoading } = useRole();
+  const { isAdmin, isOwner, isOfficer, loading: roleLoading } = useRole();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +43,7 @@ export default function HSKRegistrationsPage() {
   useEffect(() => {
     if (authLoading || roleLoading) return;
     
-    if (!user || (!isAdmin && !isOwner)) {
+    if (!user || (!isAdmin && !isOwner && !isOfficer)) {
       router.push('/');
       return;
     }

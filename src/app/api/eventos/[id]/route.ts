@@ -70,7 +70,7 @@ export async function PATCH(
     const user = await checkAuth(supabase);
 
     // Check authorization - admin/owner
-    await checkAuthorization(supabase, user.id, ['admin', 'owner']);
+    await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = await request.json();
     const { title, description, event_date, location } = body;
@@ -136,7 +136,7 @@ export async function DELETE(
     const user = await checkAuth(supabase);
 
     // Check authorization - admin/owner
-    await checkAuthorization(supabase, user.id, ['admin', 'owner']);
+    await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const { error } = await supabase
       .from('events')
@@ -181,7 +181,7 @@ export async function PUT(
     const user = await checkAuth(supabase);
 
     // Check authorization - admin or owner
-    await checkAuthorization(supabase, user.id, ['admin', 'owner']);
+    await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = await request.json();
     const { title, description, event_date, location, translations } = body;
