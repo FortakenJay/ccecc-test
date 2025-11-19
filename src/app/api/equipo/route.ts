@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
     const url = new URL(request.url);
-    const locale = url.searchParams.get('locale') || 'es';
+    const locale = url.searchParams.get('locale') || 'en';
 
     // Validate locale
     if (!isValidLocale(locale)) {
@@ -32,7 +32,6 @@ export async function GET(request: NextRequest) {
         *,
         translations:team_member_translations(*)
       `)
-      .eq('is_active', true)
       .order('display_order', { ascending: true });
 
     if (error) {
@@ -40,14 +39,15 @@ export async function GET(request: NextRequest) {
       return errorResponse('Failed to fetch team members', 400);
     }
 
+    // Map members with their translations for the requested locale
     const membersWithTranslation = (data || []).map(member => {
       const translation = member.translations?.find((t: any) => t.locale === locale);
       return {
         ...member,
-        name: translation?.name || member.name,
-        bio: translation?.bio || member.bio,
-        role: translation?.role || member.role,
-        translations: undefined
+        name: translation?.name || null,
+        role: translation?.role || null,
+        bio: translation?.bio || null,
+        translations: undefined // Remove translations array from response
       };
     });
 
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     // Check authentication
     const user = await checkAuth(supabase);
 
-    // Check authorization - admin/owner
+    // Check authorization - admin/owner/officer
     await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = await request.json();
@@ -79,23 +79,19 @@ export async function POST(request: NextRequest) {
       return errorResponse('Request body too large', 413);
     }
 
-    const { name, role, photo_url, translations } = body;
+    const { slug, image_url, display_order, translations } = body;
 
     // Validate required fields
-    if (!name || !role) {
-      return errorResponse('Missing required fields: name, role', 400);
+    if (!slug) {
+      return errorResponse('Missing required field: slug', 400);
     }
 
     // Validate field lengths
-    if (!isValidTextLength(name, MAX_NAME_LENGTH)) {
-      return errorResponse(`Name must not exceed ${MAX_NAME_LENGTH} characters`, 400);
+    if (!isValidTextLength(slug, 100)) {
+      return errorResponse('Slug must not exceed 100 characters', 400);
     }
 
-    if (!isValidTextLength(role, 50)) {
-      return errorResponse('Role must not exceed 50 characters', 400);
-    }
-
-    // Validate translations
+    // Validate translations if provided
     if (translations && typeof translations === 'object') {
       for (const [locale, trans] of Object.entries(translations)) {
         if (!isValidLocale(locale)) {
@@ -107,23 +103,33 @@ export async function POST(request: NextRequest) {
           return errorResponse(`Translation name must not exceed ${MAX_NAME_LENGTH} characters`, 400);
         }
 
-        if (transObj.bio && !isValidTextLength(transObj.bio, MAX_BIO_LENGTH)) {
-          return errorResponse(`Translation bio must not exceed ${MAX_BIO_LENGTH} characters`, 400);
+        if (transObj.role && !isValidTextLength(transObj.role, 100)) {
+          return errorResponse('Translation role must not exceed 100 characters', 400);
         }
 
-        if (transObj.role && !isValidTextLength(transObj.role, 50)) {
-          return errorResponse('Translation role must not exceed 50 characters', 400);
+        if (transObj.bio && !isValidTextLength(transObj.bio, MAX_BIO_LENGTH)) {
+          return errorResponse(`Translation bio must not exceed ${MAX_BIO_LENGTH} characters`, 400);
         }
       }
     }
 
-    // Create team member with XSS sanitization
+    // Get max display_order
+    const { data: maxOrderData } = await supabase
+      .from('team_members')
+      .select('display_order')
+      .order('display_order', { ascending: false })
+      .limit(1)
+      .single();
+
+    const nextOrder = display_order || (maxOrderData?.display_order || 0) + 1;
+
+    // Create team member
     const { data: newMember, error: memberError } = await supabase
       .from('team_members')
       .insert({
-        name: sanitizeTextInput(name),
-        role: sanitizeTextInput(role),
-        photo_url: photo_url ? photo_url.trim() : null,
+        slug: sanitizeTextInput(slug),
+        image_url: image_url ? image_url.trim() : null,
+        display_order: nextOrder,
         created_by: user.id,
         is_active: true
       })
@@ -131,18 +137,19 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (memberError || !newMember) {
+      console.error('Failed to create team member:', memberError);
       return errorResponse('Failed to create team member', 400);
     }
 
     // Insert translations if provided
     if (translations && typeof translations === 'object') {
-      const translationsData = Object.entries(translations).map(([locale, trans]: any) => {
+      const translationsData = Object.entries(translations).map(([locale, trans]) => {
         const transObj = trans as Record<string, any>;
         return {
           team_member_id: newMember.id,
           locale,
-          name: sanitizeTextInput(transObj.name || name),
-          role: sanitizeTextInput(transObj.role || role),
+          name: transObj.name ? sanitizeTextInput(transObj.name) : null,
+          role: transObj.role ? sanitizeTextInput(transObj.role) : null,
           bio: transObj.bio ? sanitizeTextInput(transObj.bio) : null
         };
       });
@@ -152,7 +159,8 @@ export async function POST(request: NextRequest) {
         .insert(translationsData);
 
       if (transError) {
-        return errorResponse('Failed to create translations', 400);
+        console.error('Failed to create translations:', transError);
+        // Don't fail the request, just log the error
       }
     }
 

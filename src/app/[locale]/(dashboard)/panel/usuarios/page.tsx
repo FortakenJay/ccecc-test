@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRole } from '@/lib/hooks/useRole';
 import { Card } from '@/components/ui/Card';
@@ -29,11 +30,28 @@ interface User {
 
 export default function UsuariosPage() {
   const router = useRouter();
+  const t = useTranslations('dashboard.users');
+  const tc = useTranslations('dashboard.common');
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, loading: roleLoading } = useRole();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editRole, setEditRole] = useState<'admin' | 'officer'>('officer');
+
+  // Helper function to translate role
+  const getRoleTranslation = (role: string) => {
+    switch (role) {
+      case 'owner': return t('owner');
+      case 'admin': return t('admin');
+      case 'officer': return t('officer');
+      default: return role;
+    }
+  };
 
   useEffect(() => {
     if (authLoading || roleLoading) return;
@@ -61,7 +79,7 @@ export default function UsuariosPage() {
   };
 
   const handleDelete = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
+    if (!confirm(t('deleteConfirm'))) return;
 
     try {
       const res = await fetch(`/api/usuarios/${userId}`, {
@@ -99,6 +117,46 @@ export default function UsuariosPage() {
     }
   };
 
+  const handleEdit = (usr: User) => {
+    setEditingId(usr.id);
+    setEditName(usr.full_name);
+    setEditRole(usr.role === 'owner' ? 'admin' : usr.role);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditName('');
+    setEditRole('officer');
+  };
+
+  const handleSaveEdit = async (userId: string) => {
+    if (!editName.trim()) {
+      alert(t('nameRequired'));
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/usuarios/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          full_name: editName.trim(),
+          role: editRole
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to update user');
+      }
+      
+      handleCancelEdit();
+      fetchUsers();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   if (authLoading || roleLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -114,16 +172,16 @@ export default function UsuariosPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <FontAwesomeIcon icon={faUsers} className="w-8 h-8 text-red-600" />
-            User Management
+            {t('title')}
           </h1>
-          <p className="text-gray-600 mt-2">Manage user accounts and permissions</p>
+          <p className="text-gray-600 mt-2">{t('subtitle')}</p>
         </div>
         <Button
           onClick={() => router.push('/panel/usuarios/invitations')}
           className="bg-red-600 hover:bg-red-700 text-white"
         >
           <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
-          Invite User
+          {t('inviteUser')}
         </Button>
       </div>
 
@@ -136,23 +194,23 @@ export default function UsuariosPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Total Users</div>
+          <div className="text-sm text-gray-600">{t('totalUsers')}</div>
           <div className="text-2xl font-bold text-gray-900">{users.length}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Active</div>
+          <div className="text-sm text-gray-600">{tc('active')}</div>
           <div className="text-2xl font-bold text-green-600">
             {users.filter(u => u.is_active).length}
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Admins</div>
+          <div className="text-sm text-gray-600">{t('admins')}</div>
           <div className="text-2xl font-bold text-blue-600">
             {users.filter(u => u.role === 'admin').length}
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Officers</div>
+          <div className="text-sm text-gray-600">{t('officers')}</div>
           <div className="text-2xl font-bold text-purple-600">
             {users.filter(u => u.role === 'officer').length}
           </div>
@@ -166,19 +224,19 @@ export default function UsuariosPage() {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User
+                  {t('user')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
+                  {t('role')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  {tc('status')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Joined
+                  {t('joined')}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  {tc('actions')}
                 </th>
               </tr>
             </thead>
@@ -187,23 +245,44 @@ export default function UsuariosPage() {
                 users.map((usr) => (
                   <tr key={usr.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{usr.full_name}</div>
-                        <div className="text-sm text-gray-500 flex items-center gap-1">
-                          <FontAwesomeIcon icon={faEnvelope} className="w-3 h-3" />
-                          {usr.email}
+                      {editingId === usr.id ? (
+                        <input
+                          type="text"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                          placeholder="Full Name"
+                        />
+                      ) : (
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{usr.full_name}</div>
+                          <div className="text-sm text-gray-500 flex items-center gap-1">
+                            <FontAwesomeIcon icon={faEnvelope} className="w-3 h-3" />
+                            {usr.email}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        usr.role === 'owner' ? 'bg-red-100 text-red-800' :
-                        usr.role === 'admin' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        <FontAwesomeIcon icon={faShield} className="mr-1 w-3 h-3" />
-                        {usr.role.charAt(0).toUpperCase() + usr.role.slice(1)}
-                      </span>
+                      {editingId === usr.id ? (
+                        <select
+                          value={editRole}
+                          onChange={(e) => setEditRole(e.target.value as 'admin' | 'officer')}
+                          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                        >
+                          <option value="officer">{t('officer')}</option>
+                          <option value="admin">{t('admin')}</option>
+                        </select>
+                      ) : (
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          usr.role === 'owner' ? 'bg-red-100 text-red-800' :
+                          usr.role === 'admin' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          <FontAwesomeIcon icon={faShield} className="mr-1 w-3 h-3" />
+                          {getRoleTranslation(usr.role)}
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
@@ -219,7 +298,7 @@ export default function UsuariosPage() {
                           icon={usr.is_active ? faCheckCircle : faTimesCircle} 
                           className="mr-1 w-3 h-3" 
                         />
-                        {usr.is_active ? 'Active' : 'Inactive'}
+                        {usr.is_active ? tc('active') : tc('inactive')}
                       </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -227,22 +306,45 @@ export default function UsuariosPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
-                        <Button
-                          onClick={() => router.push(`/panel/usuarios/${usr.id}`)}
-                          variant="ghost"
-                          size="sm"
-                        >
-                          <FontAwesomeIcon icon={faEdit} className="w-4 h-4" />
-                        </Button>
-                        {usr.role !== 'owner' && (
-                          <Button
-                            onClick={() => handleDelete(usr.id)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
-                          </Button>
+                        {editingId === usr.id ? (
+                          <>
+                            <Button
+                              onClick={() => handleSaveEdit(usr.id)}
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              {tc('save')}
+                            </Button>
+                            <Button
+                              onClick={handleCancelEdit}
+                              variant="ghost"
+                              size="sm"
+                            >
+                              {tc('cancel')}
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              onClick={() => handleEdit(usr)}
+                              variant="ghost"
+                              size="sm"
+                              disabled={usr.role === 'owner'}
+                              className={usr.role === 'owner' ? 'opacity-50 cursor-not-allowed' : ''}
+                            >
+                              <FontAwesomeIcon icon={faEdit} className="w-4 h-4" />
+                            </Button>
+                            {usr.role !== 'owner' && (
+                              <Button
+                                onClick={() => handleDelete(usr.id)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </>
                         )}
                       </div>
                     </td>
@@ -251,7 +353,7 @@ export default function UsuariosPage() {
               ) : (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                    No users found
+                    {t('noUsersFound')}
                   </td>
                 </tr>
               )}

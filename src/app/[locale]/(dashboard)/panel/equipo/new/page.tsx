@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/button';
@@ -11,21 +11,18 @@ import { Textarea } from '@/components/ui/textArea';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUsers, faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons';
 
-export default function EditTeamMemberPage() {
+export default function NewTeamMemberPage() {
   const router = useRouter();
-  const params = useParams();
-  const memberId = params.id as string;
   const t = useTranslations('dashboard.team');
   const tc = useTranslations('dashboard.common');
   
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
   // Team member data
-  const [photoUrl, setPhotoUrl] = useState('');
+  const [slug, setSlug] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [displayOrder, setDisplayOrder] = useState('');
-  const [isActive, setIsActive] = useState(true);
 
   // Translations
   const [nameEn, setNameEn] = useState('');
@@ -43,55 +40,13 @@ export default function EditTeamMemberPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  useEffect(() => {
-    fetchTeamMember();
-  }, [memberId]);
-
-  const fetchTeamMember = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/equipo/${memberId}`);
-      if (!res.ok) throw new Error('Failed to fetch team member');
-      
-      const { data } = await res.json();
-      
-      setPhotoUrl(data.photo_url || '');
-      setDisplayOrder(data.display_order?.toString() || '');
-      setIsActive(data.is_active ?? true);
-      
-      // Load translations
-      const transRes = await fetch(`/api/equipo/${memberId}/translations`);
-      if (transRes.ok) {
-        const { data: translations } = await transRes.json();
-        const en = translations.find((t: any) => t.language === 'en');
-        const es = translations.find((t: any) => t.language === 'es');
-        const zh = translations.find((t: any) => t.language === 'zh');
-        
-        if (en) {
-          setNameEn(en.name || '');
-          setRoleEn(en.role || '');
-          setBioEn(en.bio || '');
-        }
-        if (es) {
-          setNameEs(es.name || '');
-          setRoleEs(es.role || '');
-          setBioEs(es.bio || '');
-        }
-        if (zh) {
-          setNameZh(zh.name || '');
-          setRoleZh(zh.role || '');
-          setBioZh(zh.bio || '');
-        }
-      }
-    } catch (error) {
-      showToast(t('loadError'), 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!slug.trim()) {
+      showToast(t('slugRequired'), 'error');
+      return;
+    }
 
     if (!nameEn || !nameEs || !nameZh) {
       showToast(t('nameRequired'), 'error');
@@ -101,13 +56,13 @@ export default function EditTeamMemberPage() {
     try {
       setSaving(true);
 
-      const res = await fetch(`/api/equipo/${memberId}`, {
-        method: 'PATCH',
+      const res = await fetch('/api/equipo', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          photo_url: photoUrl || null,
+          slug: slug.trim(),
+          image_url: imageUrl || null,
           display_order: displayOrder ? parseInt(displayOrder) : null,
-          is_active: isActive,
           translations: {
             en: { name: nameEn, role: roleEn || null, bio: bioEn || null },
             es: { name: nameEs, role: roleEs || null, bio: bioEs || null },
@@ -119,26 +74,18 @@ export default function EditTeamMemberPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        showToast(data.error || t('updateError'), 'error');
+        showToast(data.error || t('createError'), 'error');
         return;
       }
 
-      showToast(t('updateSuccess'), 'success');
+      showToast(t('createSuccess'), 'success');
       setTimeout(() => router.push('/panel/equipo'), 1500);
     } catch (error) {
-      showToast(t('updateError'), 'error');
+      showToast(t('createError'), 'error');
     } finally {
       setSaving(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -164,9 +111,9 @@ export default function EditTeamMemberPage() {
         
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
           <FontAwesomeIcon icon={faUsers} className="w-8 h-8 text-red-600" />
-          {t('editMember')}
+          {t('addMember')}
         </h1>
-        <p className="text-gray-600 mt-2">{t('editSubtitle')}</p>
+        <p className="text-gray-600 mt-2">{t('newSubtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -177,14 +124,26 @@ export default function EditTeamMemberPage() {
               <CardTitle>{t('basicInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="slug">{t('slug')} *</Label>
+                <Input
+                  id="slug"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="john-doe"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">{t('slugHint')}</p>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="photoUrl">{t('imageUrl')}</Label>
+                  <Label htmlFor="imageUrl">{t('imageUrl')}</Label>
                   <Input
-                    id="photoUrl"
+                    id="imageUrl"
                     type="url"
-                    value={photoUrl}
-                    onChange={(e) => setPhotoUrl(e.target.value)}
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
                     placeholder="https://example.com/photo.jpg"
                   />
                 </div>
@@ -201,17 +160,6 @@ export default function EditTeamMemberPage() {
                   />
                   <p className="text-xs text-gray-500 mt-1">{t('orderHint')}</p>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={isActive}
-                  onChange={(e) => setIsActive(e.target.checked)}
-                  className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                />
-                <Label htmlFor="isActive" className="mb-0">{t('activeLabel')}</Label>
               </div>
             </CardContent>
           </Card>
@@ -346,11 +294,11 @@ export default function EditTeamMemberPage() {
               disabled={saving}
             >
               {saving ? (
-                <>{tc('saving')}</>
+                <>{tc('creating')}</>
               ) : (
                 <>
                   <FontAwesomeIcon icon={faSave} className="mr-2" />
-                  {tc('save')}
+                  {tc('create')}
                 </>
               )}
             </Button>

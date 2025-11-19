@@ -150,7 +150,7 @@ export default async function HomePage({params} : Props) {
                             <Card className="p-6 hover:shadow-2xl bg-white shadow-lg group cursor-pointer">
 
                                 <div
-                                    className={`w-14 h-14 rounded-lg bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-4`}>
+                                    className={`w-14 h-14 rounded-lg bg-linear-to-br ${card.gradient} flex items-center justify-center mb-4`}>
                                     <FontAwesomeIcon icon={card.icon} className="w-7 h-7 text-white"/>
                                 </div>
 
@@ -176,7 +176,7 @@ export default async function HomePage({params} : Props) {
                     <div className="text-[#C8102E] text-sm tracking-wider mb-2">{t('upcomingEvents')}</div>
                     <h2 className="text-gray-900 mb-4">{t('culturalCalendar')}</h2>
                     <div
-                        className="h-1 w-24 bg-gradient-to-r from-[#C8102E] to-[#FFD700] mx-auto rounded-full"/>
+                        className="h-1 w-24 bg-linear-to-r from-[#C8102E] to-[#FFD700] mx-auto rounded-full"/>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -219,7 +219,7 @@ export default async function HomePage({params} : Props) {
             </section>
 
             {/* About Section */}
-            <section className="bg-gradient-to-br from-gray-50 to-white py-20">
+            <section className="bg-linear-to-br from-gray-50 to-white py-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
@@ -249,7 +249,7 @@ export default async function HomePage({params} : Props) {
                             <div className="space-y-4 mb-8">
                                 <div className="flex items-start gap-3">
                                     <div
-                                        className="w-10 h-10 rounded-full bg-[#FFD700]/20 flex items-center justify-center flex-shrink-0">
+                                        className="w-10 h-10 rounded-full bg-[#FFD700]/20 flex items-center justify-center shrink-0">
                                         <FontAwesomeIcon icon={faUsers} className="w-5 h-5 text-[#C8102E]"/>
                                     </div>
                                     <div>
@@ -259,7 +259,7 @@ export default async function HomePage({params} : Props) {
                                 </div>
                                 <div className="flex items-start gap-3">
                                     <div
-                                        className="w-10 h-10 rounded-full bg-[#FFD700]/20 flex items-center justify-center flex-shrink-0">
+                                        className="w-10 h-10 rounded-full bg-[#FFD700]/20 flex items-center justify-center shrink-0">
                                         <FontAwesomeIcon icon={faGlobe} className="w-5 h-5 text-[#C8102E]"/>
                                     </div>
                                     <div>
@@ -269,7 +269,7 @@ export default async function HomePage({params} : Props) {
                                 </div>
                                 <div className="flex items-start gap-3">
                                     <div
-                                        className="w-10 h-10 rounded-full bg-[#FFD700]/20 flex items-center justify-center flex-shrink-0">
+                                        className="w-10 h-10 rounded-full bg-[#FFD700]/20 flex items-center justify-center shrink-0">
                                         <FontAwesomeIcon icon={faHeart} className="w-5 h-5 text-[#C8102E]"/>
                                     </div>
                                     <div>
@@ -280,7 +280,7 @@ export default async function HomePage({params} : Props) {
                             </div>
                             <Link  href="/nosotros">
                                 <Button
-                                    className="bg-gradient-to-r hover:cursor-pointer from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
+                                    className="bg-linear-to-r hover:cursor-pointer from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
                                     {t('knowMore')}
                                     <FontAwesomeIcon icon={faArrowRight} className="ml-2 w-4 h-4"/>
                                 </Button>

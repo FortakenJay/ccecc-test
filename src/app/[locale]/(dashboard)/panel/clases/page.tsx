@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRole } from '@/lib/hooks/useRole';
 import { Card } from '@/components/ui/Card';
@@ -29,6 +30,8 @@ interface Class {
 
 export default function ClasesPage() {
   const router = useRouter();
+  const t = useTranslations('dashboard.classes');
+  const tc = useTranslations('dashboard.common');
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, isOfficer, loading: roleLoading } = useRole();
   const [classes, setClasses] = useState<Class[]>([]);
@@ -61,7 +64,7 @@ export default function ClasesPage() {
   };
 
   const handleDelete = async (classId: string) => {
-    if (!confirm('Are you sure you want to delete this class?')) return;
+    if (!confirm(t('deleteConfirm'))) return;
 
     try {
       const res = await fetch(`/api/clases/${classId}`, {
@@ -91,16 +94,16 @@ export default function ClasesPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <FontAwesomeIcon icon={faBook} className="w-8 h-8 text-red-600" />
-            Class Management
+            {t('title')}
           </h1>
-          <p className="text-gray-600 mt-2">Manage class offerings and schedules</p>
+          <p className="text-gray-600 mt-2">{t('subtitle')}</p>
         </div>
         <Button
           onClick={() => router.push('/panel/clases/new')}
           className="bg-red-600 hover:bg-red-700 text-white"
         >
           <FontAwesomeIcon icon={faPlus} className="mr-2" />
-          Add Class
+          {t('addClass')}
         </Button>
       </div>
 
@@ -113,17 +116,17 @@ export default function ClasesPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Total Classes</div>
+          <div className="text-sm text-gray-600">{t('totalClasses')}</div>
           <div className="text-2xl font-bold text-gray-900">{classes.length}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Active</div>
+          <div className="text-sm text-gray-600">{t('active')}</div>
           <div className="text-2xl font-bold text-green-600">
             {classes.filter(c => c.is_active).length}
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Inactive</div>
+          <div className="text-sm text-gray-600">{t('inactive')}</div>
           <div className="text-2xl font-bold text-red-600">
             {classes.filter(c => !c.is_active).length}
           </div>
@@ -156,7 +159,7 @@ export default function ClasesPage() {
               </div>
 
               <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                {cls.description || 'No description available'}
+                {cls.description || t('noDescription')}
               </p>
 
               {cls.price_colones && (
@@ -164,7 +167,7 @@ export default function ClasesPage() {
                   <span className="text-lg font-bold text-red-600">
                     ₡{cls.price_colones.toLocaleString()}
                   </span>
-                  <span className="text-sm text-gray-500 ml-1">/ month</span>
+                  <span className="text-sm text-gray-500 ml-1">{t('perMonth')}</span>
                 </div>
               )}
 
@@ -176,7 +179,7 @@ export default function ClasesPage() {
                   className="flex-1"
                 >
                   <FontAwesomeIcon icon={faEdit} className="mr-2 w-4 h-4" />
-                  Edit
+                  {tc('edit')}
                 </Button>
                 <Button
                   onClick={() => handleDelete(cls.id)}
@@ -192,14 +195,14 @@ export default function ClasesPage() {
         ) : (
           <div className="col-span-full text-center py-12">
             <FontAwesomeIcon icon={faBook} className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No classes found</h3>
-            <p className="text-gray-500 mb-4">Get started by creating your first class</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noClassesFound')}</h3>
+            <p className="text-gray-500 mb-4">{t('getStarted')}</p>
             <Button
               onClick={() => router.push('/panel/clases/new')}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               <FontAwesomeIcon icon={faPlus} className="mr-2" />
-              Add Class
+              {t('addClass')}
             </Button>
           </div>
         )}

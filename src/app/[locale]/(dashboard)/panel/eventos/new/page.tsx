@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,9 +9,17 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textArea';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendar, faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons';
+import en from '@/locales/en/dashboard';
+import es from '@/locales/es/dashboard';
+import zh from '@/locales/zh/dashboard';
+
+const translations = { en, es, zh };
 
 export default function NewEventPage() {
   const router = useRouter();
+  const params = useParams();
+  const locale = (params.locale as string) || 'en';
+  const t = translations[locale as keyof typeof translations];
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
@@ -39,12 +47,12 @@ export default function NewEventPage() {
     e.preventDefault();
 
     if (!titleEn || !titleEs || !titleZh) {
-      showToast('Please provide titles in all languages', 'error');
+      showToast(t.events.new.provideTitles, 'error');
       return;
     }
 
     if (!eventDate) {
-      showToast('Please select an event date', 'error');
+      showToast(t.events.new.selectEventDate, 'error');
       return;
     }
 
@@ -71,14 +79,14 @@ export default function NewEventPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        showToast(data.error || 'Failed to create event', 'error');
+        showToast(data.error || t.events.new.createError, 'error');
         return;
       }
 
-      showToast('Event created successfully!', 'success');
-      setTimeout(() => router.push('/panel/eventos'), 1500);
+      showToast(t.events.new.createSuccess, 'success');
+      setTimeout(() => router.push(`/${locale}/panel/eventos`), 1500);
     } catch (error) {
-      showToast('An error occurred. Please try again.', 'error');
+      showToast(t.events.new.genericError, 'error');
     } finally {
       setLoading(false);
     }
@@ -99,18 +107,18 @@ export default function NewEventPage() {
       <div className="mb-8">
         <Button
           variant="outline"
-          onClick={() => router.push('/panel/eventos')}
+          onClick={() => router.push(`/${locale}/panel/eventos`)}
           className="mb-4"
         >
           <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
-          Back to Events
+          {t.events.new.backToEvents}
         </Button>
         
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
           <FontAwesomeIcon icon={faCalendar} className="w-8 h-8 text-red-600" />
-          Create New Event
+          {t.events.new.title}
         </h1>
-        <p className="text-gray-600 mt-2">Add a new cultural event with multilingual support</p>
+        <p className="text-gray-600 mt-2">{t.events.new.subtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -118,12 +126,12 @@ export default function NewEventPage() {
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Event Details</CardTitle>
+              <CardTitle>{t.events.new.eventDetails}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="eventDate">Event Date & Time *</Label>
+                  <Label htmlFor="eventDate">{t.events.new.eventDateTime} *</Label>
                   <Input
                     id="eventDate"
                     type="datetime-local"
@@ -134,36 +142,36 @@ export default function NewEventPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="location">{t.events.new.locationLabel}</Label>
                   <Input
                     id="location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Event venue or address"
+                    placeholder={t.events.new.locationPlaceholder}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="imageUrl">Image URL</Label>
+                  <Label htmlFor="imageUrl">{t.events.new.imageUrlLabel}</Label>
                   <Input
                     id="imageUrl"
                     type="url"
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://example.com/image.jpg"
+                    placeholder={t.events.new.imageUrlPlaceholder}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="maxAttendees">Max Attendees</Label>
+                  <Label htmlFor="maxAttendees">{t.events.new.maxAttendees}</Label>
                   <Input
                     id="maxAttendees"
                     type="number"
                     value={maxAttendees}
                     onChange={(e) => setMaxAttendees(e.target.value)}
-                    placeholder="Leave empty for unlimited"
+                    placeholder={t.events.new.maxAttendeesPlaceholder}
                     min="1"
                   />
                 </div>
@@ -177,7 +185,7 @@ export default function NewEventPage() {
                   onChange={(e) => setIsActive(e.target.checked)}
                   className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                 />
-                <Label htmlFor="isActive" className="mb-0">Active (visible on website)</Label>
+                <Label htmlFor="isActive" className="mb-0">{t.events.new.isActive}</Label>
               </div>
             </CardContent>
           </Card>
@@ -185,26 +193,26 @@ export default function NewEventPage() {
           {/* English Translation */}
           <Card>
             <CardHeader>
-              <CardTitle>English 🇺🇸</CardTitle>
+              <CardTitle>{t.events.new.english} 🇺🇸</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="titleEn">Title *</Label>
+                <Label htmlFor="titleEn">{t.events.new.titleLabel} *</Label>
                 <Input
                   id="titleEn"
                   value={titleEn}
                   onChange={(e) => setTitleEn(e.target.value)}
-                  placeholder="Event title in English"
+                  placeholder={t.events.new.titlePlaceholder}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="descEn">Description</Label>
+                <Label htmlFor="descEn">{t.events.new.descriptionLabel}</Label>
                 <Textarea
                   id="descEn"
                   value={descEn}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescEn(e.target.value)}
-                  placeholder="Event description in English"
+                  placeholder={t.events.new.descriptionPlaceholder}
                   rows={4}
                 />
               </div>
@@ -214,26 +222,26 @@ export default function NewEventPage() {
           {/* Spanish Translation */}
           <Card>
             <CardHeader>
-              <CardTitle>Español 🇪🇸</CardTitle>
+              <CardTitle>{t.events.new.spanish} 🇪🇸</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="titleEs">Título *</Label>
+                <Label htmlFor="titleEs">{t.events.new.titleLabelEs} *</Label>
                 <Input
                   id="titleEs"
                   value={titleEs}
                   onChange={(e) => setTitleEs(e.target.value)}
-                  placeholder="Título del evento en español"
+                  placeholder={t.events.new.titlePlaceholderEs}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="descEs">Descripción</Label>
+                <Label htmlFor="descEs">{t.events.new.descriptionLabelEs}</Label>
                 <Textarea
                   id="descEs"
                   value={descEs}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescEs(e.target.value)}
-                  placeholder="Descripción del evento en español"
+                  placeholder={t.events.new.descriptionPlaceholderEs}
                   rows={4}
                 />
               </div>
@@ -243,26 +251,26 @@ export default function NewEventPage() {
           {/* Chinese Translation */}
           <Card>
             <CardHeader>
-              <CardTitle>中文 🇨🇳</CardTitle>
+              <CardTitle>{t.events.new.chinese} 🇨🇳</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="titleZh">标题 *</Label>
+                <Label htmlFor="titleZh">{t.events.new.titleLabelZh} *</Label>
                 <Input
                   id="titleZh"
                   value={titleZh}
                   onChange={(e) => setTitleZh(e.target.value)}
-                  placeholder="中文活动标题"
+                  placeholder={t.events.new.titlePlaceholderZh}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="descZh">描述</Label>
+                <Label htmlFor="descZh">{t.events.new.descriptionLabelZh}</Label>
                 <Textarea
                   id="descZh"
                   value={descZh}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescZh(e.target.value)}
-                  placeholder="中文活动描述"
+                  placeholder={t.events.new.descriptionPlaceholderZh}
                   rows={4}
                 />
               </div>
@@ -274,10 +282,10 @@ export default function NewEventPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push('/panel/eventos')}
+              onClick={() => router.push(`/${locale}/panel/eventos`)}
               disabled={loading}
             >
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button
               type="submit"
@@ -285,11 +293,11 @@ export default function NewEventPage() {
               disabled={loading}
             >
               {loading ? (
-                <>Creating...</>
+                <>{t.events.new.creating}</>
               ) : (
                 <>
                   <FontAwesomeIcon icon={faSave} className="mr-2" />
-                  Create Event
+                  {t.events.new.createButton}
                 </>
               )}
             </Button>

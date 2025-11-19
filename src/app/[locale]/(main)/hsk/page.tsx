@@ -1,6 +1,6 @@
 "use client";
 
-import {useState} from 'react';
+import {useState, useRef, useEffect} from 'react';
 import {Card} from '@/components/ui/Card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -8,6 +8,7 @@ import {Label} from '@/components/ui/label';
 import {Badge} from '@/components/ui/badge';
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 // Solid icons
 import {
@@ -22,7 +23,7 @@ import {
     faCircleExclamation
 } from "@fortawesome/free-solid-svg-icons";
 
-export default function HSKTestingPage() {
+function HSKTestingPageContent() {
     const [step,
         setStep] = useState(1);
     const [formData,
@@ -33,8 +34,14 @@ export default function HSKTestingPage() {
         phone: '',
         level: '',
         testDate: '',
-        previousLevel: ''
+        previousLevel: '',
+        examSessionId: ''
     });
+    const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [validationError, setValidationError] = useState<string | null>(null);
+    const { executeRecaptcha } = useGoogleReCaptcha();
 
     const testDates = [
         {
@@ -133,28 +140,200 @@ export default function HSKTestingPage() {
         }
     ];
 
+    // Validation functions
+    const isValidEmail = (email: string): boolean => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const isValidPhone = (phone: string): boolean => {
+        // Accepts formats: +506 1234-5678, 1234-5678, 12345678, +50612345678
+        const phoneRegex = /^(\+?\d{1,3}[\s-]?)?\d{4}[\s-]?\d{4}$/;
+        return phoneRegex.test(phone.trim());
+    };
+
+    const sanitizeInput = (input: string): string => {
+        // Remove potentially dangerous characters
+        return input.trim().replace(/[<>"'`]/g, '');
+    };
+
+    const isValidName = (name: string): boolean => {
+        // Only allow letters, spaces, hyphens, and accented characters
+        const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s-]+$/;
+        return name.length >= 2 && name.length <= 50 && nameRegex.test(name);
+    };
+
+    const validateStep1 = (): boolean => {
+        setValidationError(null);
+        
+        if (!formData.firstName || !isValidName(formData.firstName)) {
+            setValidationError('Por favor ingresa un nombre válido (solo letras, 2-50 caracteres)');
+            return false;
+        }
+        
+        if (!formData.lastName || !isValidName(formData.lastName)) {
+            setValidationError('Por favor ingresa apellidos válidos (solo letras, 2-50 caracteres)');
+            return false;
+        }
+        
+        if (!formData.email || !isValidEmail(formData.email)) {
+            setValidationError('Por favor ingresa un email válido');
+            return false;
+        }
+        
+        if (!formData.phone || !isValidPhone(formData.phone)) {
+            setValidationError('Por favor ingresa un teléfono válido (ej: +506 1234-5678)');
+            return false;
+        }
+        
+        return true;
+    };
+
+    const validateStep2 = (): boolean => {
+        setValidationError(null);
+        
+        if (!formData.level) {
+            setValidationError('Por favor selecciona un nivel de examen');
+            return false;
+        }
+        
+        if (!formData.testDate) {
+            setValidationError('Por favor selecciona una fecha de examen');
+            return false;
+        }
+        
+        if (!formData.previousLevel) {
+            setValidationError('Por favor indica si has tomado el HSK anteriormente');
+            return false;
+        }
+        
+        return true;
+    };
+
     const handleInputChange = (e : React.ChangeEvent < HTMLInputElement | HTMLSelectElement >) => {
+        const { name, value } = e.target;
+        const sanitizedValue = sanitizeInput(value);
+        
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [name]: sanitizedValue
         });
+        
+        // Clear validation error when user starts typing
+        if (validationError) {
+            setValidationError(null);
+        }
     };
 
     const handleNextStep = () => {
-        if (step < 3) 
+        // Validate current step before advancing
+        if (step === 1 && !validateStep1()) {
+            return;
+        }
+        
+        if (step === 2 && !validateStep2()) {
+            return;
+        }
+        
+        if (step < 3) {
             setStep(step + 1);
-        };
+        }
+    };
     
     const handlePrevStep = () => {
         if (step > 1) 
             setStep(step - 1);
         };
     
+    const handleSubmitRegistration = async () => {
+        setSubmitError(null);
+        setValidationError(null);
+        
+        // Validate all steps again before submission
+        if (!validateStep1() || !validateStep2()) {
+            setSubmitError('Por favor verifica que todos los campos sean válidos');
+            return;
+        }
+
+        // Execute reCAPTCHA v3
+        if (!executeRecaptcha) {
+            setSubmitError('reCAPTCHA no está listo. Por favor intenta nuevamente.');
+            return;
+        }
+
+        let recaptchaToken: string;
+        try {
+            recaptchaToken = await executeRecaptcha('submit_registration');
+        } catch (error) {
+            setSubmitError('Error al verificar reCAPTCHA. Por favor intenta nuevamente.');
+            return;
+        }
+
+        // Additional email validation
+        if (formData.email.length > 255) {
+            setSubmitError('El email es demasiado largo');
+            return;
+        }
+
+        // Additional phone validation
+        if (formData.phone.length > 20) {
+            setSubmitError('El teléfono es demasiado largo');
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            const response = await fetch('/api/hsk/registration', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    first_name: formData.firstName,
+                    last_name: formData.lastName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    level: formData.level,
+                    previous_level: formData.previousLevel || 'no',
+                    exam_session_id: formData.examSessionId || null,
+                    recaptcha_token: recaptchaToken,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Error al enviar la inscripción');
+            }
+
+            // Success - show success message
+            alert('¡Inscripción enviada exitosamente! Recibirás un email de confirmación.');
+            
+            // Reset form
+            setFormData({
+                firstName: '',
+                lastName: '',
+                email: '',
+                phone: '',
+                level: '',
+                testDate: '',
+                previousLevel: '',
+                examSessionId: ''
+            });
+            setStep(1);
+        } catch (error: any) {
+            setSubmitError(error.message || 'Error al enviar la inscripción. Por favor intenta nuevamente.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+    
     return (
-        <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 pb-20">
+        <div className="min-h-screen bg-linear-to-b from-white to-gray-50 pb-20">
             {/* Header */}
             <section
-                className="bg-gradient-to-r from-[#C8102E] to-[#8B0000] text-white py-16">
+                className="bg-linear-to-r from-[#C8102E] to-[#8B0000] text-white py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
                         <div className="flex-1">
@@ -228,7 +407,7 @@ export default function HSKTestingPage() {
                                     <div key={index} className="flex items-start gap-3">
                                         <FontAwesomeIcon
                                             icon={faCheckCircle}
-                                            className="w-5 h-5 text-[#FFD700] flex-shrink-0 mt-0.5"/>
+                                            className="w-5 h-5 text-[#FFD700] shrink-0 mt-0.5"/>
                                         <span className="text-gray-700 text-sm">{req}</span>
                                     </div>
                                 ))}
@@ -237,7 +416,7 @@ export default function HSKTestingPage() {
                                 <div className="flex items-start gap-2">
                                     <FontAwesomeIcon
                                         icon={faCircleExclamation}
-                                        className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"/>
+                                        className="w-5 h-5 text-blue-600 shrink-0 mt-0.5"/>
                                     <p className="text-sm text-blue-900">
                                         Los documentos deben presentarse al menos 2 semanas antes de la fecha del
                                         examen.
@@ -317,6 +496,14 @@ export default function HSKTestingPage() {
                         {/* Step 1: Personal Information */}
                         {step === 1 && (
                             <div className="space-y-6">
+                                {validationError && (
+                                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                        <div className="flex items-start gap-2">
+                                            <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"/>
+                                            <p className="text-sm text-red-900">{validationError}</p>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <Label htmlFor="firstName">Nombre</Label>
@@ -327,7 +514,9 @@ export default function HSKTestingPage() {
                                                 name="firstName"
                                                 value={formData.firstName}
                                                 onChange={handleInputChange}
-                                                placeholder="Tu nombre"/>
+                                                placeholder="Tu nombre"
+                                                required
+                                                maxLength={50}/>
                                         </div>
                                     </div>
                                     <div>
@@ -339,7 +528,9 @@ export default function HSKTestingPage() {
                                                 name="lastName"
                                                 value={formData.lastName}
                                                 onChange={handleInputChange}
-                                                placeholder="Tus apellidos"/>
+                                                placeholder="Tus apellidos"
+                                                required
+                                                maxLength={50}/>
                                         </div>
                                     </div>
                                 </div>
@@ -354,7 +545,9 @@ export default function HSKTestingPage() {
                                             type="email"
                                             value={formData.email}
                                             onChange={handleInputChange}
-                                            placeholder="tu@email.com"/>
+                                            placeholder="tu@email.com"
+                                            required
+                                            maxLength={255}/>
                                     </div>
                                 </div>
 
@@ -365,9 +558,12 @@ export default function HSKTestingPage() {
                                         <Input
                                             id="phone"
                                             name="phone"
+                                            type="tel"
                                             value={formData.phone}
                                             onChange={handleInputChange}
-                                            placeholder="+506 0000-0000"/>
+                                            placeholder="+506 0000-0000"
+                                            required
+                                            maxLength={20}/>
                                     </div>
                                 </div>
                             </div>
@@ -376,6 +572,14 @@ export default function HSKTestingPage() {
                         {/* Step 2: Level and Date Selection */}
                         {step === 2 && (
                             <div className="space-y-6">
+                                {validationError && (
+                                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                        <div className="flex items-start gap-2">
+                                            <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"/>
+                                            <p className="text-sm text-red-900">{validationError}</p>
+                                        </div>
+                                    </div>
+                                )}
                                 <div>
                                     <Label htmlFor="level">Nivel del Examen</Label>
                                     <select
@@ -383,7 +587,8 @@ export default function HSKTestingPage() {
                                         name="level"
                                         value={formData.level}
                                         onChange={handleInputChange}
-                                        className="w-full mt-1 p-2 border rounded-md">
+                                        className="w-full mt-1 p-2 border rounded-md"
+                                        required>
                                         <option value="">Selecciona un nivel</option>
                                         <option value="hsk1">HSK 1 - Principiante</option>
                                         <option value="hsk2">HSK 2 - Elemental</option>
@@ -401,7 +606,8 @@ export default function HSKTestingPage() {
                                         name="testDate"
                                         value={formData.testDate}
                                         onChange={handleInputChange}
-                                        className="w-full mt-1 p-2 border rounded-md">
+                                        className="w-full mt-1 p-2 border rounded-md"
+                                        required>
                                         <option value="">Selecciona una fecha</option>
                                         {testDates.map((date, index) => (
                                             <option key={index} value={date.date}>
@@ -420,7 +626,8 @@ export default function HSKTestingPage() {
                                         name="previousLevel"
                                         value={formData.previousLevel}
                                         onChange={handleInputChange}
-                                        className="w-full mt-1 p-2 border rounded-md">
+                                        className="w-full mt-1 p-2 border rounded-md"
+                                        required>
                                         <option value="">Selecciona</option>
                                         <option value="no">No, es mi primer examen HSK</option>
                                         <option value="hsk1">Sí, HSK 1</option>
@@ -469,7 +676,7 @@ export default function HSKTestingPage() {
 
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                                     <div className="flex items-start gap-2">
-                                        <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"/>
+                                        <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5 text-blue-600 shrink-0 mt-0.5"/>
                                         <div className="text-sm text-blue-900">
                                             <p className="mb-2">
                                                 Al confirmar tu inscripción, recibirás un email con:
@@ -482,6 +689,12 @@ export default function HSKTestingPage() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {submitError && (
+                                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                        <p className="text-sm text-red-900">{submitError}</p>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -499,15 +712,16 @@ export default function HSKTestingPage() {
                                 ? (
                                     <Button
                                         onClick={handleNextStep}
-                                        className="ml-auto bg-gradient-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
+                                        className="ml-auto bg-linear-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
                                         Siguiente
                                     </Button>
                                 )
                                 : (
                                     <Button
-                                        onClick={() => alert('¡Inscripción enviada! Recibirás un email de confirmación.')}
-                                        className="ml-auto bg-gradient-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
-                                        Confirmar Inscripción
+                                        onClick={handleSubmitRegistration}
+                                        disabled={isSubmitting}
+                                        className="ml-auto bg-linear-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                        {isSubmitting ? 'Enviando...' : 'Confirmar Inscripción'}
                                     </Button>
                                 )}
                         </div>
@@ -538,5 +752,13 @@ export default function HSKTestingPage() {
                 </section>
             </div>
         </div>
+    );
+}
+
+export default function HSKTestingPage() {
+    return (
+        <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}>
+            <HSKTestingPageContent />
+        </GoogleReCaptchaProvider>
     );
 }

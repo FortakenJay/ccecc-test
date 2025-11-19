@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHome,
@@ -26,6 +27,8 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations('dashboard.nav');
+  const tc = useTranslations('dashboard.common');
   const { user, profile, signOut, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
@@ -47,7 +50,7 @@ export default function DashboardLayout({
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#C8102E] border-t-transparent"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
+          <p className="mt-4 text-gray-600">{tc('loading')}</p>
         </div>
       </div>
     );
@@ -58,15 +61,15 @@ export default function DashboardLayout({
   }
 
   const navigation = [
-    { name: 'Dashboard', href: '/panel', icon: faHome, roles: ['owner', 'admin', 'officer'] },
-    { name: 'Clases', href: '/panel/clases', icon: faBookOpen, roles: ['owner', 'admin', 'officer'] },
-    { name: 'Eventos', href: '/panel/eventos', icon: faCalendarDays, roles: ['owner', 'admin', 'officer'] },
-    { name: 'Examen HSK', href: '/panel/hsk/sessiones', icon: faAward, roles: ['owner', 'admin', 'officer'] },
-    { name: 'Registros HSK', href: '/panel/hsk/registraciones', icon: faUserCircle, roles: ['owner', 'admin', 'officer'] },
-    { name: 'Consultas', href: '/panel/consultas', icon: faEnvelopeOpen, roles: ['owner', 'admin', 'officer'] },
-    { name: 'Equipo', href: '/panel/equipo', icon: faUsers, roles: ['owner', 'admin'] },
-    { name: 'Usuarios', href: '/panel/usuarios', icon: faUserShield, roles: ['owner', 'admin'] },
-    { name: 'Registros', href: '/panel/registros', icon: faChartLine, roles: ['owner', 'admin'] },
+    { name: t('dashboard'), href: '/panel', icon: faHome, roles: ['owner', 'admin', 'officer'] },
+    { name: t('classes'), href: '/panel/clases', icon: faBookOpen, roles: ['owner', 'admin', 'officer'] },
+    { name: t('events'), href: '/panel/eventos', icon: faCalendarDays, roles: ['owner', 'admin', 'officer'] },
+    { name: t('hskExam'), href: '/panel/hsk/sessiones', icon: faAward, roles: ['owner', 'admin', 'officer'] },
+    { name: t('hskRegistrations'), href: '/panel/hsk/registraciones', icon: faUserCircle, roles: ['owner', 'admin', 'officer'] },
+    { name: t('consultations'), href: '/panel/consultas', icon: faEnvelopeOpen, roles: ['owner', 'admin', 'officer'] },
+    { name: t('team'), href: '/panel/equipo', icon: faUsers, roles: ['owner', 'admin'] },
+    { name: t('users'), href: '/panel/usuarios', icon: faUserShield, roles: ['owner', 'admin'] },
+    { name: t('auditLogs'), href: '/panel/registros', icon: faChartLine, roles: ['owner', 'admin'] },
   ];
 
   const filteredNavigation = navigation.filter(item => 
@@ -100,12 +103,12 @@ export default function DashboardLayout({
           {/* Logo */}
           <div className="flex items-center justify-between p-6 border-b">
             <Link href="/panel" className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#C8102E] to-[#FFD700] rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-linear-to-br from-[#C8102E] to-[#FFD700] rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">中</span>
               </div>
               <div>
                 <div className="text-[#C8102E] font-bold">CCECC</div>
-                <div className="text-xs text-gray-500">Admin Panel</div>
+                <div className="text-xs text-gray-500">{t('adminPanel')}</div>
               </div>
             </Link>
             <button
@@ -138,7 +141,7 @@ export default function DashboardLayout({
           {/* User Profile */}
           <div className="p-4 border-t">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#FFD700] to-[#FFA500] rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-linear-to-br from-[#FFD700] to-[#FFA500] rounded-full flex items-center justify-center">
                 <FontAwesomeIcon icon={faUserCircle} className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
@@ -156,7 +159,7 @@ export default function DashboardLayout({
               className="flex items-center gap-3 w-full px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
             >
               <FontAwesomeIcon icon={faSignOutAlt} className="w-5 h-5" />
-              <span className="font-medium">Cerrar Sesión</span>
+              <span className="font-medium">{t('logout')}</span>
             </button>
           </div>
         </div>

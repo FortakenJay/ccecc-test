@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRole } from '@/lib/hooks/useRole';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -12,6 +13,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faGraduationCap, 
   faPlus, 
+  faEdit,
   faTrash,
   faCalendar,
   faMapMarkerAlt,
@@ -31,6 +33,8 @@ interface Session {
 
 export default function HSKSessionsPage() {
   const router = useRouter();
+  const t = useTranslations('dashboard.hsk.sessions');
+  const tc = useTranslations('dashboard.common');
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, isOfficer, loading: roleLoading } = useRole();
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -38,6 +42,7 @@ export default function HSKSessionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form state
   const [examDate, setExamDate] = useState('');
@@ -77,6 +82,26 @@ export default function HSKSessionsPage() {
     }
   };
 
+  const handleEdit = (session: Session) => {
+    setEditingId(session.id);
+    setExamDate(session.exam_date.split('T')[0]);
+    setLocation(session.location || '');
+    setMaxCapacity(session.max_capacity?.toString() || '');
+    setRegistrationDeadline(session.registration_deadline.split('T')[0]);
+    setIsActive(session.is_active);
+    setShowForm(true);
+  };
+
+  const resetForm = () => {
+    setEditingId(null);
+    setExamDate('');
+    setLocation('');
+    setMaxCapacity('');
+    setRegistrationDeadline('');
+    setIsActive(true);
+    setShowForm(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -88,8 +113,11 @@ export default function HSKSessionsPage() {
     try {
       setSubmitting(true);
 
-      const res = await fetch('/api/hsk/sessions', {
-        method: 'POST',
+      const url = editingId ? `/api/hsk/sessions/${editingId}` : '/api/hsk/sessions';
+      const method = editingId ? 'PATCH' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           exam_date: examDate,
@@ -103,20 +131,12 @@ export default function HSKSessionsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        showToast(data.error || 'Failed to create session', 'error');
+        showToast(data.error || `Failed to ${editingId ? 'update' : 'create'} session`, 'error');
         return;
       }
 
-      showToast('Session created successfully!', 'success');
-      
-      // Reset form
-      setExamDate('');
-      setLocation('');
-      setMaxCapacity('');
-      setRegistrationDeadline('');
-      setIsActive(true);
-      setShowForm(false);
-      
+      showToast(`Session ${editingId ? 'updated' : 'created'} successfully!`, 'success');
+      resetForm();
       fetchSessions();
     } catch (error) {
       showToast('An error occurred. Please try again.', 'error');
@@ -182,16 +202,22 @@ export default function HSKSessionsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <FontAwesomeIcon icon={faGraduationCap} className="w-8 h-8 text-red-600" />
-            HSK Exam Sessions
+            {t('title')}
           </h1>
-          <p className="text-gray-600 mt-2">Manage exam dates and registration periods</p>
+          <p className="text-gray-600 mt-2">{t('description')}</p>
         </div>
         <Button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            if (showForm) {
+              resetForm();
+            } else {
+              setShowForm(true);
+            }
+          }}
           className="bg-red-600 hover:bg-red-700 text-white"
         >
           <FontAwesomeIcon icon={showForm ? faCalendar : faPlus} className="mr-2" />
-          {showForm ? 'Cancel' : 'New Session'}
+          {showForm ? tc('cancel') : t('newSession')}
         </Button>
       </div>
 
@@ -205,13 +231,13 @@ export default function HSKSessionsPage() {
       {showForm && (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Create New Exam Session</CardTitle>
+            <CardTitle>{editingId ? t('editSession') : t('createSession')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="examDate">Exam Date & Time *</Label>
+                  <Label htmlFor="examDate">{t('examDate')} *</Label>
                   <Input
                     id="examDate"
                     type="datetime-local"
@@ -222,7 +248,7 @@ export default function HSKSessionsPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="registrationDeadline">Registration Deadline *</Label>
+                  <Label htmlFor="registrationDeadline">{t('registrationDeadline')} *</Label>
                   <Input
                     id="registrationDeadline"
                     type="datetime-local"
@@ -235,23 +261,23 @@ export default function HSKSessionsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="location">{t('location')}</Label>
                   <Input
                     id="location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Exam venue or address"
+                    placeholder={t('locationPlaceholder')}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="maxCapacity">Max Capacity</Label>
+                  <Label htmlFor="maxCapacity">{t('maxCapacity')}</Label>
                   <Input
                     id="maxCapacity"
                     type="number"
                     value={maxCapacity}
                     onChange={(e) => setMaxCapacity(e.target.value)}
-                    placeholder="Leave empty for unlimited"
+                    placeholder={t('capacityPlaceholder')}
                     min="1"
                   />
                 </div>
@@ -265,7 +291,7 @@ export default function HSKSessionsPage() {
                   onChange={(e) => setIsActive(e.target.checked)}
                   className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                 />
-                <Label htmlFor="isActive" className="mb-0">Active (accepting registrations)</Label>
+                <Label htmlFor="isActive" className="mb-0">{t('activeLabel')}</Label>
               </div>
 
               <div className="flex justify-end gap-3">
@@ -275,7 +301,7 @@ export default function HSKSessionsPage() {
                   onClick={() => setShowForm(false)}
                   disabled={submitting}
                 >
-                  Cancel
+                  {tc('cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -283,11 +309,11 @@ export default function HSKSessionsPage() {
                   disabled={submitting}
                 >
                   {submitting ? (
-                    <>Creating...</>
+                    <>{editingId ? tc('updating') : tc('creating')}</>
                   ) : (
                     <>
                       <FontAwesomeIcon icon={faSave} className="mr-2" />
-                      Create Session
+                      {editingId ? t('updateSession') : t('createSession')}
                     </>
                   )}
                 </Button>
@@ -300,17 +326,17 @@ export default function HSKSessionsPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Total Sessions</div>
+          <div className="text-sm text-gray-600">{t('totalSessions')}</div>
           <div className="text-2xl font-bold text-gray-900">{sessions.length}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Active Sessions</div>
+          <div className="text-sm text-gray-600">{t('activeSessions')}</div>
           <div className="text-2xl font-bold text-green-600">
             {sessions.filter(s => s.is_active).length}
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Upcoming Exams</div>
+          <div className="text-sm text-gray-600">{t('upcomingExams')}</div>
           <div className="text-2xl font-bold text-blue-600">
             {sessions.filter(s => new Date(s.exam_date) > new Date()).length}
           </div>
@@ -331,7 +357,7 @@ export default function HSKSessionsPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="text-xs text-gray-500 mb-1">
-                        {isPast ? 'Past Exam' : 'Upcoming Exam'}
+                        {isPast ? t('pastExam') : t('upcomingExam')}
                       </div>
                       <div className="text-lg font-bold text-gray-900">
                         {examDate.toLocaleDateString()}
@@ -348,7 +374,7 @@ export default function HSKSessionsPage() {
                           : 'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      {session.is_active ? 'Active' : 'Inactive'}
+                      {session.is_active ? tc('active') : tc('inactive')}
                     </button>
                   </div>
                 </CardHeader>
@@ -363,27 +389,40 @@ export default function HSKSessionsPage() {
                   {session.max_capacity && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <FontAwesomeIcon icon={faUsers} className="w-4 h-4" />
-                      Max: {session.max_capacity} students
+                      {t('max')}: {session.max_capacity} {t('students')}
                     </div>
                   )}
 
                   <div className="pt-3 border-t border-gray-200">
-                    <div className="text-xs text-gray-500 mb-1">Registration Deadline</div>
+                    <div className="text-xs text-gray-500 mb-1">{t('registrationDeadline')}</div>
                     <div className="text-sm font-medium text-gray-900">
                       {deadline.toLocaleDateString()} at {deadline.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
 
-                  {isOwner && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(session.id)}
-                      className="w-full text-red-600 hover:text-red-700 mt-4"
-                    >
-                      <FontAwesomeIcon icon={faTrash} className="mr-2" />
-                      Delete Session
-                    </Button>
+                  {(isAdmin || isOwner || isOfficer) && (
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(session)}
+                        className="flex-1 text-blue-600 hover:text-blue-700"
+                      >
+                        <FontAwesomeIcon icon={faEdit} className="mr-2" />
+                        {tc('edit')}
+                      </Button>
+                      {isOwner && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(session.id)}
+                          className="flex-1 text-red-600 hover:text-red-700"
+                        >
+                          <FontAwesomeIcon icon={faTrash} className="mr-2" />
+                          {tc('delete')}
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -391,7 +430,7 @@ export default function HSKSessionsPage() {
           })
         ) : (
           <div className="col-span-full text-center py-12 text-gray-500">
-            No exam sessions found. Create one to get started.
+            {t('noSessions')}
           </div>
         )}
       </div>

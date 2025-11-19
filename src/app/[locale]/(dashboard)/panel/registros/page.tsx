@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRole } from '@/lib/hooks/useRole';
 import { Card } from '@/components/ui/Card';
@@ -36,12 +37,25 @@ interface AuditLog {
 
 export default function RegistrosPage() {
   const router = useRouter();
+  const t = useTranslations('dashboard.auditLogs');
+  const tc = useTranslations('dashboard.common');
+  const tu = useTranslations('dashboard.users');
   const { user, profile, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, loading: roleLoading } = useRole();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
+
+  // Helper function to translate role
+  const getRoleTranslation = (role: string) => {
+    switch (role) {
+      case 'owner': return tu('owner');
+      case 'admin': return tu('admin');
+      case 'officer': return tu('officer');
+      default: return role;
+    }
+  };
 
   useEffect(() => {
     if (authLoading || roleLoading) return;
@@ -109,12 +123,12 @@ export default function RegistrosPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
           <FontAwesomeIcon icon={faClipboardList} className="w-8 h-8 text-red-600" />
-          Audit Logs
+          {t('title')}
           {profile?.role === 'admin' && (
-            <span className="text-sm font-normal text-gray-500">(Officer actions only)</span>
+            <span className="text-sm font-normal text-gray-500">({t('officerActionsOnly')})</span>
           )}
         </h1>
-        <p className="text-gray-600 mt-2">Track all system changes and user actions</p>
+        <p className="text-gray-600 mt-2">{t('subtitle')}</p>
       </div>
 
       {error && (
@@ -126,23 +140,23 @@ export default function RegistrosPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Total Actions</div>
+          <div className="text-sm text-gray-600">{t('totalActions')}</div>
           <div className="text-2xl font-bold text-gray-900">{logs.length}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Inserts</div>
+          <div className="text-sm text-gray-600">{t('inserts')}</div>
           <div className="text-2xl font-bold text-green-600">
             {logs.filter(l => l.action === 'INSERT').length}
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Updates</div>
+          <div className="text-sm text-gray-600">{t('updates')}</div>
           <div className="text-2xl font-bold text-blue-600">
             {logs.filter(l => l.action === 'UPDATE').length}
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Deletes</div>
+          <div className="text-sm text-gray-600">{t('deletes')}</div>
           <div className="text-2xl font-bold text-red-600">
             {logs.filter(l => l.action === 'DELETE').length}
           </div>
@@ -159,7 +173,7 @@ export default function RegistrosPage() {
             size="sm"
             className={filter === action ? 'bg-red-600 hover:bg-red-700' : ''}
           >
-            {action === 'all' ? 'All' : action}
+            {action === 'all' ? t('all') : t(action.toLowerCase())}
           </Button>
         ))}
       </div>
@@ -171,19 +185,16 @@ export default function RegistrosPage() {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Action
+                  {t('action')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Table
+                  {t('table')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User
+                  {t('user')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  IP Address
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Timestamp
+                  {t('timestamp')}
                 </th>
               </tr>
             </thead>
@@ -199,7 +210,7 @@ export default function RegistrosPage() {
                           icon={actionIcons[log.action as keyof typeof actionIcons] || faEdit} 
                           className="mr-1 w-3 h-3" 
                         />
-                        {log.action}
+                        {t(log.action.toLowerCase())}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -208,19 +219,16 @@ export default function RegistrosPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm text-gray-900">
-                          {log.user?.email || log.user?.full_name || (log.user_id ? 'Deleted User' : 'System')}
+                          {log.user?.full_name || log.user?.email || (log.user_id ? t('deletedUser') : t('system'))}
                         </div>
                         <div className="text-xs text-gray-500 flex items-center gap-1">
                           <FontAwesomeIcon icon={faShield} className="w-3 h-3" />
-                          {log.user_role}
+                          {getRoleTranslation(log.user_role)}
                         </div>
                         {log.user_id && !log.user && (
                           <div className="text-xs text-gray-400 mt-1">ID: {log.user_id.substring(0, 8)}...</div>
                         )}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {log.ip_address || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center gap-1">
@@ -232,12 +240,12 @@ export default function RegistrosPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
                     {profile?.role === 'admin' 
-                      ? 'No officer activity found'
+                      ? t('noOfficerActivity')
                       : filter === 'all' 
-                        ? 'No audit logs found' 
-                        : `No ${filter} actions found`
+                        ? t('noLogs')
+                        : `${t('no')} ${t(filter.toLowerCase())} ${t('actionsFound')}`
                     }
                   </td>
                 </tr>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRole } from '@/lib/hooks/useRole';
 import { Card } from '@/components/ui/Card';
@@ -33,6 +34,8 @@ interface Event {
 
 export default function EventosPage() {
   const router = useRouter();
+  const t = useTranslations('dashboard.events');
+  const tc = useTranslations('dashboard.common');
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, isOfficer, loading: roleLoading } = useRole();
   const [events, setEvents] = useState<Event[]>([]);
@@ -65,7 +68,7 @@ export default function EventosPage() {
   };
 
   const handleDelete = async (eventId: string) => {
-    if (!confirm('Are you sure you want to delete this event?')) return;
+    if (!confirm(t('deleteConfirm'))) return;
 
     try {
       const res = await fetch(`/api/eventos/${eventId}`, {
@@ -95,16 +98,16 @@ export default function EventosPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <FontAwesomeIcon icon={faCalendar} className="w-8 h-8 text-red-600" />
-            Event Management
+            {t('title')}
           </h1>
-          <p className="text-gray-600 mt-2">Manage upcoming and past events</p>
+          <p className="text-gray-600 mt-2">{t('subtitle')}</p>
         </div>
         <Button
           onClick={() => router.push('/panel/eventos/new')}
           className="bg-red-600 hover:bg-red-700 text-white"
         >
           <FontAwesomeIcon icon={faPlus} className="mr-2" />
-          Add Event
+          {t('createEvent')}
         </Button>
       </div>
 
@@ -117,17 +120,17 @@ export default function EventosPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Total Events</div>
+          <div className="text-sm text-gray-600">{t('totalEvents')}</div>
           <div className="text-2xl font-bold text-gray-900">{events.length}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Active</div>
+          <div className="text-sm text-gray-600">{tc('active')}</div>
           <div className="text-2xl font-bold text-green-600">
             {events.filter(e => e.is_active).length}
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Total Attendees</div>
+          <div className="text-sm text-gray-600">{t('totalAttendees')}</div>
           <div className="text-2xl font-bold text-blue-600">
             {events.reduce((sum, e) => sum + (e.current_attendees || 0), 0)}
           </div>
@@ -165,7 +168,7 @@ export default function EventosPage() {
                 </div>
 
                 <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                  {event.description || 'No description available'}
+                  {event.description || t('noDescription')}
                 </p>
 
                 <div className="space-y-2 mb-4 text-sm text-gray-600">
@@ -180,7 +183,7 @@ export default function EventosPage() {
                   {event.max_attendees && (
                     <div className="flex items-center gap-2">
                       <FontAwesomeIcon icon={faUsers} className="w-4 h-4 text-gray-400" />
-                      {event.current_attendees || 0} / {event.max_attendees} attendees
+                      {event.current_attendees || 0} / {event.max_attendees} {t('attendees')}
                     </div>
                   )}
                 </div>
@@ -193,7 +196,7 @@ export default function EventosPage() {
                     className="flex-1"
                   >
                     <FontAwesomeIcon icon={faEdit} className="mr-2 w-4 h-4" />
-                    Edit
+                    {tc('edit')}
                   </Button>
                   <Button
                     onClick={() => handleDelete(event.id)}
@@ -210,14 +213,14 @@ export default function EventosPage() {
         ) : (
           <div className="col-span-full text-center py-12">
             <FontAwesomeIcon icon={faCalendar} className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No events found</h3>
-            <p className="text-gray-500 mb-4">Get started by creating your first event</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noEventsFound')}</h3>
+            <p className="text-gray-500 mb-4">{t('getStarted')}</p>
             <Button
               onClick={() => router.push('/panel/eventos/new')}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               <FontAwesomeIcon icon={faPlus} className="mr-2" />
-              Add Event
+              {t('createEvent')}
             </Button>
           </div>
         )}

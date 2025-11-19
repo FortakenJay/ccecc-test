@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRole } from '@/lib/hooks/useRole';
 import { Card } from '@/components/ui/Card';
@@ -16,7 +17,8 @@ import {
   faTimesCircle,
   faUser,
   faEnvelope,
-  faPhone
+  faPhone,
+  faCheckSquare
 } from '@fortawesome/free-solid-svg-icons';
 
 interface Registration {
@@ -26,19 +28,21 @@ interface Registration {
   email: string;
   phone?: string;
   level: string;
-  payment_status: 'pending' | 'paid' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   registration_date: string;
   created_at: string;
 }
 
 export default function HSKRegistrationsPage() {
   const router = useRouter();
+  const t = useTranslations('dashboard.hsk.registrations');
+  const tc = useTranslations('dashboard.common');
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, isOfficer, loading: roleLoading } = useRole();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'cancelled'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled' | 'completed'>('all');
 
   useEffect(() => {
     if (authLoading || roleLoading) return;
@@ -65,12 +69,12 @@ export default function HSKRegistrationsPage() {
     }
   };
 
-  const updatePaymentStatus = async (id: string, status: 'pending' | 'paid' | 'cancelled') => {
+  const updatePaymentStatus = async (id: string, status: 'pending' | 'confirmed' | 'cancelled' | 'completed') => {
     try {
       const res = await fetch(`/api/hsk/registration/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payment_status: status }),
+        body: JSON.stringify({ status }),
       });
 
       if (!res.ok) throw new Error('Failed to update payment status');
@@ -82,7 +86,7 @@ export default function HSKRegistrationsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this registration?')) return;
+    if (!confirm(t('deleteConfirm'))) return;
 
     try {
       const res = await fetch(`/api/hsk/registration/${id}`, {
@@ -107,7 +111,7 @@ export default function HSKRegistrationsPage() {
 
   const filteredRegistrations = filter === 'all' 
     ? registrations 
-    : registrations.filter(r => r.payment_status === filter);
+    : registrations.filter(r => r.status === filter);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -116,9 +120,9 @@ export default function HSKRegistrationsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <FontAwesomeIcon icon={faGraduationCap} className="w-8 h-8 text-red-600" />
-            HSK Exam Registrations
+            {t('title')}
           </h1>
-          <p className="text-gray-600 mt-2">Manage student registrations for HSK exams</p>
+          <p className="text-gray-600 mt-2">{t('totalRegistrations')}</p>
         </div>
       </div>
 
@@ -131,58 +135,66 @@ export default function HSKRegistrationsPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Total Registrations</div>
+          <div className="text-sm text-gray-600">{t('totalRegistrations')}</div>
           <div className="text-2xl font-bold text-gray-900">{registrations.length}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Pending Payment</div>
+          <div className="text-sm text-gray-600">{t('pendingPayment')}</div>
           <div className="text-2xl font-bold text-yellow-600">
-            {registrations.filter(r => r.payment_status === 'pending').length}
+            {registrations.filter(r => r.status === 'pending').length}
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Paid</div>
+          <div className="text-sm text-gray-600">{t('confirmed')}</div>
           <div className="text-2xl font-bold text-green-600">
-            {registrations.filter(r => r.payment_status === 'paid').length}
+            {registrations.filter(r => r.status === 'confirmed').length}
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Cancelled</div>
+          <div className="text-sm text-gray-600">{t('cancelled')}</div>
           <div className="text-2xl font-bold text-red-600">
-            {registrations.filter(r => r.payment_status === 'cancelled').length}
+            {registrations.filter(r => r.status === 'cancelled').length}
           </div>
         </Card>
       </div>
 
       {/* Filter Tabs */}
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex flex-wrap gap-2">
         <Button
           variant={filter === 'all' ? 'default' : 'outline'}
           onClick={() => setFilter('all')}
           size="sm"
         >
-          All
+          {t('all')}
         </Button>
         <Button
           variant={filter === 'pending' ? 'default' : 'outline'}
           onClick={() => setFilter('pending')}
           size="sm"
         >
-          Pending
+          {t('pending')}
         </Button>
         <Button
-          variant={filter === 'paid' ? 'default' : 'outline'}
-          onClick={() => setFilter('paid')}
+          variant={filter === 'confirmed' ? 'default' : 'outline'}
+          onClick={() => setFilter('confirmed')}
           size="sm"
         >
-          Paid
+          <FontAwesomeIcon icon={faCheckSquare} className="mr-2" />
+          {t('confirmed')}
         </Button>
         <Button
           variant={filter === 'cancelled' ? 'default' : 'outline'}
           onClick={() => setFilter('cancelled')}
           size="sm"
         >
-          Cancelled
+          {t('cancelled')}
+        </Button>
+        <Button
+          variant={filter === 'completed' ? 'default' : 'outline'}
+          onClick={() => setFilter('completed')}
+          size="sm"
+        >
+          {t('completed')}
         </Button>
       </div>
 
@@ -193,19 +205,19 @@ export default function HSKRegistrationsPage() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Student
+                  {t('student')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Level
+                  {t('level')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Payment Status
+                  {t('paymentStatus')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Registered
+                  {t('registered')}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  {t('actions')}
                 </th>
               </tr>
             </thead>
@@ -238,17 +250,19 @@ export default function HSKRegistrationsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <select
-                        value={reg.payment_status}
+                        value={reg.status}
                         onChange={(e) => updatePaymentStatus(reg.id, e.target.value as any)}
                         className={`text-xs px-2 py-1 rounded-full border-0 font-medium ${
-                          reg.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
-                          reg.payment_status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                          reg.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                          reg.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                          reg.status === 'completed' ? 'bg-blue-100 text-blue-800' :
                           'bg-yellow-100 text-yellow-800'
                         }`}
                       >
-                        <option value="pending">Pending</option>
-                        <option value="paid">Paid</option>
-                        <option value="cancelled">Cancelled</option>
+                        <option value="pending">{t('pending')}</option>
+                        <option value="confirmed">{t('confirmed')}</option>
+                        <option value="cancelled">{t('cancelled')}</option>
+                        <option value="completed">{t('completed')}</option>
                       </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -271,7 +285,7 @@ export default function HSKRegistrationsPage() {
               ) : (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                    No registrations found
+                    {t('noRegistrations')}
                   </td>
                 </tr>
               )}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRole } from '@/lib/hooks/useRole';
 import { Card } from '@/components/ui/Card';
@@ -32,6 +33,8 @@ interface Inquiry {
 
 export default function ConsultasPage() {
   const router = useRouter();
+  const t = useTranslations('dashboard.consultations');
+  const tc = useTranslations('dashboard.common');
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, isOfficer, loading: roleLoading } = useRole();
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
@@ -105,9 +108,9 @@ export default function ConsultasPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
           <FontAwesomeIcon icon={faFileText} className="w-8 h-8 text-red-600" />
-          Space Rental Inquiries
+          {t('title')}
         </h1>
-        <p className="text-gray-600 mt-2">Manage customer inquiries and bookings</p>
+        <p className="text-gray-600 mt-2">{t('subtitle')}</p>
       </div>
 
       {error && (
@@ -119,23 +122,23 @@ export default function ConsultasPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Total Inquiries</div>
+          <div className="text-sm text-gray-600">{t('totalConsultations')}</div>
           <div className="text-2xl font-bold text-gray-900">{inquiries.length}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Pending</div>
+          <div className="text-sm text-gray-600">{t('pending')}</div>
           <div className="text-2xl font-bold text-yellow-600">
             {inquiries.filter(i => i.status === 'pending').length}
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Contacted</div>
+          <div className="text-sm text-gray-600">{t('contacted')}</div>
           <div className="text-2xl font-bold text-blue-600">
             {inquiries.filter(i => i.status === 'contacted').length}
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Confirmed</div>
+          <div className="text-sm text-gray-600">{t('confirmed')}</div>
           <div className="text-2xl font-bold text-green-600">
             {inquiries.filter(i => i.status === 'confirmed').length}
           </div>
@@ -152,7 +155,7 @@ export default function ConsultasPage() {
             size="sm"
             className={filter === status ? 'bg-red-600 hover:bg-red-700' : ''}
           >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {t(status)}
           </Button>
         ))}
       </div>
@@ -176,27 +179,27 @@ export default function ConsultasPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <FontAwesomeIcon icon={faCalendar} className="w-4 h-4 text-gray-400" />
-                      Event: {new Date(inquiry.event_date).toLocaleDateString()}
+                      {t('event')}: {new Date(inquiry.event_date).toLocaleDateString()}
                     </div>
                     <div className="flex items-center gap-2">
                       <FontAwesomeIcon icon={faUsers} className="w-4 h-4 text-gray-400" />
-                      {inquiry.estimated_guests} guests
+                      {inquiry.estimated_guests} {t('guests')}
                     </div>
                   </div>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[inquiry.status]}`}>
-                  {inquiry.status.charAt(0).toUpperCase() + inquiry.status.slice(1)}
+                  {t(inquiry.status)}
                 </span>
               </div>
 
               <div className="mb-4">
-                <div className="text-sm font-medium text-gray-700 mb-1">Event Type:</div>
+                <div className="text-sm font-medium text-gray-700 mb-1">{t('eventType')}:</div>
                 <div className="text-sm text-gray-600">{inquiry.event_type}</div>
               </div>
 
               {inquiry.message && (
                 <div className="mb-4">
-                  <div className="text-sm font-medium text-gray-700 mb-1">Message:</div>
+                  <div className="text-sm font-medium text-gray-700 mb-1">{t('message')}:</div>
                   <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
                     {inquiry.message}
                   </div>
@@ -206,7 +209,7 @@ export default function ConsultasPage() {
               <div className="flex items-center justify-between pt-4 border-t">
                 <div className="text-xs text-gray-500 flex items-center gap-1">
                   <FontAwesomeIcon icon={faClock} className="w-3 h-3" />
-                  Received: {new Date(inquiry.created_at).toLocaleString()}
+                  {t('received')}: {new Date(inquiry.created_at).toLocaleString()}
                 </div>
                 <div className="flex gap-2">
                   {inquiry.status === 'pending' && (
@@ -216,7 +219,7 @@ export default function ConsultasPage() {
                       size="sm"
                       className="text-blue-600 hover:text-blue-700 hover:border-blue-300"
                     >
-                      Mark Contacted
+                      {t('markContacted')}
                     </Button>
                   )}
                   {inquiry.status === 'contacted' && (
@@ -227,7 +230,7 @@ export default function ConsultasPage() {
                       className="text-green-600 hover:text-green-700 hover:border-green-300"
                     >
                       <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
-                      Confirm
+                      {t('confirm')}
                     </Button>
                   )}
                   {inquiry.status !== 'cancelled' && (
@@ -237,7 +240,7 @@ export default function ConsultasPage() {
                       size="sm"
                       className="text-red-600 hover:text-red-700 hover:border-red-300"
                     >
-                      Cancel
+                      {tc('cancel')}
                     </Button>
                   )}
                 </div>
@@ -247,9 +250,9 @@ export default function ConsultasPage() {
         ) : (
           <div className="text-center py-12">
             <FontAwesomeIcon icon={faFileText} className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No inquiries found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noConsultations')}</h3>
             <p className="text-gray-500">
-              {filter === 'all' ? 'No inquiries yet' : `No ${filter} inquiries`}
+              {filter === 'all' ? t('noConsultationsYet') : `${t('no')} ${t(filter)} ${t('consultations')}`}
             </p>
           </div>
         )}

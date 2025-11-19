@@ -132,7 +132,7 @@ export default function ClassesPage() {
         <div className="min-h-screen bg-linear-to-b from-white to-gray-50 pb-20">
             {/* Header */}
             <section
-                className="bg-gradient-to-r from-[#C8102E] to-[#8B0000] text-white py-16">
+                className="bg-linear-to-r from-[#C8102E] to-[#8B0000] text-white py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <h1 className="text-4xl lg:text-5xl mb-4">Nuestras Clases</h1>
@@ -149,7 +149,7 @@ export default function ClassesPage() {
                 <section className="mb-16">
                     <div className="flex items-center gap-3 mb-8">
                         <div
-                            className="w-12 h-12 bg-gradient-to-br from-[#C8102E] to-[#FFD700] rounded-lg flex items-center justify-center">
+                            className="w-12 h-12 bg-linear-to-br from-[#C8102E] to-[#FFD700] rounded-lg flex items-center justify-center">
                             <FontAwesomeIcon icon={faAward} className="w-6 h-6 text-white"/>
                         </div>
                         <div>
@@ -165,7 +165,7 @@ export default function ClassesPage() {
                                 className="p-6 hover:shadow-xl transition-shadow border-t-4 border-t-[#C8102E]">
                                 <div className="flex items-center justify-between mb-4">
                                     <div
-                                        className={`px-4 py-2 bg-gradient-to-r ${level.color} text-white rounded-lg`}>
+                                        className={`px-4 py-2 bg-linear-to-r ${level.color} text-white rounded-lg`}>
                                         {level.level}
                                     </div>
                                     <Badge variant="outline" className="text-[#C8102E] border-[#C8102E]">
@@ -187,7 +187,7 @@ export default function ClassesPage() {
                                 </div>
 
                                 <Button
-                                    className="w-full hover:cursor-pointer bg-gradient-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
+                                    className="w-full hover:cursor-pointer bg-linear-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
                                     Inscribirse
                                 </Button>
                             </Card>
@@ -199,7 +199,7 @@ export default function ClassesPage() {
                 <section className="mb-16">
                     <div className="flex items-center gap-3 mb-8">
                         <div
-                            className="w-12 h-12 bg-gradient-to-br from-[#FFD700] to-[#FFA500] rounded-lg flex items-center justify-center">
+                            className="w-12 h-12 bg-linear-to-br from-[#FFD700] to-[#FFA500] rounded-lg flex items-center justify-center">
                             <FontAwesomeIcon icon={faBookOpen} className="w-6 h-6 text-white"/>
                         </div>
                         <div>
@@ -247,7 +247,7 @@ export default function ClassesPage() {
                                 </div>
 
                                 <Button
-                                    className="w-full hover:cursor-pointer bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFA500] hover:to-[#FF8C00] text-white">
+                                    className="w-full hover:cursor-pointer bg-linear-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFA500] hover:to-[#FF8C00] text-white">
                                     Más Información
                                 </Button>
                             </Card>
@@ -259,7 +259,7 @@ export default function ClassesPage() {
                 <section id="artistic">
                     <div className="flex items-center gap-3 mb-8">
                         <div
-                            className="w-12 h-12 bg-gradient-to-br from-[#C8102E] to-[#8B0000] rounded-lg flex items-center justify-center">
+                            className="w-12 h-12 bg-linear-to-br from-[#C8102E] to-[#8B0000] rounded-lg flex items-center justify-center">
                             <FontAwesomeIcon icon={faMusic} className="w-6 h-6 text-white"/>
                         </div>
                         <div>
@@ -280,7 +280,7 @@ export default function ClassesPage() {
                                             alt={course.title}
                                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"/>
                                         <div
-                                            className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"/>
+                                            className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent"/>
                                         <div className="absolute bottom-4 left-4 right-4"></div>
                                     </div>
 
@@ -301,7 +301,7 @@ export default function ClassesPage() {
                                         </div>
 
                                         <Button
-                                            className="w-full hover:cursor-pointer bg-gradient-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
+                                            className="w-full hover:cursor-pointer bg-linear-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
                                             Consultar Disponibilidad
                                         </Button>
                                     </div>
