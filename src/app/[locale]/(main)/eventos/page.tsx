@@ -170,10 +170,10 @@ export default function EventsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 pb-20">
+        <div className="min-h-screen bg-linear-to-b from-white to-gray-50 pb-20">
             {/* Header */}
             <section
-                className="bg-gradient-to-r from-[#C8102E] to-[#8B0000] text-white py-16">
+                className="bg-linear-to-r from-[#C8102E] to-[#8B0000] text-white py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <h1 className="text-4xl lg:text-5xl mb-4">Eventos y Espacios</h1>
@@ -187,52 +187,18 @@ export default function EventsPage() {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                    {/* Left Side - Event Hosting */}
+
                     <div className="lg:col-span-2">
-                        <Card className="p-6 sticky top-24">
-                            <div className="flex items-center gap-2 mb-6">
+                       <Card className="p-6 sticky top-24">
+                          <div className="flex items-center gap-2 mb-6">
                                 <FontAwesomeIcon icon={faBuilding} className="w-6 h-6 text-[#C8102E]"/>
-                                <h2 className="text-gray-900">Alquila Nuestro Espacio</h2>
+                                <h2 className="text-gray-900">Consulta sobre Eventos</h2>
                             </div>
 
                             <p className="text-gray-600 mb-6">
-                                Nuestras instalaciones están disponibles para eventos corporativos, culturales,
-                                celebraciones privadas y más.
+                                ¿Estás interesado en alguno de nuestros eventos? Envíanos tus consultas y nos pondremos en contacto contigo.
                             </p>
 
-                            {/* Photo Gallery */}
-                            <div className="grid grid-cols-1 gap-4 mb-6">
-                                {eventSpaces.map((space, index) => (
-                                    <div key={index} className="group cursor-pointer">
-                                        <div className="relative h-40 rounded-lg overflow-hidden mb-2">
-                                            <ImageWithFallback
-                                                src={space.image}
-                                                alt={space.name}
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"/>
-                                            <div
-                                                className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"/>
-                                            <div className="absolute bottom-2 left-2 right-2">
-                                                <h3 className="text-white mb-1">{space.name}</h3>
-                                                <div className="flex items-center gap-1 text-white/90 text-sm">
-                                                    <FontAwesomeIcon icon={faUsers} className="w-3 h-3"/>
-                                                    <span>{space.capacity}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            {space
-                                                .features
-                                                .map((feature, idx) => (
-                                                    <Badge key={idx} variant="secondary" className="text-xs">
-                                                        {feature}
-                                                    </Badge>
-                                                ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Inquiry Form */}
                             <form onSubmit={handleRentalSubmit} className="space-y-4">
                                 <h3 className="text-gray-900">Formulario de Consulta</h3>
 
@@ -265,24 +231,6 @@ export default function EventsPage() {
                                         value={rentalForm.phone}
                                         onChange={handleRentalInputChange}
                                         required/>
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="eventType">Tipo de evento</Label>
-                                    <select
-                                        id="eventType"
-                                        name="eventType"
-                                        value={rentalForm.eventType}
-                                        onChange={handleRentalInputChange}
-                                        className="w-full p-2 border rounded-md hover:cursor-pointer"
-                                        required>
-                                        <option value="">Selecciona</option>
-                                        <option value="corporate">Corporativo</option>
-                                        <option value="wedding">Boda</option>
-                                        <option value="birthday">Cumpleaños</option>
-                                        <option value="cultural">Cultural</option>
-                                        <option value="other">Otro</option>
-                                    </select>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">

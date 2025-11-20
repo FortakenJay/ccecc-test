@@ -41,7 +41,7 @@ export const VALID_AUDIT_TABLES = [
   'hsk_registrations',
   'invitations',
   'consultas',
-  'inquiries'
+  'inquiries' 
 ];
 
 export const VALID_AUDIT_ACTIONS = ['INSERT', 'UPDATE', 'DELETE'];
