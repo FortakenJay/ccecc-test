@@ -14,7 +14,10 @@ import {
   faEdit, 
   faTrash,
   faCheckCircle,
-  faTimesCircle
+  faTimesCircle,
+  faArrowUp,
+  faArrowDown,
+  faFilter
 } from '@fortawesome/free-solid-svg-icons';
 
 interface TeamMember {
@@ -23,9 +26,9 @@ interface TeamMember {
   image_url?: string;
   display_order: number;
   is_active: boolean;
+  category?: string;
   created_at: string;
   updated_at: string;
-  // Translated fields (from team_member_translations)
   name?: string;
   role?: string;
   bio?: string;
@@ -41,6 +44,7 @@ export default function EquipoPage() {
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
     if (authLoading || roleLoading) return;
@@ -99,6 +103,61 @@ export default function EquipoPage() {
     }
   };
 
+  const handleReorder = async (memberId: string, direction: 'up' | 'down', currentOrder: number, category: string) => {
+    const categoryMembers = filteredTeam.filter(m => m.category === category);
+    const currentIndex = categoryMembers.findIndex(m => m.id === memberId);
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+    if (targetIndex < 0 || targetIndex >= categoryMembers.length) return;
+
+    const targetMember = categoryMembers[targetIndex];
+
+    try {
+      await Promise.all([
+        fetch(`/api/equipo/${memberId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ display_order: targetMember.display_order }),
+        }),
+        fetch(`/api/equipo/${targetMember.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ display_order: currentOrder }),
+        }),
+      ]);
+
+      fetchTeam();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const categories = [
+    { value: 'all', label: 'All Members', color: 'gray' },
+    { value: 'board', label: 'Board of Directors', color: 'purple' },
+    { value: 'leadership', label: 'Leadership', color: 'blue' },
+    { value: 'local_teachers', label: 'Local Teachers', color: 'green' },
+    { value: 'volunteer_teachers', label: 'Volunteer Teachers', color: 'yellow' },
+    { value: 'partner_institutions', label: 'Partners', color: 'pink' },
+  ];
+
+  const filteredTeam = selectedCategory === 'all' 
+    ? team 
+    : team.filter(m => m.category === selectedCategory);
+
+  const groupedTeam = filteredTeam.reduce((acc: any, member: any) => {
+    const category = member.category || 'uncategorized';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(member);
+    return acc;
+  }, {});
+
+  Object.keys(groupedTeam).forEach(category => {
+    groupedTeam[category].sort((a: any, b: any) => 
+      (a.display_order || 0) - (b.display_order || 0)
+    );
+  });
+
   if (authLoading || roleLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -134,7 +193,7 @@ export default function EquipoPage() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card className="p-4">
           <div className="text-sm text-gray-600">{t('totalMembers')}</div>
           <div className="text-2xl font-bold text-gray-900">{team.length}</div>
@@ -145,98 +204,162 @@ export default function EquipoPage() {
             {team.filter(m => m.is_active).length}
           </div>
         </Card>
-      </div>
-
-      {/* Team Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {team.length > 0 ? (
-          team.map((member) => (
-            <Card key={member.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              {member.image_url && (
-                <div className="h-64 bg-gray-200 overflow-hidden">
-                  <img 
-                    src={member.image_url} 
-                    alt={member.slug}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {member.name || member.slug}
-                    </h3>
-                    {member.role && (
-                      <p className="text-sm text-red-600 font-medium mb-2">{member.role}</p>
-                    )}
-                    <p className="text-xs text-gray-500">
-                      {t('order')}: {member.display_order}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => toggleActive(member.id, member.is_active)}
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                      member.is_active 
-                        ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                    }`}
-                  >
-                    <FontAwesomeIcon 
-                      icon={member.is_active ? faCheckCircle : faTimesCircle}
-                      className="mr-1 w-3 h-3"
-                    />
-                    {member.is_active ? tc('active') : tc('inactive')}
-                  </button>
-                </div>
-
-                {member.bio && (
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                    {member.bio}
-                  </p>
-                )}
-
-                <div className="text-xs text-gray-500 mb-4">
-                  {t('created')}: {new Date(member.created_at).toLocaleDateString()}
-                </div>
-
-                <div className="flex gap-2 pt-4 border-t">
-                  <Button
-                    onClick={() => router.push(`/panel/equipo/${member.id}`)}
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                  >
-                    <FontAwesomeIcon icon={faEdit} className="mr-2 w-4 h-4" />
-                    {tc('edit')}
-                  </Button>
-                  <Button
-                    onClick={() => handleDelete(member.id)}
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700 hover:border-red-300"
-                  >
-                    <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))
-        ) : (
-          <div className="col-span-full text-center py-12">
-            <FontAwesomeIcon icon={faUserTie} className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noMembersFound')}</h3>
-            <p className="text-gray-500 mb-4">{t('getStarted')}</p>
-            <Button
-              onClick={() => router.push('/panel/equipo/new')}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              <FontAwesomeIcon icon={faPlus} className="mr-2" />
-              {t('addMember')}
-            </Button>
+        <Card className="p-4">
+          <div className="text-sm text-gray-600">Categories</div>
+          <div className="text-2xl font-bold text-blue-600">
+            {Object.keys(groupedTeam).length}
           </div>
-        )}
+        </Card>
       </div>
+
+      {/* Category Filter */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <FontAwesomeIcon icon={faFilter} className="text-gray-500" />
+          <span className="text-sm font-medium text-gray-700">Filter by Category:</span>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {categories.map(cat => (
+            <button
+              key={cat.value}
+              onClick={() => setSelectedCategory(cat.value)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectedCategory === cat.value
+                  ? 'bg-[#C8102E] text-white shadow-md'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+              }`}>
+              {cat.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Team Grid by Category */}
+      {Object.keys(groupedTeam).length === 0 ? (
+        <div className="text-center py-12">
+          <FontAwesomeIcon icon={faUserTie} className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noMembersFound')}</h3>
+          <p className="text-gray-500 mb-4">{t('getStarted')}</p>
+          <Button
+            onClick={() => router.push('/panel/equipo/new')}
+            className="bg-red-600 hover:bg-red-700 text-white">
+            <FontAwesomeIcon icon={faPlus} className="mr-2" />
+            {t('addMember')}
+          </Button>
+        </div>
+      ) : (
+        Object.entries(groupedTeam).map(([category, members]: [string, any]) => (
+          <div key={category} className="mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="capitalize">{category.replace(/_/g, ' ')}</span>
+              <span className="text-sm font-normal text-gray-500">
+                ({members.length} member{members.length !== 1 ? 's' : ''})
+              </span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {members.map((member: any, index: number) => (
+                <Card key={member.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="relative">
+                    {member.image_url ? (
+                      <div className="h-48 bg-gray-200 overflow-hidden">
+                        <img 
+                          src={member.image_url} 
+                          alt={member.slug}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <FontAwesomeIcon icon={faUserTie} className="w-16 h-16 text-gray-400" />
+                      </div>
+                    )}
+                    {!member.is_active && (
+                      <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded shadow-md">
+                        Inactive
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="p-4">
+                    <div className="mb-3">
+                      <h3 className="text-base font-semibold text-gray-900 mb-1">
+                        {member.name || member.slug}
+                      </h3>
+                      {member.role && (
+                        <p className="text-sm text-red-600 font-medium">{member.role}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-xs text-gray-500">Order: {member.display_order}</span>
+                        {member.category && (
+                          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                            {member.category.replace(/_/g, ' ')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {member.bio && (
+                      <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+                        {member.bio}
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-200 mb-3">
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleReorder(member.id, 'up', member.display_order, category)}
+                          disabled={index === 0}
+                          title="Move up"
+                          className="p-1.5 text-gray-600 hover:text-[#C8102E] hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed">
+                          <FontAwesomeIcon icon={faArrowUp} className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => handleReorder(member.id, 'down', member.display_order, category)}
+                          disabled={index === members.length - 1}
+                          title="Move down"
+                          className="p-1.5 text-gray-600 hover:text-[#C8102E] hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed">
+                          <FontAwesomeIcon icon={faArrowDown} className="w-3 h-3" />
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => toggleActive(member.id, member.is_active)}
+                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                          member.is_active 
+                            ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                        }`}>
+                        <FontAwesomeIcon 
+                          icon={member.is_active ? faCheckCircle : faTimesCircle}
+                          className="mr-1 w-3 h-3"
+                        />
+                        {member.is_active ? 'Active' : 'Inactive'}
+                      </button>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => router.push(`/panel/equipo/${member.id}`)}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-xs">
+                        <FontAwesomeIcon icon={faEdit} className="mr-1 w-3 h-3" />
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => handleDelete(member.id)}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:border-red-300 text-xs">
+                        <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 }

@@ -43,7 +43,17 @@ const nextConfig: NextConfig = {
   
   /* Production optimizations */
   reactStrictMode: true,
-  poweredByHeader: false
+  poweredByHeader: false,
+  
+  /* Image Configuration */
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+  }
 };
 
 const withNextIntl = createNextIntlPlugin();

@@ -16,6 +16,7 @@ import {
 import {Link} from '@/i18n/navigation';
 import {getTranslations} from 'next-intl/server';
 import {setRequestLocale} from 'next-intl/server';
+import {BlogPreview} from '@/components/BlogPreview';
 
 type Props = {
     params: Promise < {
@@ -54,30 +55,6 @@ export default async function HomePage({params} : Props) {
             icon: faMusic,
             link: '/clases#artistic',
             gradient: 'from-[#FFD700] to-[#C8102E]'
-        }
-    ];
-
-    const upcomingEvents = [
-        {
-            date: 'Nov 15',
-            title: 'Festival de la Luna',
-            image: '/event.jpg',
-            time: '18:00 hrs'
-        }, {
-            date: 'Nov 20',
-            title: 'Taller de Caligrafía',
-            image: '/event.jpg',
-            time: '14:00 hrs'
-        }, {
-            date: 'Nov 25',
-            title: 'Presentación de Danza Tradicional',
-            image: '/event.jpg',
-            time: '19:00 hrs'
-        }, {
-            date: 'Nov 30',
-            title: 'Examen HSK - Inscripciones',
-            image: '/event.jpg',
-            time: 'Todo el día'
         }
     ];
 
@@ -169,54 +146,8 @@ export default async function HomePage({params} : Props) {
                 </div>
             </section>
 
-            {/* Upcoming Events */}
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-
-                <div className="text-center mb-12">
-                    <div className="text-[#C8102E] text-sm tracking-wider mb-2">{t('upcomingEvents')}</div>
-                    <h2 className="text-gray-900 mb-4">{t('culturalCalendar')}</h2>
-                    <div
-                        className="h-1 w-24 bg-linear-to-r from-[#C8102E] to-[#FFD700] mx-auto rounded-full"/>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {upcomingEvents.map((event, index) => (
-                        <Card key={index} className="overflow-hidden hover:shadow-xl">
-
-                            <div className="relative h-48 overflow-hidden">
-                                <ImageWithFallback
-                                    src={event.image}
-                                    alt={event.title}
-                                    className="w-full h-full object-cover"/>
-                                <div
-                                    className="absolute top-4 left-4 bg-[#C8102E] text-white px-3 py-1 rounded-lg text-sm">
-                                    {event.date}
-                                </div>
-                            </div>
-
-                            <div className="p-4">
-                                <h3 className="text-gray-900 text-lg mb-2">{event.title}</h3>
-                                <p className="text-gray-600 text-sm flex items-center gap-2">
-                                    <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4 text-[#FFD700]"/> {event.time}
-                                </p>
-                            </div>
-
-                        </Card>
-                    ))}
-                </div>
-
-                <div className="text-center mt-8">
-                    <Link href="/eventos">
-                        <Button
-                            variant="outline"
-                            className="border-[#C8102E] text-[#C8102E] hover:bg-[#C8102E] hover:text-white hover:cursor-pointer">
-                            {t('viewAllEvents')}
-                            <FontAwesomeIcon icon={faArrowRight} className="ml-2 w-4 h-4"/>
-                        </Button>
-                    </Link>
-                </div>
-
-            </section>
+            {/* Blog Preview */}
+            <BlogPreview locale={locale} />
 
             {/* About Section */}
             <section className="bg-linear-to-br from-gray-50 to-white py-20">

@@ -1,132 +1,54 @@
+"use client";
+
+import { useEffect } from 'react';
+import { useLocale } from 'next-intl';
+import { useClasses } from '@/lib/hooks/useClasses';
 import {Card} from '@/components/ui/Card';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
-import {ImageWithFallback} from '@/components/ImageWithFallback';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {
     faBookOpen,
     faAward,
-    faClock,
-    faUsers,
-    faCheckCircle,
     faMusic,
-    faPalette,
-    faDumbbell
+    faPalette
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function ClassesPage() {
-    const hskLevels = [
-        {
-            level: 'HSK 1',
-            description: '150 palabras básicas',
-            duration: '3 meses',
-            schedule: 'Lun/Mié 18:00-20:00',
-            price: '₡80,000/mes',
-            color: 'from-green-400 to-green-600'
-        }, {
-            level: 'HSK 2',
-            description: '300 palabras esenciales',
-            duration: '3 meses',
-            schedule: 'Mar/Jue 18:00-20:00',
-            price: '₡85,000/mes',
-            color: 'from-blue-400 to-blue-600'
-        }, {
-            level: 'HSK 3',
-            description: '600 palabras intermedias',
-            duration: '4 meses',
-            schedule: 'Lun/Mié 19:00-21:00',
-            price: '₡90,000/mes',
-            color: 'from-purple-400 to-purple-600'
-        }, {
-            level: 'HSK 4',
-            description: '1,200 palabras avanzadas',
-            duration: '4 meses',
-            schedule: 'Mar/Jue 19:00-21:00',
-            price: '₡95,000/mes',
-            color: 'from-orange-400 to-orange-600'
-        }, {
-            level: 'HSK 5',
-            description: '2,500 palabras superiores',
-            duration: '6 meses',
-            schedule: 'Vie/Sáb 17:00-19:00',
-            price: '₡100,000/mes',
-            color: 'from-red-400 to-red-600'
-        }, {
-            level: 'HSK 6',
-            description: '5,000+ palabras fluente',
-            duration: '6 meses',
-            schedule: 'Vie/Sáb 19:00-21:00',
-            price: '₡105,000/mes',
-            color: 'from-pink-400 to-pink-600'
-        }
-    ];
+    const locale = useLocale();
+    const { classes, loading, error, fetchClasses } = useClasses(locale);
 
-    const languageClasses = [
-        {
-            title: 'Chino Conversacional',
-            description: 'Enfoque práctico en comunicación cotidiana y cultura china',
-            level: 'Todos los niveles',
-            schedule: 'Sáb 10:00-12:00',
-            students: '8-12 personas',
-            price: '₡75,000/mes',
-            features: ['Conversación práctica', 'Cultura china', 'Materiales incluidos']
-        }, {
-            title: 'Chino de Negocios',
-            description: 'Vocabulario y protocolo comercial para profesionales',
-            level: 'HSK 3+',
-            schedule: 'Jue 18:30-20:30',
-            students: '6-10 personas',
-            price: '₡120,000/mes',
-            features: ['Negociación', 'Emails formales', 'Presentaciones']
-        }, {
-            title: 'Chino para Niños',
-            description: 'Aprendizaje lúdico e interactivo para edades 6-12 años',
-            level: 'Principiante',
-            schedule: 'Sáb 14:00-15:30',
-            students: '8-15 niños',
-            price: '₡65,000/mes',
-            features: ['Juegos didácticos', 'Canciones', 'Cuentos ilustrados']
-        }
-    ];
+    useEffect(() => {
+        fetchClasses(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    const artisticClasses = [
-        {
-            title: 'Piano Clásico',
-            description: 'Técnica occidental y repertorio chino con profesores certificados',
-            image: "/classroom.webp",
-            schedule: 'Clases individuales',
-            price: '₡40,000/hora',
-            icon: faMusic
-        }, {
-            title: 'Danza Tradicional China',
-            description: 'Técnicas de danza clásica china y danza folclórica',
-            image: "/classroom.webp",
-            schedule: 'Mar/Jue 17:00-18:30',
-            price: '₡70,000/mes',
-            icon: faMusic
-        }, {
-            title: 'Instrumentos Tradicionales',
-            description: 'Guzheng (cítara) y Erhu (violín de dos cuerdas)',
-            image: "/classroom.webp",
-            schedule: 'Lun/Mié 16:00-17:30',
-            price: '₡85,000/mes',
-            icon: faMusic
-        }, {
-            title: 'Tai Chi y Artes Marciales',
-            description: 'Tai Chi Chuan estilo Yang y Kung Fu tradicional',
-            image: "/classroom.webp",
-            schedule: 'Lun/Mié/Vie 06:00-07:30',
-            price: '₡60,000/mes',
-            icon: faDumbbell
-        }, {
-            title: 'Caligrafía y Pintura',
-            description: 'Arte tradicional de la caligrafía china y pintura con tinta',
-            image: "/classroom.webp",
-            schedule: 'Sáb 15:00-17:00',
-            price: '₡55,000/mes',
-            icon: faPalette
-        }
-    ];
+    // Separate classes by type
+    const hskClasses = classes.filter((c: any) => c.type === 'hsk');
+    const languageClasses = classes.filter((c: any) => c.type === 'language');
+    const culturalClasses = classes.filter((c: any) => c.type === 'cultural');
+    const talleresClasses = classes.filter((c: any) => c.type === 'talleres');
+
+    const getColorByLevel = (level: string) => {
+        const colors: Record<string, string> = {
+            '1': 'from-green-400 to-green-600',
+            '2': 'from-blue-400 to-blue-600',
+            '3': 'from-purple-400 to-purple-600',
+            '4': 'from-orange-400 to-orange-600',
+            '5': 'from-red-400 to-red-600',
+            '6': 'from-pink-400 to-pink-600'
+        };
+        const levelNum = level?.match(/\d+/)?.[0] || '1';
+        return colors[levelNum] || 'from-gray-400 to-gray-600';
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-linear-to-b from-white to-gray-50 pb-20">
@@ -144,172 +66,200 @@ export default function ClassesPage() {
                 </div>
             </section>
 
+            {error && (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                        {error}
+                    </div>
+                </div>
+            )}
+
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {/* HSK Preparation Section */}
-                <section className="mb-16">
-                    <div className="flex items-center gap-3 mb-8">
-                        <div
-                            className="w-12 h-12 bg-linear-to-br from-[#C8102E] to-[#FFD700] rounded-lg flex items-center justify-center">
-                            <FontAwesomeIcon icon={faAward} className="w-6 h-6 text-white"/>
+                {hskClasses.length > 0 && (
+                    <section className="mb-16">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div
+                                className="w-12 h-12 bg-linear-to-br from-[#C8102E] to-[#FFD700] rounded-lg flex items-center justify-center">
+                                <FontAwesomeIcon icon={faAward} className="w-6 h-6 text-white"/>
+                            </div>
+                            <div>
+                                <h2 className="text-gray-900">Preparación HSK</h2>
+                                <p className="text-gray-600">Certificación oficial de competencia en chino mandarín</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-gray-900">Preparación HSK</h2>
-                            <p className="text-gray-600">Certificación oficial de competencia en chino mandarín</p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {hskClasses.map((classItem: any) => (
+                                <Card
+                                    key={classItem.id}
+                                    className="p-6 hover:shadow-xl transition-shadow border-t-4 border-t-[#C8102E]">
+                                    <div className="mb-4">
+                                        <div
+                                            className={`inline-block px-4 py-2 bg-linear-to-r ${getColorByLevel(classItem.level || '')} text-white rounded-lg mb-3`}>
+                                            {classItem.level || 'HSK'}
+                                        </div>
+                                    </div>
+
+                                    <h3 className="text-xl font-bold text-gray-900 mb-4">{classItem.title}</h3>
+
+                                    {classItem.price_colones && (
+                                        <div className="text-2xl font-bold text-[#C8102E] mb-6">
+                                            ₡{classItem.price_colones.toLocaleString()}
+                                            <span className="text-sm text-gray-500 font-normal">/mes</span>
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        className="w-full hover:cursor-pointer bg-linear-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
+                                        Consultar WhatsApp
+                                    </Button>
+                                </Card>
+                            ))}
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {hskLevels.map((level, index) => (
-                            <Card
-                                key={index}
-                                className="p-6 hover:shadow-xl transition-shadow border-t-4 border-t-[#C8102E]">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div
-                                        className={`px-4 py-2 bg-linear-to-r ${level.color} text-white rounded-lg`}>
-                                        {level.level}
-                                    </div>
-                                    <Badge variant="outline" className="text-[#C8102E] border-[#C8102E]">
-                                        {level.duration}
-                                    </Badge>
-                                </div>
-
-                                <p className="text-gray-700 mb-4">{level.description}</p>
-
-                                <div className="space-y-2 mb-6">
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                        <FontAwesomeIcon icon={faClock} className="w-4 h-4 text-[#FFD700]"/>
-                                        <span>{level.schedule}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-gray-900">
-                                        <span className="text-sm text-gray-500">Precio:</span>
-                                        <span>{level.price}</span>
-                                    </div>
-                                </div>
-
-                                <Button
-                                    className="w-full hover:cursor-pointer bg-linear-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
-                                    Inscribirse
-                                </Button>
-                            </Card>
-                        ))}
-                    </div>
-                </section>
+                    </section>
+                )}
 
                 {/* Chinese Language (Non-HSK) Section */}
-                <section className="mb-16">
-                    <div className="flex items-center gap-3 mb-8">
-                        <div
-                            className="w-12 h-12 bg-linear-to-br from-[#FFD700] to-[#FFA500] rounded-lg flex items-center justify-center">
-                            <FontAwesomeIcon icon={faBookOpen} className="w-6 h-6 text-white"/>
+                {languageClasses.length > 0 && (
+                    <section className="mb-16">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div
+                                className="w-12 h-12 bg-linear-to-br from-[#FFD700] to-[#FFA500] rounded-lg flex items-center justify-center">
+                                <FontAwesomeIcon icon={faBookOpen} className="w-6 h-6 text-white"/>
+                            </div>
+                            <div>
+                                <h2 className="text-gray-900">Clases de Chino</h2>
+                                <p className="text-gray-600">Programas especializados sin orientación HSK</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-gray-900">Clases de Chino</h2>
-                            <p className="text-gray-600">Programas especializados sin orientación HSK</p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {languageClasses.map((classItem: any) => (
+                                <Card key={classItem.id} className="p-6 hover:shadow-xl transition-shadow border-t-4 border-t-[#FFD700]">
+                                    {classItem.level && (
+                                        <div className="mb-4">
+                                            <Badge variant="secondary" className="text-base px-3 py-1">{classItem.level}</Badge>
+                                        </div>
+                                    )}
+
+                                    <h3 className="text-xl font-bold text-gray-900 mb-4">{classItem.title}</h3>
+
+                                    {classItem.price_colones && (
+                                        <div className="text-2xl font-bold text-[#FFD700] mb-6">
+                                            ₡{classItem.price_colones.toLocaleString()}
+                                            <span className="text-sm text-gray-500 font-normal">/mes</span>
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        className="w-full hover:cursor-pointer bg-linear-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFA500] hover:to-[#FF8C00] text-white">
+                                        Consultar WhatsApp
+                                    </Button>
+                                </Card>
+                            ))}
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {languageClasses.map((course, index) => (
-                            <Card key={index} className="p-6 hover:shadow-xl transition-shadow">
-                                <h3 className="text-gray-900 text-xl mb-3">{course.title}</h3>
-                                <p className="text-gray-600 mb-4">{course.description}</p>
-
-                                <div className="space-y-3 mb-6">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-500">Nivel:</span>
-                                        <Badge variant="secondary">{course.level}</Badge>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                        <FontAwesomeIcon icon={faClock} className="w-4 h-4 text-[#C8102E]"/>
-                                        <span>{course.schedule}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                        <FontAwesomeIcon icon={faUsers} className="w-4 h-4 text-[#C8102E]"/>
-                                        <span>{course.students}</span>
-                                    </div>
-                                </div>
-
-                                <div className="border-t pt-4 mb-4">
-                                    <div className="space-y-2">
-                                        {course
-                                            .features
-                                            .map((feature, idx) => (
-                                                <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
-                                                    <FontAwesomeIcon icon={faCheckCircle} className="w-4 h-4 text-[#FFD700]"/>
-                                                    <span>{feature}</span>
-                                                </div>
-                                            ))}
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between mb-4">
-                                    <span className="text-gray-900">{course.price}</span>
-                                </div>
-
-                                <Button
-                                    className="w-full hover:cursor-pointer bg-linear-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFA500] hover:to-[#FF8C00] text-white">
-                                    Más Información
-                                </Button>
-                            </Card>
-                        ))}
-                    </div>
-                </section>
+                    </section>
+                )}
 
                 {/* Artistic Exchange Section */}
-                <section id="artistic">
-                    <div className="flex items-center gap-3 mb-8">
-                        <div
-                            className="w-12 h-12 bg-linear-to-br from-[#C8102E] to-[#8B0000] rounded-lg flex items-center justify-center">
-                            <FontAwesomeIcon icon={faMusic} className="w-6 h-6 text-white"/>
+                {culturalClasses.length > 0 && (
+                    <section id="artistic">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div
+                                className="w-12 h-12 bg-linear-to-br from-[#C8102E] to-[#8B0000] rounded-lg flex items-center justify-center">
+                                <FontAwesomeIcon icon={faMusic} className="w-6 h-6 text-white"/>
+                            </div>
+                            <div>
+                                <h2 className="text-gray-900">Intercambio Artístico</h2>
+                                <p className="text-gray-600">Artes tradicionales chinas y expresión cultural</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-gray-900">Intercambio Artístico</h2>
-                            <p className="text-gray-600">Artes tradicionales chinas y expresión cultural</p>
-                        </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {artisticClasses.map((course, index) => {
-                            return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {culturalClasses.map((classItem: any) => (
                                 <Card
-                                    key={index}
-                                    className="overflow-hidden hover:shadow-xl transition-shadow group">
-                                    <div className="relative h-48 overflow-hidden">
-                                        <ImageWithFallback
-                                            src={course.image}
-                                            alt={course.title}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"/>
-                                        <div
-                                            className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent"/>
-                                        <div className="absolute bottom-4 left-4 right-4"></div>
-                                    </div>
-
-                                    <div className="p-6">
-                                        <h3 className="text-gray-900 text-xl mb-2">{course.title}</h3>
-                                        <p className="text-gray-600 text-sm mb-4">{course.description}</p>
-
-                                        <div className="space-y-2 mb-4">
-                                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <FontAwesomeIcon icon={faClock} className="w-4 h-4 text-[#C8102E]"/>
-                                                <span>{course.schedule}</span>
-                                            </div>
-                                            <div className="text-gray-900">
-                                                <span className="text-sm text-gray-500">Precio:
-                                                </span>
-                                                {course.price}
-                                            </div>
+                                    key={classItem.id}
+                                    className="p-6 hover:shadow-xl transition-shadow border-t-4 border-t-[#8B0000]">
+                                    {classItem.level && (
+                                        <div className="mb-4">
+                                            <Badge variant="secondary" className="text-base px-3 py-1">{classItem.level}</Badge>
                                         </div>
+                                    )}
 
-                                        <Button
-                                            className="w-full hover:cursor-pointer bg-linear-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
-                                            Consultar Disponibilidad
-                                        </Button>
-                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-4">{classItem.title}</h3>
+
+                                    {classItem.price_colones && (
+                                        <div className="text-2xl font-bold text-[#8B0000] mb-6">
+                                            ₡{classItem.price_colones.toLocaleString()}
+                                            <span className="text-sm text-gray-500 font-normal">/mes</span>
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        className="w-full hover:cursor-pointer bg-linear-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
+                                        Consultar WhatsApp
+                                    </Button>
                                 </Card>
-                            );
-                        })}
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Talleres (Workshops) Section */}
+                {talleresClasses.length > 0 && (
+                    <section className="mb-16">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div
+                                className="w-12 h-12 bg-linear-to-br from-[#FFD700] to-[#C8102E] rounded-lg flex items-center justify-center">
+                                <FontAwesomeIcon icon={faPalette} className="w-6 h-6 text-white"/>
+                            </div>
+                            <div>
+                                <h2 className="text-gray-900">Talleres Culturales</h2>
+                                <p className="text-gray-600">Experiencias prácticas de cultura china</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {talleresClasses.map((classItem: any) => (
+                                <Card
+                                    key={classItem.id}
+                                    className="p-6 hover:shadow-xl transition-shadow border-t-4 border-t-[#FFA500]">
+                                    {classItem.level && (
+                                        <div className="mb-4">
+                                            <Badge variant="outline" className="text-[#FFA500] border-[#FFA500] text-sm px-2 py-1">
+                                                {classItem.level}
+                                            </Badge>
+                                        </div>
+                                    )}
+
+                                    <h3 className="text-lg font-bold text-gray-900 mb-4">{classItem.title}</h3>
+
+                                    {classItem.price_colones && (
+                                        <div className="text-2xl font-bold text-[#FFA500] mb-6">
+                                            ₡{classItem.price_colones.toLocaleString()}
+                                            <span className="text-sm text-gray-500 font-normal">/taller</span>
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        className="w-full hover:cursor-pointer bg-linear-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFA500] hover:to-[#FF8C00] text-white">
+                                        Consultar WhatsApp
+                                    </Button>
+                                </Card>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Empty state */}
+                {!loading && hskClasses.length === 0 && languageClasses.length === 0 && culturalClasses.length === 0 && talleresClasses.length === 0 && (
+                    <div className="text-center py-16">
+                        <FontAwesomeIcon icon={faBookOpen} className="w-16 h-16 text-gray-300 mb-4"/>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">No hay clases disponibles</h3>
+                        <p className="text-gray-600">Vuelve pronto para ver nuestras próximas ofertas.</p>
                     </div>
-                </section>
+                )}
             </div>
         </div>
     );

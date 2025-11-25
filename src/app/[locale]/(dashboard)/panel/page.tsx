@@ -17,14 +17,11 @@ import {
   faExclamationCircle,
   faCheckCircle,
   faClock,
-  faXmark,
   faPlus,
   faEdit,
   faTrash,
   faUserShield,
   faClipboardList,
-  faGraduationCap,
-  faUserGroup
 } from '@fortawesome/free-solid-svg-icons';
 
 interface DashboardStats {
@@ -39,12 +36,6 @@ interface DashboardStats {
     events: number;
     teamMembers: number;
     hskSessions: number;
-  };
-  inquiries: {
-    pending: number;
-    contacted: number;
-    confirmed: number;
-    total: number;
   };
   auditLogs: {
     id: string;
@@ -62,7 +53,6 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard.panel');
-  const tn = useTranslations('dashboard.nav');
   const tc = useTranslations('dashboard.common');
   const tu = useTranslations('dashboard.users');
   const { user, profile, loading: authLoading } = useAuth();
@@ -108,13 +98,12 @@ export default function DashboardPage() {
           }
         };
 
-        const [users, classes, events, team, hskSessions, consultas, logs] = await Promise.all([
+        const [users, classes, events, team, hskSessions, logs] = await Promise.all([
           fetchWithFallback('/api/usuarios', 'Users'),
           fetchWithFallback('/api/clases', 'Classes'),
           fetchWithFallback('/api/eventos', 'Events'),
           fetchWithFallback('/api/equipo', 'Team'),
           fetchWithFallback('/api/hsk/registration', 'HSK'),
-          fetchWithFallback('/api/consultas', 'Consultas'),
           // Only fetch audit logs for admins and owners
           (profile?.role === 'owner' || profile?.role === 'admin') 
             ? fetchWithFallback('/api/registros?limit=15', 'Audit Logs')
@@ -138,14 +127,7 @@ export default function DashboardPage() {
           hskSessions: (hskSessions.data || []).length,
         };
 
-        // Process inquiries stats
-        const consultasData = consultas.data || [];
-        const inquiryStats = {
-          pending: consultasData.filter((c: any) => c.status === 'pending').length,
-          contacted: consultasData.filter((c: any) => c.status === 'contacted').length,
-          confirmed: consultasData.filter((c: any) => c.status === 'confirmed').length,
-          total: consultasData.length,
-        };
+
 
         // Process audit logs - filter based on role
         let auditLogs = logs.data || [];
@@ -162,7 +144,6 @@ export default function DashboardPage() {
         setStats({
           users: userStats,
           content: contentStats,
-          inquiries: inquiryStats,
           auditLogs: auditLogs,
         });
         
@@ -232,7 +213,7 @@ export default function DashboardPage() {
       ) : stats ? (
         <>
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {/* Total Users */}
             <Card className="p-6 bg-linear-to-br from-blue-50 to-blue-100 border-blue-200">
               <div className="flex items-center justify-between">
@@ -270,24 +251,10 @@ export default function DashboardPage() {
                 <FontAwesomeIcon icon={faCalendar} className="w-12 h-12 text-purple-600 opacity-80" />
               </div>
             </Card>
-
-            {/* Pending Inquiries */}
-            <Card className="p-6 bg-linear-to-br from-orange-50 to-orange-100 border-orange-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-orange-600">{t('stats.pendingInquiries')}</p>
-                  <p className="text-3xl font-bold text-orange-900 mt-2">{stats.inquiries.pending}</p>
-                  <p className="text-xs text-orange-600 mt-1">
-                    {stats.inquiries.total} {t('stats.total')}
-                  </p>
-                </div>
-                <FontAwesomeIcon icon={faFileText} className="w-12 h-12 text-orange-600 opacity-80" />
-              </div>
-            </Card>
           </div>
 
           {/* Secondary Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
             {/* User Roles */}
             <Card className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -332,37 +299,6 @@ export default function DashboardPage() {
                   <span className="font-semibold text-gray-900">
                     {stats.content.classes + stats.content.events + stats.content.teamMembers}
                   </span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Inquiry Status */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <FontAwesomeIcon icon={faChartLine} className="w-5 h-5 text-red-600" />
-                {t('inquiryStatus')}
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 flex items-center gap-2">
-                    <FontAwesomeIcon icon={faClock} className="w-4 h-4 text-yellow-500" />
-                    {tc('pending')}
-                  </span>
-                  <span className="font-semibold text-gray-900">{stats.inquiries.pending}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 flex items-center gap-2">
-                    <FontAwesomeIcon icon={faCheckCircle} className="w-4 h-4 text-blue-500" />
-                    {t('contacted')}
-                  </span>
-                  <span className="font-semibold text-gray-900">{stats.inquiries.contacted}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 flex items-center gap-2">
-                    <FontAwesomeIcon icon={faCheckCircle} className="w-4 h-4 text-green-500" />
-                    {tc('confirmed')}
-                  </span>
-                  <span className="font-semibold text-gray-900">{stats.inquiries.confirmed}</span>
                 </div>
               </div>
             </Card>
@@ -431,7 +367,7 @@ export default function DashboardPage() {
           )}
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Manage Users - Only for admins and owners */}
             {(profile?.role === 'owner' || profile?.role === 'admin') && (
               <button
@@ -454,7 +390,7 @@ export default function DashboardPage() {
             </button>
 
             <button
-              onClick={() => router.push('/panel/eventos')}
+              onClick={() => router.push('/panel/blog')}
               className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
             >
               <FontAwesomeIcon icon={faCalendar} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
@@ -462,14 +398,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-600 mt-1">{t('manageEventsDesc')}</p>
             </button>
 
-            <button
-              onClick={() => router.push('/panel/consultas')}
-              className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
-            >
-              <FontAwesomeIcon icon={faFileText} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
-              <h4 className="font-semibold text-gray-900">{t('viewInquiries')}</h4>
-              <p className="text-sm text-gray-600 mt-1">{t('viewInquiriesDesc')}</p>
-            </button>
+
           </div>
         </>
       ) : null}

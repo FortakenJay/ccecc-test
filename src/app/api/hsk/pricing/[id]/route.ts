@@ -2,8 +2,6 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   isValidUUID,
-  isValidFutureDate,
-  isValidSlots,
   isValidPayloadSize,
   sanitizeError,
   checkAuth,
@@ -23,17 +21,20 @@ export async function GET(
 
     // Validate UUID
     if (!isValidUUID(id)) {
-      return errorResponse('Invalid session ID format', 400);
+      return errorResponse('Invalid pricing ID format', 400);
     }
 
     const { data, error } = await supabase
-      .from('hsk_exam_sessions')
-      .select('*')
+      .from('hsk_pricing')
+      .select(`
+        *,
+        translations:hsk_pricing_translations(locale, description)
+      `)
       .eq('id', id)
       .single();
 
     if (error || !data) {
-      return errorResponse('Session not found', 404);
+      return errorResponse('Pricing not found', 404);
     }
 
     return NextResponse.json({ data });
@@ -57,13 +58,13 @@ export async function PATCH(
 
     // Validate UUID
     if (!isValidUUID(id)) {
-      return errorResponse('Invalid session ID format', 400);
+      return errorResponse('Invalid pricing ID format', 400);
     }
 
     // Check authentication
     const user = await checkAuth(supabase);
 
-    // Check authorization - admin/owner
+    // Check authorization - admin/owner/officer
     await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = await request.json();
@@ -73,22 +74,7 @@ export async function PATCH(
       return errorResponse('Request body too large', 413);
     }
 
-    const { exam_date, available_slots, level, location, is_active, registration_deadline, max_capacity, written_fee_usd, oral_fee_usd, max_participants } = body;
-
-    // Validate exam_date if provided
-    if (exam_date && !isValidFutureDate(exam_date)) {
-      return errorResponse('Exam date must be in the future', 400);
-    }
-
-    // Validate registration_deadline if provided
-    if (registration_deadline && !isValidFutureDate(registration_deadline)) {
-      return errorResponse('Registration deadline must be in the future', 400);
-    }
-
-    // Validate available_slots if provided
-    if (available_slots !== undefined && !isValidSlots(available_slots)) {
-      return errorResponse('Available slots must be between 1 and 1000', 400);
-    }
+    const { level, level_number, written_fee_usd, oral_fee_usd, is_active, display_order, translations } = body;
 
     // Validate fees if provided
     if (written_fee_usd !== undefined && written_fee_usd < 0) {
@@ -99,26 +85,39 @@ export async function PATCH(
     }
 
     const updateData: Record<string, any> = {};
-    if (exam_date !== undefined) updateData.exam_date = exam_date;
-    if (registration_deadline !== undefined) updateData.registration_deadline = registration_deadline;
-    if (available_slots !== undefined) updateData.available_slots = available_slots;
-    if (max_capacity !== undefined) updateData.max_capacity = max_capacity;
     if (level !== undefined) updateData.level = level ? sanitizeTextInput(level) : null;
-    if (location !== undefined) updateData.location = location ? sanitizeTextInput(location) : null;
-    if (is_active !== undefined) updateData.is_active = is_active;
+    if (level_number !== undefined) updateData.level_number = level_number;
     if (written_fee_usd !== undefined) updateData.written_fee_usd = written_fee_usd;
     if (oral_fee_usd !== undefined) updateData.oral_fee_usd = oral_fee_usd;
-    if (max_participants !== undefined) updateData.max_participants = max_participants;
+    if (is_active !== undefined) updateData.is_active = is_active;
+    if (display_order !== undefined) updateData.display_order = display_order;
 
     const { data, error } = await supabase
-      .from('hsk_exam_sessions')
+      .from('hsk_pricing')
       .update(updateData)
       .eq('id', id)
       .select()
       .single();
 
     if (error || !data) {
-      return errorResponse('Failed to update session', 400);
+      return errorResponse('Failed to update pricing', 400);
+    }
+
+    // Update translations if provided
+    if (translations && Array.isArray(translations)) {
+      for (const translation of translations) {
+        if (translation.locale && translation.description !== undefined) {
+          await supabase
+            .from('hsk_pricing_translations')
+            .upsert({
+              pricing_id: id,
+              locale: translation.locale,
+              description: translation.description ? sanitizeTextInput(translation.description) : null
+            }, {
+              onConflict: 'pricing_id,locale'
+            });
+        }
+      }
     }
 
     return NextResponse.json({ data });
@@ -148,22 +147,22 @@ export async function DELETE(
 
     // Validate UUID
     if (!isValidUUID(id)) {
-      return errorResponse('Invalid session ID format', 400);
+      return errorResponse('Invalid pricing ID format', 400);
     }
 
     // Check authentication
     const user = await checkAuth(supabase);
 
-    // Check authorization - admin/owner
-    await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
+    // Check authorization - owner only
+    await checkAuthorization(supabase, user.id, ['owner']);
 
     const { error } = await supabase
-      .from('hsk_exam_sessions')
+      .from('hsk_pricing')
       .delete()
       .eq('id', id);
 
     if (error) {
-      return errorResponse('Failed to delete session', 400);
+      return errorResponse('Failed to delete pricing', 400);
     }
 
     return NextResponse.json({ success: true });

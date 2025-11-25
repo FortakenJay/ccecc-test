@@ -44,15 +44,27 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
-    // Filter translations by locale
+    // Filter translations by locale and merge with class data
     const classesWithTranslation = (data || []).map((cls: any) => {
       const translation = cls.translations?.find((t: any) => t.locale === locale);
       return {
         id: cls.id,
+        slug: cls.slug,
+        type: cls.type,
+        level: cls.level,
+        duration_months: cls.duration_months,
+        price_colones: cls.price_colones,
+        max_students: cls.max_students,
         is_active: cls.is_active,
+        metadata: cls.metadata,
+        created_by: cls.created_by,
         created_at: cls.created_at,
         updated_at: cls.updated_at,
-        ...translation,
+        // Translation fields
+        title: translation?.title || null,
+        description: translation?.description || null,
+        schedule: translation?.schedule || null,
+        features: translation?.features || null,
       };
     });
 

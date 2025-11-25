@@ -27,8 +27,8 @@ export default function Navigation() {
             href: "/hsk",
             label: "HSK"
         }, {
-            href: "/eventos",
-            label: t("events")
+            href: "/blog",
+            label: "Blog"
         }, {
             href: "/nosotros",
             label: t("about")

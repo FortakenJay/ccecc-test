@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       return errorResponse('Request body too large', 413);
     }
 
-    const { exam_date, location, max_capacity, registration_deadline, is_active } = body;
+    const { exam_date, location, max_capacity, registration_deadline, is_active, level, written_fee_usd, oral_fee_usd, max_participants } = body;
 
     // Validate required fields
     if (!exam_date || !registration_deadline) {
@@ -71,6 +71,14 @@ export async function POST(request: NextRequest) {
       return errorResponse('Registration deadline must be in the future', 400);
     }
 
+    // Validate fees if provided
+    if (written_fee_usd !== undefined && written_fee_usd < 0) {
+      return errorResponse('Written fee must be a positive number', 400);
+    }
+    if (oral_fee_usd !== undefined && oral_fee_usd < 0) {
+      return errorResponse('Oral fee must be a positive number', 400);
+    }
+
     const { data, error } = await supabase
       .from('hsk_exam_sessions')
       .insert({
@@ -79,6 +87,11 @@ export async function POST(request: NextRequest) {
         max_capacity: max_capacity || null,
         registration_deadline,
         is_active: is_active !== undefined ? is_active : true,
+        level: level ? sanitizeTextInput(level) : null,
+        written_fee_usd: written_fee_usd || null,
+        oral_fee_usd: oral_fee_usd || null,
+        max_participants: max_participants || null,
+        registered_count: 0,
         created_by: user.id
       })
       .select()

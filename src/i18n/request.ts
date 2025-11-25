@@ -9,9 +9,16 @@ export default getRequestConfig(async ({ requestLocale }) => {
     ? requested
     : routing.defaultLocale;
 
+  const [translation, dashboard] = await Promise.all([
+    import(`../locales/${locale}/translation`),
+    import(`../locales/${locale}/dashboard`)
+  ]);
+
   return {
     locale,
-    // ✅ Changed from JSON to TypeScript module import
-    messages: (await import(`../locales/${locale}/translation`)).default
+    messages: {
+      ...translation.default,
+      dashboard: dashboard.default
+    }
   };
 });

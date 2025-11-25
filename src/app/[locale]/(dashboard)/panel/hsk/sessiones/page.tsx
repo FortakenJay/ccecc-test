@@ -24,11 +24,13 @@ import {
 interface Session {
   id: string;
   exam_date: string;
-  location?: string;
-  max_capacity?: number;
   registration_deadline: string;
   is_active: boolean;
+  level?: string;
+  location?: string;
+  created_by?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export default function HSKSessionsPage() {
@@ -46,9 +48,9 @@ export default function HSKSessionsPage() {
 
   // Form state
   const [examDate, setExamDate] = useState('');
-  const [location, setLocation] = useState('');
-  const [maxCapacity, setMaxCapacity] = useState('');
   const [registrationDeadline, setRegistrationDeadline] = useState('');
+  const [level, setLevel] = useState('');
+  const [location, setLocation] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -85,9 +87,9 @@ export default function HSKSessionsPage() {
   const handleEdit = (session: Session) => {
     setEditingId(session.id);
     setExamDate(session.exam_date.split('T')[0]);
-    setLocation(session.location || '');
-    setMaxCapacity(session.max_capacity?.toString() || '');
     setRegistrationDeadline(session.registration_deadline.split('T')[0]);
+    setLevel(session.level || '');
+    setLocation(session.location || '');
     setIsActive(session.is_active);
     setShowForm(true);
   };
@@ -95,9 +97,9 @@ export default function HSKSessionsPage() {
   const resetForm = () => {
     setEditingId(null);
     setExamDate('');
-    setLocation('');
-    setMaxCapacity('');
     setRegistrationDeadline('');
+    setLevel('');
+    setLocation('');
     setIsActive(true);
     setShowForm(false);
   };
@@ -106,7 +108,7 @@ export default function HSKSessionsPage() {
     e.preventDefault();
 
     if (!examDate || !registrationDeadline) {
-      showToast('Please fill in required fields', 'error');
+      showToast(t('dateRequired'), 'error');
       return;
     }
 
@@ -121,9 +123,9 @@ export default function HSKSessionsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           exam_date: examDate,
-          location: location || null,
-          max_capacity: maxCapacity ? parseInt(maxCapacity) : null,
           registration_deadline: registrationDeadline,
+          level: level || null,
+          location: location || null,
           is_active: isActive,
         }),
       });
@@ -131,31 +133,31 @@ export default function HSKSessionsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        showToast(data.error || `Failed to ${editingId ? 'update' : 'create'} session`, 'error');
+        showToast(data.error || tc('error'), 'error');
         return;
       }
 
-      showToast(`Session ${editingId ? 'updated' : 'created'} successfully!`, 'success');
+      showToast(tc('success'), 'success');
       resetForm();
       fetchSessions();
     } catch (error) {
-      showToast('An error occurred. Please try again.', 'error');
+      showToast(tc('error'), 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this session? This will also delete all registrations for this session.')) return;
+    if (!confirm(t('deleteConfirm'))) return;
 
     try {
       const res = await fetch(`/api/hsk/sessions/${id}`, {
         method: 'DELETE',
       });
 
-      if (!res.ok) throw new Error('Failed to delete session');
+      if (!res.ok) throw new Error(tc('error'));
       
-      showToast('Session deleted successfully', 'success');
+      showToast(tc('success'), 'success');
       fetchSessions();
     } catch (err: any) {
       showToast(err.message, 'error');
@@ -170,7 +172,7 @@ export default function HSKSessionsPage() {
         body: JSON.stringify({ is_active: !currentStatus }),
       });
 
-      if (!res.ok) throw new Error('Failed to update session');
+      if (!res.ok) throw new Error(tc('error'));
       
       fetchSessions();
     } catch (err: any) {
@@ -261,24 +263,30 @@ export default function HSKSessionsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
+                  <Label htmlFor="level">{t('level')}</Label>
+                  <select
+                    id="level"
+                    value={level}
+                    onChange={(e) => setLevel(e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                  >
+                    <option value="">{t('levelPlaceholder')}</option>
+                    <option value="HSK 1">HSK 1</option>
+                    <option value="HSK 2">HSK 2</option>
+                    <option value="HSK 3">HSK 3</option>
+                    <option value="HSK 4">HSK 4</option>
+                    <option value="HSK 5">HSK 5</option>
+                    <option value="HSK 6">HSK 6</option>
+                  </select>
+                </div>
+
+                <div>
                   <Label htmlFor="location">{t('location')}</Label>
                   <Input
                     id="location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder={t('locationPlaceholder')}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="maxCapacity">{t('maxCapacity')}</Label>
-                  <Input
-                    id="maxCapacity"
-                    type="number"
-                    value={maxCapacity}
-                    onChange={(e) => setMaxCapacity(e.target.value)}
-                    placeholder={t('capacityPlaceholder')}
-                    min="1"
                   />
                 </div>
               </div>
@@ -379,6 +387,12 @@ export default function HSKSessionsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  {session.level && (
+                    <div className="text-sm font-medium text-red-600">
+                      {session.level}
+                    </div>
+                  )}
+                  
                   {session.location && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <FontAwesomeIcon icon={faMapMarkerAlt} className="w-4 h-4" />
@@ -386,13 +400,6 @@ export default function HSKSessionsPage() {
                     </div>
                   )}
                   
-                  {session.max_capacity && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <FontAwesomeIcon icon={faUsers} className="w-4 h-4" />
-                      {t('max')}: {session.max_capacity} {t('students')}
-                    </div>
-                  )}
-
                   <div className="pt-3 border-t border-gray-200">
                     <div className="text-xs text-gray-500 mb-1">{t('registrationDeadline')}</div>
                     <div className="text-sm font-medium text-gray-900">

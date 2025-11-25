@@ -63,11 +63,12 @@ export default function DashboardLayout({
   const navigation = [
     { name: t('dashboard'), href: '/panel', icon: faHome, roles: ['owner', 'admin', 'officer'] },
     { name: t('classes'), href: '/panel/clases', icon: faBookOpen, roles: ['owner', 'admin', 'officer'] },
-    { name: t('events'), href: '/panel/eventos', icon: faCalendarDays, roles: ['owner', 'admin', 'officer'] },
+    { name: 'Blog', href: '/panel/blog', icon: faCalendarDays, roles: ['owner', 'admin', 'officer'] },
     { name: t('hskExam'), href: '/panel/hsk/sessiones', icon: faAward, roles: ['owner', 'admin', 'officer'] },
+    { name: t('hskPricing'), href: '/panel/hsk/precios', icon: faAward, roles: ['owner', 'admin', 'officer'] },
     { name: t('hskRegistrations'), href: '/panel/hsk/registraciones', icon: faUserCircle, roles: ['owner', 'admin', 'officer'] },
-    { name: t('consultations'), href: '/panel/consultas', icon: faEnvelopeOpen, roles: ['owner', 'admin', 'officer'] },
     { name: t('team'), href: '/panel/equipo', icon: faUsers, roles: ['owner', 'admin'] },
+    { name: t('aboutPage'), href: '/panel/nosotros', icon: faUsers, roles: ['owner', 'admin'] },
     { name: t('users'), href: '/panel/usuarios', icon: faUserShield, roles: ['owner', 'admin'] },
     { name: t('auditLogs'), href: '/panel/registros', icon: faChartLine, roles: ['owner', 'admin'] },
   ];

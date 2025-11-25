@@ -21,6 +21,9 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const url = new URL(request.url);
     const locale = url.searchParams.get('locale') || 'es';
+    const category = url.searchParams.get('category');
+    const featured = url.searchParams.get('featured');
+    const published = url.searchParams.get('published');
 
     // Validate locale
     if (!isValidLocale(locale)) {
@@ -32,34 +35,54 @@ export async function GET(request: NextRequest) {
     const offset = url.searchParams.get('offset');
     const { limit: parsedLimit, offset: parsedOffset } = parsePaginationParams(limit, offset);
 
-    const { data, error, count } = await supabase
-      .from('events')
+    // Build query
+    let query = supabase
+      .from('blog_posts')
       .select(`
         *,
-        translations:event_translations(*)
-      `, { count: 'exact' })
-      .eq('is_active', true)
-      .order('event_date', { ascending: true })
+        translations:blog_post_translations(*),
+        author:author_id(full_name, email)
+      `, { count: 'exact' });
+
+    // Apply filters
+    if (published === 'true') {
+      query = query.eq('is_published', true);
+    } else if (published === 'false') {
+      query = query.eq('is_published', false);
+    }
+    // If published is not provided, show all posts
+    
+    if (category) {
+      query = query.eq('category', category);
+    }
+    if (featured === 'true') {
+      query = query.eq('is_featured', true);
+    }
+
+    const { data, error, count } = await query
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false })
       .range(parsedOffset, parsedOffset + parsedLimit - 1);
 
     if (error) {
-      console.error('Events query error:', error);
-      return errorResponse('Failed to fetch events', 400);
+      console.error('Blog posts query error:', error);
+      return errorResponse('Failed to fetch blog posts', 400);
     }
 
     // Filter translations by locale
-    const eventsWithTranslation = (data || []).map(event => {
-      const translation = event.translations.find((t: any) => t.locale === locale);
+    const postsWithTranslation = (data || []).map(post => {
+      const translation = post.translations.find((t: any) => t.locale === locale);
       return {
-        ...event,
-        title: translation?.title || event.title,
-        description: translation?.description || event.description,
+        ...post,
+        title: translation?.title || '',
+        excerpt: translation?.excerpt || '',
+        content: translation?.content || null, // Tiptap JSON content
         translations: undefined
       };
     });
 
     return NextResponse.json({
-      data: eventsWithTranslation || [],
+      data: postsWithTranslation || [],
       pagination: {
         total: count || 0,
         limit: parsedLimit,
@@ -93,20 +116,19 @@ export async function POST(request: NextRequest) {
       return errorResponse('Request body too large', 413);
     }
 
-    const { title, description, event_date, location, translations } = body;
+    const { 
+      slug, 
+      category, 
+      tags, 
+      featured_image_url, 
+      is_featured, 
+      is_published,
+      translations 
+    } = body;
 
     // Validate required fields
-    if (!title || !event_date) {
-      return errorResponse('Missing required fields: title, event_date', 400);
-    }
-
-    // Validate field lengths
-    if (!isValidTextLength(title, MAX_TITLE_LENGTH)) {
-      return errorResponse(`Title must not exceed ${MAX_TITLE_LENGTH} characters`, 400);
-    }
-
-    if (description && !isValidTextLength(description, MAX_DESCRIPTION_LENGTH)) {
-      return errorResponse(`Description must not exceed ${MAX_DESCRIPTION_LENGTH} characters`, 400);
+    if (!slug || !translations || Object.keys(translations).length === 0) {
+      return errorResponse('Missing required fields: slug, translations', 400);
     }
 
     // Validate translations
@@ -117,59 +139,63 @@ export async function POST(request: NextRequest) {
         }
 
         const transObj = trans as Record<string, any>;
-        if (transObj.title && !isValidTextLength(transObj.title, MAX_TITLE_LENGTH)) {
-          return errorResponse(`Translation title must not exceed ${MAX_TITLE_LENGTH} characters`, 400);
+        if (!transObj.title || !isValidTextLength(transObj.title, MAX_TITLE_LENGTH)) {
+          return errorResponse(`Translation title is required and must not exceed ${MAX_TITLE_LENGTH} characters`, 400);
         }
 
-        if (transObj.description && !isValidTextLength(transObj.description, MAX_DESCRIPTION_LENGTH)) {
-          return errorResponse(`Translation description must not exceed ${MAX_DESCRIPTION_LENGTH} characters`, 400);
+        if (transObj.excerpt && !isValidTextLength(transObj.excerpt, 500)) {
+          return errorResponse(`Excerpt must not exceed 500 characters`, 400);
         }
       }
     }
 
     // Sanitize inputs to prevent XSS
     const sanitizedData = {
-      title: sanitizeTextInput(title),
-      description: description ? sanitizeTextInput(description) : null,
-      event_date,
-      location: location ? sanitizeTextInput(location) : null,
-      created_by: user.id,
-      is_active: true
+      slug: sanitizeTextInput(slug),
+      category: category ? sanitizeTextInput(category) : null,
+      tags: Array.isArray(tags) ? tags.map((t: string) => sanitizeTextInput(t)) : null,
+      featured_image_url: featured_image_url ? sanitizeTextInput(featured_image_url) : null,
+      is_featured: Boolean(is_featured),
+      is_published: Boolean(is_published),
+      published_at: is_published ? new Date().toISOString() : null,
+      author_id: user.id,
+      created_by: user.id
     };
 
-    // Create event
-    const { data: newEvent, error: eventError } = await supabase
-      .from('events')
+    // Create blog post
+    const { data: newPost, error: postError } = await supabase
+      .from('blog_posts')
       .insert(sanitizedData)
       .select()
       .single();
 
-    if (eventError || !newEvent) {
-      return errorResponse('Failed to create event', 400);
+    if (postError || !newPost) {
+      console.error('Blog post creation error:', postError);
+      return errorResponse('Failed to create blog post', 400);
     }
 
-    // Insert translations if provided
-    if (translations && typeof translations === 'object') {
-      const translationsData = Object.entries(translations).map(([locale, trans]: any) => {
-        const transObj = trans as Record<string, any>;
-        return {
-          event_id: newEvent.id,
-          locale,
-          title: transObj.title?.trim() || title.trim(),
-          description: transObj.description?.trim() || description?.trim() || null
-        };
-      });
+    // Insert translations
+    const translationsData = Object.entries(translations).map(([locale, trans]: any) => {
+      const transObj = trans as Record<string, any>;
+      return {
+        blog_post_id: newPost.id,
+        locale,
+        title: sanitizeTextInput(transObj.title.trim()),
+        excerpt: transObj.excerpt ? sanitizeTextInput(transObj.excerpt.trim()) : null,
+        content: transObj.content || null // Tiptap JSON content - no sanitization needed for JSONB
+      };
+    });
 
-      const { error: transError } = await supabase
-        .from('event_translations')
-        .insert(translationsData);
+    const { error: transError } = await supabase
+      .from('blog_post_translations')
+      .insert(translationsData);
 
-      if (transError) {
-        return errorResponse('Failed to create translations', 400);
-      }
+    if (transError) {
+      console.error('Translation creation error:', transError);
+      return errorResponse('Failed to create translations', 400);
     }
 
-    return NextResponse.json({ data: newEvent }, { status: 201 });
+    return NextResponse.json({ data: newPost }, { status: 201 });
   } catch (error: any) {
     if (error.message === 'UNAUTHORIZED') {
       return errorResponse('Unauthorized', 401);

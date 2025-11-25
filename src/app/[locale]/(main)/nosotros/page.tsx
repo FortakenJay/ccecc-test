@@ -1,3 +1,8 @@
+"use client";
+
+import { useEffect } from 'react';
+import { useLocale } from 'next-intl';
+import { useTeam } from '@/lib/hooks/useTeam';
 import {Card} from '@/components/ui/Card';
 import {ImageWithFallback} from '@/components/ImageWithFallback';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
@@ -13,29 +18,19 @@ import {
 import Link from 'next/link';
 
 export default function Nosotros() {
-    const teamMembers = [
-        {
-            name: 'Prof. Li Wei',
-            role: 'Director General',
-            image: '/jane.jpg',
-            bio: 'PhD en Educación Internacional con 20 años de experiencia'
-        }, {
-            name: 'Prof. Zhang Mei',
-            role: 'Coordinadora Académica',
-            image: '/mike.jpg',
-            bio: 'Especialista en metodología de enseñanza de idiomas'
-        }, {
-            name: 'Prof. Wang Jun',
-            role: 'Director Cultural',
-            image: '/john.jpg',
-            bio: 'Músico tradicional y gestor cultural'
-        }, {
-            name: 'Prof. Liu Xing',
-            role: 'Maestro de Caligrafía',
-            image: '/jane.jpg',
-            bio: 'Artista galardonado en caligrafía tradicional china'
-        }
-    ];
+    const locale = useLocale();
+    const { teamMembers, loading, error, fetchTeamMembers } = useTeam();
+
+    useEffect(() => {
+        fetchTeamMembers(true, locale); // Fetch only active members
+    }, [locale]);
+
+    // Separate team members by category
+    const boardMembers = teamMembers.filter((m: any) => m.category === 'board');
+    const leadershipMembers = teamMembers.filter((m: any) => m.category === 'leadership');
+    const localTeachers = teamMembers.filter((m: any) => m.category === 'local_teachers');
+    const volunteerTeachers = teamMembers.filter((m: any) => m.category === 'volunteer_teachers');
+    const partnerInstitutions = teamMembers.filter((m: any) => m.category === 'partner_institutions');
 
     const values = [
         {
@@ -260,39 +255,260 @@ export default function Nosotros() {
                     </div>
                 </section>
 
-                {/* Team */}
+                {/* Team - Hierarchical Structure */}
                 <section className="mb-16">
                     <div className="text-center mb-12">
                         <div className="text-[#C8102E] text-sm tracking-wider mb-2">NUESTRO EQUIPO</div>
-                        <h2 className="text-gray-900">Conoce a Nuestros Maestros</h2>
+                        <h2 className="text-gray-900">Estructura Organizacional</h2>
                         <p className="text-gray-600 max-w-2xl mx-auto mt-4">
-                            Un equipo de educadores apasionados y experimentados, comprometidos con la
-                            excelencia en la enseñanza y la promoción cultural
+                            Un equipo comprometido con la excelencia en la enseñanza y la promoción cultural
+                        </p>
+                    </div>
+
+                    {loading && (
+                        <div className="flex justify-center items-center py-12">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-8">
+                            {error}
+                        </div>
+                    )}
+
+                    {!loading && (
+                        <div className="space-y-12">
+                            {/* Board of Directors, Chairman, Principal */}
+                            {boardMembers.length > 0 && (
+                                <div>
+                                    <div className="text-center mb-8">
+                                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Junta Directiva</h3>
+                                        <div className="h-1 w-24 bg-gradient-to-r from-[#C8102E] to-[#FFD700] mx-auto rounded-full"/>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                                        {boardMembers.map((member: any) => (
+                                            <Card key={member.id} className="overflow-hidden hover:shadow-xl transition-shadow group">
+                                                <div className="relative h-64 overflow-hidden">
+                                                    <ImageWithFallback
+                                                        src={member.image_url || '/jane.jpg'}
+                                                        alt={member.name}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"/>
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"/>
+                                                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                                                        <h4 className="text-lg mb-1 font-semibold">{member.name}</h4>
+                                                        <div className="text-[#FFD700] text-sm font-medium">{member.role}</div>
+                                                    </div>
+                                                </div>
+                                                {member.bio && (
+                                                    <div className="p-4">
+                                                        <p className="text-gray-600 text-sm">{member.bio}</p>
+                                                    </div>
+                                                )}
+                                            </Card>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Leadership and Administrative Team */}
+                            {leadershipMembers.length > 0 && (
+                                <div>
+                                    <div className="text-center mb-8">
+                                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Equipo Administrativo</h3>
+                                        <div className="h-1 w-24 bg-gradient-to-r from-[#C8102E] to-[#FFD700] mx-auto rounded-full"/>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                        {leadershipMembers.map((member: any) => (
+                                            <Card key={member.id} className="overflow-hidden hover:shadow-xl transition-shadow group">
+                                                <div className="relative h-56 overflow-hidden">
+                                                    <ImageWithFallback
+                                                        src={member.image_url || '/jane.jpg'}
+                                                        alt={member.name}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"/>
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"/>
+                                                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                                                        <h4 className="text-base mb-1 font-semibold">{member.name}</h4>
+                                                        <div className="text-[#FFD700] text-xs font-medium">{member.role}</div>
+                                                    </div>
+                                                </div>
+                                                {member.bio && (
+                                                    <div className="p-3">
+                                                        <p className="text-gray-600 text-xs line-clamp-3">{member.bio}</p>
+                                                    </div>
+                                                )}
+                                            </Card>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Local Teachers */}
+                            {localTeachers.length > 0 && (
+                                <div>
+                                    <div className="text-center mb-8">
+                                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Profesores Locales</h3>
+                                        <div className="h-1 w-24 bg-gradient-to-r from-[#C8102E] to-[#FFD700] mx-auto rounded-full"/>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                        {localTeachers.map((member: any) => (
+                                            <Card key={member.id} className="overflow-hidden hover:shadow-lg transition-shadow group text-center">
+                                                <div className="relative h-40 overflow-hidden">
+                                                    <ImageWithFallback
+                                                        src={member.image_url || '/jane.jpg'}
+                                                        alt={member.name}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"/>
+                                                </div>
+                                                <div className="p-3">
+                                                    <h4 className="text-sm font-semibold text-gray-900 mb-1">{member.name}</h4>
+                                                    <div className="text-[#C8102E] text-xs">{member.role}</div>
+                                                </div>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Volunteer Teachers */}
+                            {volunteerTeachers.length > 0 && (
+                                <div>
+                                    <div className="text-center mb-8">
+                                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Profesores Voluntarios</h3>
+                                        <div className="h-1 w-24 bg-gradient-to-r from-[#C8102E] to-[#FFD700] mx-auto rounded-full"/>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                        {volunteerTeachers.map((member: any) => (
+                                            <Card key={member.id} className="overflow-hidden hover:shadow-lg transition-shadow group text-center">
+                                                <div className="relative h-40 overflow-hidden">
+                                                    <ImageWithFallback
+                                                        src={member.image_url || '/jane.jpg'}
+                                                        alt={member.name}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"/>
+                                                </div>
+                                                <div className="p-3">
+                                                    <h4 className="text-sm font-semibold text-gray-900 mb-1">{member.name}</h4>
+                                                    <div className="text-[#C8102E] text-xs">{member.role}</div>
+                                                </div>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Partner Institutions */}
+                            {partnerInstitutions.length > 0 && (
+                                <div>
+                                    <div className="text-center mb-8">
+                                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Instituciones Asociadas</h3>
+                                        <div className="h-1 w-24 bg-gradient-to-r from-[#C8102E] to-[#FFD700] mx-auto rounded-full"/>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {partnerInstitutions.map((partner: any) => {
+                                            const metadata = partner.metadata || {};
+                                            return (
+                                                <Card key={partner.id} className="p-6 hover:shadow-xl transition-shadow">
+                                                    <div className="flex items-start gap-4">
+                                                        {partner.image_url && (
+                                                            <div className="w-20 h-20 flex-shrink-0">
+                                                                <ImageWithFallback
+                                                                    src={partner.image_url}
+                                                                    alt={partner.name}
+                                                                    className="w-full h-full object-contain"/>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex-1">
+                                                            <h4 className="text-lg font-semibold text-gray-900 mb-2">{partner.name}</h4>
+                                                            {partner.bio && (
+                                                                <p className="text-gray-600 text-sm mb-3">{partner.bio}</p>
+                                                            )}
+                                                            {metadata.website && (
+                                                                <a 
+                                                                    href={metadata.website} 
+                                                                    target="_blank" 
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-[#C8102E] text-sm hover:underline inline-block mb-2">
+                                                                    Visitar sitio web →
+                                                                </a>
+                                                            )}
+                                                            {(metadata.contact_email || metadata.contact_phone) && (
+                                                                <div className="text-xs text-gray-500 space-y-1">
+                                                                    {metadata.contact_email && <div>📧 {metadata.contact_email}</div>}
+                                                                    {metadata.contact_phone && <div>📞 {metadata.contact_phone}</div>}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </Card>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {!loading && teamMembers.length === 0 && (
+                                <div className="text-center py-12">
+                                    <p className="text-gray-600">No hay miembros del equipo disponibles en este momento.</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </section>
+
+                {/* Contact Us Section */}
+                <section className="mb-16">
+                    <div className="text-center mb-12">
+                        <div className="text-[#C8102E] text-sm tracking-wider mb-2">CONTÁCTANOS</div>
+                        <h2 className="text-gray-900">Información de Contacto</h2>
+                        <p className="text-gray-600 max-w-2xl mx-auto mt-4">
+                            Estamos aquí para ayudarte. No dudes en contactarnos
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {teamMembers.map((member, index) => (
-                            <Card
-                                key={index}
-                                className="overflow-hidden hover:shadow-xl transition-shadow group hover:cursor-pointer">
-                                <div className="relative h-64 overflow-hidden">
-                                    <ImageWithFallback
-                                        src={member.image}
-                                        alt={member.name}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"/>
-                                    <div
-                                        className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"/>
-                                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                                        <h3 className="text-lg mb-1">{member.name}</h3>
-                                        <div className="text-[#FFD700] text-sm">{member.role}</div>
-                                    </div>
-                                </div>
-                                <div className="p-4">
-                                    <p className="text-gray-600 text-sm">{member.bio}</p>
-                                </div>
-                            </Card>
-                        ))}
+                        <Card className="p-6 text-center hover:shadow-xl transition-shadow">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#C8102E] to-[#FFD700] rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span className="text-white text-2xl">📍</span>
+                            </div>
+                            <h3 className="text-gray-900 font-semibold mb-2">Dirección</h3>
+                            <p className="text-gray-600 text-sm">
+                                San José, Costa Rica<br/>
+                                Frente al Parque Central
+                            </p>
+                        </Card>
+
+                        <Card className="p-6 text-center hover:shadow-xl transition-shadow">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#C8102E] to-[#FFD700] rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span className="text-white text-2xl">📞</span>
+                            </div>
+                            <h3 className="text-gray-900 font-semibold mb-2">Teléfono</h3>
+                            <p className="text-gray-600 text-sm">
+                                +506 2222-3333<br/>
+                                +506 8888-9999
+                            </p>
+                        </Card>
+
+                        <Card className="p-6 text-center hover:shadow-xl transition-shadow">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#C8102E] to-[#FFD700] rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span className="text-white text-2xl">📧</span>
+                            </div>
+                            <h3 className="text-gray-900 font-semibold mb-2">Email</h3>
+                            <p className="text-gray-600 text-sm">
+                                <a href="mailto:info@ccecc.cr" className="hover:text-[#C8102E]">info@ccecc.cr</a><br/>
+                                <a href="mailto:admision@ccecc.cr" className="hover:text-[#C8102E]">admision@ccecc.cr</a>
+                            </p>
+                        </Card>
+
+                        <Card className="p-6 text-center hover:shadow-xl transition-shadow">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#C8102E] to-[#FFD700] rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span className="text-white text-2xl">🕒</span>
+                            </div>
+                            <h3 className="text-gray-900 font-semibold mb-2">Horario</h3>
+                            <p className="text-gray-600 text-sm">
+                                Lunes a Viernes<br/>
+                                9:00 AM - 6:00 PM<br/>
+                                Sábados: 9:00 AM - 2:00 PM
+                            </p>
+                        </Card>
                     </div>
                 </section>
 

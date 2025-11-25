@@ -22,24 +22,39 @@ export async function GET(
   try {
     const supabase = await createClient();
     const { id } = await params;
+    const url = new URL(request.url);
+    const incrementViews = url.searchParams.get('incrementViews') !== 'false';
 
-    // Validate UUID
-    if (!isValidUUID(id)) {
-      return errorResponse('Invalid event ID format', 400);
-    }
-
-    const { data, error } = await supabase
-      .from('events')
+    // Check if it's a UUID or slug
+    const isUUID = isValidUUID(id);
+    
+    let query = supabase
+      .from('blog_posts')
       .select(`
         *,
-        translations:event_translations(*)
-      `)
-      .eq('id', id)
-      .eq('is_active', true)
-      .single();
+        translations:blog_post_translations(*),
+        author:author_id(full_name, email)
+      `);
+    
+    // Query by UUID or slug
+    if (isUUID) {
+      query = query.eq('id', id);
+    } else {
+      query = query.eq('slug', id);
+    }
+    
+    const { data, error } = await query.single();
 
     if (error || !data) {
-      return errorResponse('Event not found', 404);
+      return errorResponse('Blog post not found', 404);
+    }
+
+    // Increment views only if requested (skip for dashboard/admin views)
+    if (incrementViews) {
+      await supabase
+        .from('blog_posts')
+        .update({ views: (data.views || 0) + 1 })
+        .eq('id', data.id);
     }
 
     return NextResponse.json({ data });
@@ -63,7 +78,7 @@ export async function PATCH(
 
     // Validate UUID
     if (!isValidUUID(id)) {
-      return errorResponse('Invalid event ID format', 400);
+      return errorResponse('Invalid blog post ID format', 400);
     }
 
     // Check authentication
@@ -73,33 +88,31 @@ export async function PATCH(
     await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = await request.json();
-    const { title, description, event_date, location } = body;
-
-    // Validate field lengths if provided
-    if (title && !isValidTextLength(title, MAX_TITLE_LENGTH)) {
-      return errorResponse(`Title must not exceed ${MAX_TITLE_LENGTH} characters`, 400);
-    }
-
-    if (description && !isValidTextLength(description, MAX_DESCRIPTION_LENGTH)) {
-      return errorResponse(`Description must not exceed ${MAX_DESCRIPTION_LENGTH} characters`, 400);
-    }
+    const { slug, category, tags, featured_image_url, is_featured, is_published } = body;
 
     // Build update object
     const updateData: Record<string, any> = {};
-    if (title !== undefined) updateData.title = sanitizeTextInput(title);
-    if (description !== undefined) updateData.description = sanitizeTextInput(description);
-    if (event_date !== undefined) updateData.event_date = event_date;
-    if (location !== undefined) updateData.location = sanitizeTextInput(location);
+    if (slug !== undefined) updateData.slug = sanitizeTextInput(slug);
+    if (category !== undefined) updateData.category = sanitizeTextInput(category);
+    if (tags !== undefined) updateData.tags = Array.isArray(tags) ? tags.map((t: string) => sanitizeTextInput(t)) : null;
+    if (featured_image_url !== undefined) updateData.featured_image_url = sanitizeTextInput(featured_image_url);
+    if (is_featured !== undefined) updateData.is_featured = Boolean(is_featured);
+    if (is_published !== undefined) {
+      updateData.is_published = Boolean(is_published);
+      if (is_published && !updateData.published_at) {
+        updateData.published_at = new Date().toISOString();
+      }
+    }
 
     const { data, error } = await supabase
-      .from('events')
+      .from('blog_posts')
       .update(updateData)
       .eq('id', id)
       .select()
       .single();
 
     if (error || !data) {
-      return errorResponse('Failed to update event', 400);
+      return errorResponse('Failed to update blog post', 400);
     }
 
     return NextResponse.json({ data });
@@ -129,7 +142,7 @@ export async function DELETE(
 
     // Validate UUID
     if (!isValidUUID(id)) {
-      return errorResponse('Invalid event ID format', 400);
+      return errorResponse('Invalid blog post ID format', 400);
     }
 
     // Check authentication
@@ -139,12 +152,12 @@ export async function DELETE(
     await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const { error } = await supabase
-      .from('events')
+      .from('blog_posts')
       .delete()
       .eq('id', id);
 
     if (error) {
-      return errorResponse('Failed to delete event', 400);
+      return errorResponse('Failed to delete blog post', 400);
     }
 
     return NextResponse.json({ success: true });
@@ -174,7 +187,7 @@ export async function PUT(
 
     // Validate UUID
     if (!isValidUUID(id)) {
-      return errorResponse('Invalid event ID format', 400);
+      return errorResponse('Invalid blog post ID format', 400);
     }
 
     // Check authentication
@@ -184,37 +197,31 @@ export async function PUT(
     await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = await request.json();
-    const { title, description, event_date, location, translations } = body;
-
-    // Validate fields if provided
-    if (title !== undefined && !isValidTextLength(title, MAX_TITLE_LENGTH)) {
-      return errorResponse(`Title must not exceed ${MAX_TITLE_LENGTH} characters`, 400);
-    }
-
-    if (description !== undefined && !isValidTextLength(description, MAX_DESCRIPTION_LENGTH)) {
-      return errorResponse(`Description must not exceed ${MAX_DESCRIPTION_LENGTH} characters`, 400);
-    }
-
-    if (location !== undefined && !isValidTextLength(location, 200)) {
-      return errorResponse('Location must not exceed 200 characters', 400);
-    }
+    const { slug, category, tags, featured_image_url, is_featured, is_published, translations } = body;
 
     // Build update object with XSS sanitization
     const updateData: Record<string, any> = {};
-    if (title !== undefined) updateData.title = sanitizeTextInput(title);
-    if (description !== undefined) updateData.description = sanitizeTextInput(description);
-    if (event_date !== undefined) updateData.event_date = event_date;
-    if (location !== undefined) updateData.location = sanitizeTextInput(location);
+    if (slug !== undefined) updateData.slug = sanitizeTextInput(slug);
+    if (category !== undefined) updateData.category = sanitizeTextInput(category);
+    if (tags !== undefined) updateData.tags = Array.isArray(tags) ? tags.map((t: string) => sanitizeTextInput(t)) : null;
+    if (featured_image_url !== undefined) updateData.featured_image_url = sanitizeTextInput(featured_image_url);
+    if (is_featured !== undefined) updateData.is_featured = Boolean(is_featured);
+    if (is_published !== undefined) {
+      updateData.is_published = Boolean(is_published);
+      if (is_published) {
+        updateData.published_at = new Date().toISOString();
+      }
+    }
 
-    const { data: updatedEvent, error: eventError } = await supabase
-      .from('events')
+    const { data: updatedPost, error: postError } = await supabase
+      .from('blog_posts')
       .update(updateData)
       .eq('id', id)
       .select()
       .single();
 
-    if (eventError || !updatedEvent) {
-      return errorResponse('Failed to update event', 400);
+    if (postError || !updatedPost) {
+      return errorResponse('Failed to update blog post', 400);
     }
 
     // Update translations if provided
@@ -231,23 +238,24 @@ export async function PUT(
           return errorResponse(`Translation title must not exceed ${MAX_TITLE_LENGTH} characters`, 400);
         }
 
-        if (transObj.description && !isValidTextLength(transObj.description, MAX_DESCRIPTION_LENGTH)) {
-          return errorResponse(`Translation description must not exceed ${MAX_DESCRIPTION_LENGTH} characters`, 400);
+        if (transObj.excerpt && !isValidTextLength(transObj.excerpt, 500)) {
+          return errorResponse(`Excerpt must not exceed 500 characters`, 400);
         }
 
         const sanitizedTrans: Record<string, any> = {};
         if (transObj.title) sanitizedTrans.title = sanitizeTextInput(transObj.title);
-        if (transObj.description) sanitizedTrans.description = sanitizeTextInput(transObj.description);
+        if (transObj.excerpt) sanitizedTrans.excerpt = sanitizeTextInput(transObj.excerpt);
+        if (transObj.content) sanitizedTrans.content = transObj.content; // Tiptap JSON - no sanitization
 
         const { error: transError } = await supabase
-          .from('event_translations')
+          .from('blog_post_translations')
           .upsert(
             {
-              event_id: id,
+              blog_post_id: id,
               locale,
               ...sanitizedTrans
             },
-            { onConflict: 'event_id,locale' }
+            { onConflict: 'blog_post_id,locale' }
           );
 
         if (transError) {
@@ -256,7 +264,7 @@ export async function PUT(
       }
     }
 
-    return NextResponse.json({ data: updatedEvent });
+    return NextResponse.json({ data: updatedPost });
   } catch (error: any) {
     if (error.message === 'UNAUTHORIZED') {
       return errorResponse('Unauthorized', 401);
