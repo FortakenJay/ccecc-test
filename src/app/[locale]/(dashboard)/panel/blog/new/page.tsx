@@ -152,7 +152,7 @@ export default function NewBlogPostPage() {
         <div className="mb-6">
           <button
             onClick={() => router.push('/panel/blog')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 hover:cursor-pointer"
           >
             <FontAwesomeIcon icon={faArrowLeft} />
             {t('backToBlog')}
@@ -305,7 +305,7 @@ export default function NewBlogPostPage() {
                 <Input
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
                   placeholder={t('tagPlaceholder')}
                 />
                 <Button onClick={handleAddTag} type="button" size="sm" className="cursor-pointer">

@@ -208,7 +208,7 @@ export default function EditBlogPostPage() {
         <div className="mb-6">
           <button
             onClick={() => router.push('/panel/blog')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 hover:cursor-pointer"
           >
             <FontAwesomeIcon icon={faArrowLeft} />
             {t('backToBlog')}
@@ -329,16 +329,16 @@ export default function EditBlogPostPage() {
                   onClick={handleDelete}
                   disabled={loading}
                   variant="secondary"
-                  className="cursor-pointer w-full bg-red-600 hover:bg-red-700 text-white"
+                  className="hover:cursor-pointer w-full bg-red-600 hover:bg-red-700 text-white"
                 >
-                  <FontAwesomeIcon icon={faTrash} className="mr-2" />
+                  <FontAwesomeIcon icon={faTrash} className="mr-2 hover:cursor-pointer" />
                   {t('deletePost')}
                 </Button>
               </div>
             </Card>
 
             {/* Featured Image */}
-            <Card className="p-6">
+            <Card className="p-6 ">
               <Label className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon icon={faImage} />
                 {t('featuredImage')}
@@ -355,7 +355,7 @@ export default function EditBlogPostPage() {
 
             {/* Category */}
             <Card className="p-6">
-              <Label htmlFor="category" className="flex items-center gap-2 mb-2">
+              <Label htmlFor="category" className="flex items-center gap-2 mb-2 cursor-pointer">
                 <FontAwesomeIcon icon={faFolder} />
                 {t('categoryLabel')}
               </Label>
@@ -363,7 +363,7 @@ export default function EditBlogPostPage() {
                 id="category"
                 value={formData.category}
                 onChange={(e) => handleInputChange('category', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full cursor-pointer px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="">{t('categoryPlaceholder')}</option>
                 {categories.map(cat => (
@@ -394,7 +394,7 @@ export default function EditBlogPostPage() {
                   <Badge 
                     key={tag} 
                     variant="secondary"
-                    className="cursor-pointer hover:bg-red-100"
+                    className="hover:cursor-pointer hover:bg-red-100"
                     onClick={() => handleRemoveTag(tag)}
                   >
                     {tag} ×
@@ -407,14 +407,14 @@ export default function EditBlogPostPage() {
             <Card className="p-6">
               <h3 className="font-semibold text-gray-900 mb-4">{t('settings')}</h3>
               <div className="space-y-3">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     checked={formData.is_featured}
                     onChange={(e) => handleInputChange('is_featured', e.target.checked)}
-                    className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                    className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500 hover:cursor-pointer"
                   />
-                  <span className="text-sm text-gray-700">{t('featuredPost')}</span>
+                  <span className="text-sm text-gray-700 ">{t('featuredPost')}</span>
                 </label>
               </div>
             </Card>

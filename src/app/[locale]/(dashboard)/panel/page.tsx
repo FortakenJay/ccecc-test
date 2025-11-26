@@ -11,17 +11,19 @@ import {
   faUsers,
   faCalendar,
   faBook,
-  faFileText,
+
   faShield,
-  faChartLine,
+
   faExclamationCircle,
-  faCheckCircle,
-  faClock,
+
   faPlus,
   faEdit,
   faTrash,
   faUserShield,
   faClipboardList,
+  faAward,
+  faMoneyBill1Wave,
+  faUserCircle,
 } from '@fortawesome/free-solid-svg-icons';
 
 interface DashboardStats {
@@ -156,7 +158,7 @@ export default function DashboardPage() {
       }
     };
 
-    if (user && (isAdmin || isOwner)) {
+    if (user && (isAdmin || isOwner || isOfficer)) {
       fetchDashboardData();
     }
   }, [user, isAdmin, isOwner, profile?.role]);
@@ -172,7 +174,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user || (!isAdmin && !isOwner)) {
+  if (!user || (!isAdmin && !isOwner && !isOfficer)) {
     return null;
   }
 
@@ -187,7 +189,7 @@ export default function DashboardPage() {
         <div className="mt-3 flex items-center gap-2">
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
             <FontAwesomeIcon icon={faUserShield} className="mr-2" />
-            {profile?.role === 'owner' ? tu('owner') : tu('admin')}
+            {profile?.role === 'owner' ? tu('owner') : profile?.role === 'admin' ? tu('admin') : tu('officer')}
           </span>
           <span className="text-sm text-gray-500">
             {t('lastLogin')}: {new Date().toLocaleString()}
@@ -212,97 +214,104 @@ export default function DashboardPage() {
         </div>
       ) : stats ? (
         <>
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {/* Total Users */}
-            <Card className="p-6 bg-linear-to-br from-blue-50 to-blue-100 border-blue-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-600">{t('stats.totalUsers')}</p>
-                  <p className="text-3xl font-bold text-blue-900 mt-2">{stats.users.total}</p>
-                  <p className="text-xs text-blue-600 mt-1">
-                    {stats.users.active} {t('stats.active')}
-                  </p>
+       
+          {/* Stats Grid - Officers can see total classes and events */}
+          {(isOfficer || isAdmin || isOwner) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {/* Total Classes */}
+              <Card className="p-6 bg-linear-to-br from-green-50 to-green-100 border border-green-200 rounded-lg shadow-md">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-green-600">{t('stats.classes')}</p>
+                    <p className="text-3xl font-bold text-green-900 mt-2">{stats.content.classes}</p>
+                    <p className="text-xs text-green-600 mt-1">{t('stats.activePrograms')}</p>
+                  </div>
+                  <FontAwesomeIcon icon={faBook} className="w-12 h-12 text-green-600 opacity-80" />
                 </div>
-                <FontAwesomeIcon icon={faUsers} className="w-12 h-12 text-blue-600 opacity-80" />
-              </div>
-            </Card>
+              </Card>
 
-            {/* Total Classes */}
-            <Card className="p-6 bg-linear-to-br from-green-50 to-green-100 border-green-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-600">{t('stats.classes')}</p>
-                  <p className="text-3xl font-bold text-green-900 mt-2">{stats.content.classes}</p>
-                  <p className="text-xs text-green-600 mt-1">{t('stats.activePrograms')}</p>
+              {/* Total Events */}
+              <Card className="p-6 bg-linear-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg shadow-md">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-purple-600">blogs</p>
+                    <p className="text-3xl font-bold text-purple-900 mt-2">{stats.content.events}</p>
+                    <p className="text-xs text-purple-600 mt-1">{t('stats.descBlogs')}</p>
+                  </div>
+                  <FontAwesomeIcon icon={faCalendar} className="w-12 h-12 text-purple-600 opacity-80" />
                 </div>
-                <FontAwesomeIcon icon={faBook} className="w-12 h-12 text-green-600 opacity-80" />
-              </div>
-            </Card>
+              </Card>
+            </div>
+          )}
 
-            {/* Total Events */}
-            <Card className="p-6 bg-linear-to-br from-purple-50 to-purple-100 border-purple-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-purple-600">{t('stats.events')}</p>
-                  <p className="text-3xl font-bold text-purple-900 mt-2">{stats.content.events}</p>
-                  <p className="text-xs text-purple-600 mt-1">{t('stats.upcomingPast')}</p>
+          {/* Stats Grid - Officers can see total HSK registrations, active exams, and active members */}
+          {(isOfficer || isAdmin || isOwner) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {/* Total HSK Registrations */}
+              <Card className="p-6 bg-linear-to-br from-yellow-50 to-yellow-100 border border-yellow-200 rounded-lg shadow-md">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-yellow-600">{t('stats.hskRegistrations')}</p>
+                    <p className="text-3xl font-bold text-yellow-900 mt-2">{stats?.content.hskSessions || 0}</p>
+                    <p className="text-xs text-yellow-600 mt-1">{t('stats.totalRegistrations')}</p>
+                  </div>
+                  <FontAwesomeIcon icon={faAward} className="w-12 h-12 text-yellow-600 opacity-80" />
                 </div>
-                <FontAwesomeIcon icon={faCalendar} className="w-12 h-12 text-purple-600 opacity-80" />
-              </div>
-            </Card>
-          </div>
+              </Card>
 
-          {/* Secondary Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
-            {/* User Roles */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <FontAwesomeIcon icon={faShield} className="w-5 h-5 text-red-600" />
-                {t('userRoles')}
-              </h3>
-              <div className="space-y-3">
+              {/* Total HSK Active Exams */}
+              <Card className="p-6 bg-linear-to-br from-red-50 to-red-100 border border-red-200 rounded-lg shadow-md">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{tu('admins')}</span>
-                  <span className="font-semibold text-gray-900">{stats.users.admins}</span>
+                  <div>
+                    <p className="text-sm font-medium text-red-600">{t('stats.hskActiveExams')}</p>
+                    <p className="text-3xl font-bold text-red-900 mt-2">{stats?.content.classes || 0}</p>
+                    <p className="text-xs text-red-600 mt-1">{t('stats.activeExams')}</p>
+                  </div>
+                  <FontAwesomeIcon icon={faClipboardList} className="w-12 h-12 text-red-600 opacity-80" />
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{tu('officers')}</span>
-                  <span className="font-semibold text-gray-900">{stats.users.officers}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{tc('inactive')}</span>
-                  <span className="font-semibold text-gray-900">
-                    {stats.users.total - stats.users.active}
-                  </span>
-                </div>
-              </div>
-            </Card>
+              </Card>
 
-            {/* Content Overview */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <FontAwesomeIcon icon={faClipboardList} className="w-5 h-5 text-red-600" />
-                {t('contentOverview')}
-              </h3>
-              <div className="space-y-3">
+              {/* Total CCECC Active Members */}
+              <Card className="p-6 bg-linear-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg shadow-md">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{t('teamMembers')}</span>
-                  <span className="font-semibold text-gray-900">{stats.content.teamMembers}</span>
+                  <div>
+                    <p className="text-sm font-medium text-blue-600">{t('stats.cceccActiveMembers')}</p>
+                    <p className="text-3xl font-bold text-blue-900 mt-2">{stats?.users.active || 0}</p>
+                    <p className="text-xs text-blue-600 mt-1">{t('stats.activeMembers')}</p>
+                  </div>
+                  <FontAwesomeIcon icon={faUsers} className="w-12 h-12 text-blue-600 opacity-80" />
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{t('hskSessions')}</span>
-                  <span className="font-semibold text-gray-900">{stats.content.hskSessions}</span>
+              </Card>
+            </div>
+          )}
+
+          {/* User Roles */}
+          {(isAdmin || isOwner) && (
+            <div className="grid grid-cols-1 mb-8">
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <FontAwesomeIcon icon={faShield} className="w-5 h-5 text-red-600" />
+                  {t('userRoles')}
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">{tu('admins')}</span>
+                    <span className="font-semibold text-gray-900">{stats.users.admins}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">{tu('officers')}</span>
+                    <span className="font-semibold text-gray-900">{stats.users.officers}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">{tc('inactive')}</span>
+                    <span className="font-semibold text-gray-900">
+                      {stats.users.total - stats.users.active}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{t('totalItems')}</span>
-                  <span className="font-semibold text-gray-900">
-                    {stats.content.classes + stats.content.events + stats.content.teamMembers}
-                  </span>
-                </div>
-              </div>
-            </Card>
-          </div>
+              </Card>
+            </div>
+          )}
 
           {/* Audit Logs - Only show for admins and owners */}
           {(profile?.role === 'owner' || profile?.role === 'admin') && (
@@ -366,40 +375,76 @@ export default function DashboardPage() {
           </Card>
           )}
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Manage Users - Only for admins and owners */}
-            {(profile?.role === 'owner' || profile?.role === 'admin') && (
+          {/* Quick Actions - Officers can see these */}
+          {(isOfficer || isAdmin || isOwner) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Manage Users - Only for admins and owners */}
+              {(isAdmin || isOwner) && (
+                <button
+                  onClick={() => router.push('/panel/usuarios')}
+                  className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+                >
+                  <FontAwesomeIcon icon={faUsers} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
+                  <h4 className="font-semibold text-gray-900">{t('manageUsers')}</h4>
+                  <p className="text-sm text-gray-600 mt-1">{t('manageUsersDesc')}</p>
+                </button>
+              )}
+
               <button
-                onClick={() => router.push('/panel/usuarios')}
+                onClick={() => router.push('/panel/clases')}
                 className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
               >
-                <FontAwesomeIcon icon={faUsers} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
-                <h4 className="font-semibold text-gray-900">{t('manageUsers')}</h4>
-                <p className="text-sm text-gray-600 mt-1">{t('manageUsersDesc')}</p>
+                <FontAwesomeIcon icon={faBook} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
+                <h4 className="font-semibold text-gray-900">{t('manageClasses')}</h4>
+                <p className="text-sm text-gray-600 mt-1">{t('manageClassesDesc')}</p>
               </button>
-            )}
 
-            <button
-              onClick={() => router.push('/panel/clases')}
-              className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
-            >
-              <FontAwesomeIcon icon={faBook} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
-              <h4 className="font-semibold text-gray-900">{t('manageClasses')}</h4>
-              <p className="text-sm text-gray-600 mt-1">{t('manageClassesDesc')}</p>
-            </button>
+              <button
+                onClick={() => router.push('/panel/blog')}
+                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+              >
+                <FontAwesomeIcon icon={faCalendar} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
+                <h4 className="font-semibold text-gray-900">{t('manageBlog')}</h4>
+                <p className="text-sm text-gray-600 mt-1">{t('manageBlogDesc')}</p>
+              </button>
 
-            <button
-              onClick={() => router.push('/panel/blog')}
-              className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
-            >
-              <FontAwesomeIcon icon={faCalendar} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
-              <h4 className="font-semibold text-gray-900">{t('manageEvents')}</h4>
-              <p className="text-sm text-gray-600 mt-1">{t('manageEventsDesc')}</p>
-            </button>
+              <button
+                onClick={() => router.push('/panel/hsk/sessiones')}
+                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+              >
+                <FontAwesomeIcon icon={faAward} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
+                <h4 className="font-semibold text-gray-900">{t('manageHSKsessions')}</h4>
+                <p className="text-sm text-gray-600 mt-1">{t('manageHSKsessionsDesc')}</p>
+              </button>
 
+              <button
+                onClick={() => router.push('/panel/hsk/precios')}
+                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+              >
+                <FontAwesomeIcon icon={faMoneyBill1Wave} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
+                <h4 className="font-semibold text-gray-900">{t('manageHSkprice')}</h4>
+                <p className="text-sm text-gray-600 mt-1">{t('manageHSkpriceDesc')}</p>
+              </button>
 
-          </div>
+              <button
+                onClick={() => router.push('/panel/hsk/registraciones')}
+                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+              >
+                <FontAwesomeIcon icon={faUserCircle} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
+                <h4 className="font-semibold text-gray-900">{t('manageHSKregistrations')}</h4>
+                <p className="text-sm text-gray-600 mt-1">{t('manageHSKregistrationsDesc')}</p>
+              </button>
+
+              <button
+                onClick={() => router.push('/panel/equipo')}
+                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+              >
+                <FontAwesomeIcon icon={faUserShield} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
+                <h4 className="font-semibold text-gray-900">{t('manageAboutUsTeam')}</h4>
+                <p className="text-sm text-gray-600 mt-1">{t('manageAboutUsTeamDesc')}</p>
+              </button>
+            </div>
+          )}
         </>
       ) : null}
     </div>

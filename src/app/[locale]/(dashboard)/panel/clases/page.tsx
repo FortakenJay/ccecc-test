@@ -303,9 +303,7 @@ export default function ClasesPage() {
                 />
               </div>
 
-              <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                {cls.description || t('noDescription')}
-              </p>
+
 
               {cls.price_colones && (
                 <div className="mb-4">

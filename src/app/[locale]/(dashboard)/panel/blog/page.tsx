@@ -31,7 +31,7 @@ export default function BlogDashboardPage() {
   const t = useTranslations('dashboard.blog');
   const tc = useTranslations('dashboard.common');
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, isOwner, loading: roleLoading } = useRole();
+  const { isAdmin, isOwner, loading: roleLoading, isOfficer } = useRole();
   const { posts, loading, error, fetchPosts, deletePost, togglePublish, toggleFeatured } = useBlog();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -42,16 +42,16 @@ export default function BlogDashboardPage() {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'views'>('newest');
 
-  useEffect(() => {
+ useEffect(() => {
     if (authLoading || roleLoading) return;
     
-    if (!user || (!isAdmin && !isOwner)) {
+    if (!user || (!isAdmin && !isOwner && !isOfficer)) {
       router.push('/');
       return;
     }
+    fetchPosts();
+  }, [user, isAdmin, isOwner, authLoading,isOfficer, roleLoading]);
 
-    fetchPosts(); // Fetch all posts (published and drafts)
-  }, [user, isAdmin, isOwner, authLoading, roleLoading]);
 
   // Filter and sort posts
   const filteredPosts = posts.filter(post => {
@@ -126,7 +126,7 @@ export default function BlogDashboardPage() {
     );
   }
 
-  if (!user || (!isAdmin && !isOwner)) {
+  if (!user || (!isAdmin && !isOwner && !isOfficer)) {
     return null;
   }
 
@@ -136,16 +136,16 @@ export default function BlogDashboardPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2 md:gap-3">
             <FontAwesomeIcon icon={faNewspaper} className="w-6 h-6 md:w-8 md:h-8 text-red-600" />
-            Blog Posts
+            {t('title')}
           </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Manage your blog content</p>
+          <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">{t('subtitle')}</p>
         </div>
         <Button
           onClick={() => router.push('/panel/blog/new')}
           className="cursor-pointer bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto"
         >
           <FontAwesomeIcon icon={faPlus} className="mr-2" />
-          New Post
+          {t('newPost')}
         </Button>
       </div>
 
@@ -164,7 +164,7 @@ export default function BlogDashboardPage() {
             <Input
               id="search"
               type="text"
-              placeholder="Search posts..."
+              placeholder={t('search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -177,37 +177,37 @@ export default function BlogDashboardPage() {
               id="filterStatus"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              className=" cursor-pointer w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               <option value="all">{tc('all')}</option>
-              <option value="published">Published</option>
-              <option value="draft">Draft</option>
+              <option value="published">{t('published')}</option>
+              <option value="draft">{t('draft')}</option>
             </select>
           </div>
 
           {/* Featured Filter */}
           <div>
-            <Label htmlFor="filterFeatured">Featured</Label>
+            <Label htmlFor="filterFeatured">{t('featured')}</Label>
             <select
               id="filterFeatured"
               value={filterFeatured}
               onChange={(e) => setFilterFeatured(e.target.value as any)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="cursor-pointer w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               <option value="all">{tc('all')}</option>
-              <option value="featured">Featured</option>
-              <option value="notFeatured">Not Featured</option>
+              <option value="featured">{t('featured')}</option>
+              <option value="notFeatured">{t('notFeatured')}</option>
             </select>
           </div>
 
           {/* Category Filter */}
           <div>
-            <Label htmlFor="filterCategory">Category</Label>
+            <Label htmlFor="filterCategory">{t('category')}</Label>
             <select
               id="filterCategory"
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="cursor-pointer w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               <option value="all">{tc('all')}</option>
               {uniqueCategories.map(category => (
@@ -218,16 +218,16 @@ export default function BlogDashboardPage() {
 
           {/* Sort */}
           <div>
-            <Label htmlFor="sortBy">Sort By</Label>
+            <Label htmlFor="sortBy">{t('sortBy')}</Label>
             <select
               id="sortBy"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="cursor-pointer w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
             >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="views">Most Views</option>
+              <option value="newest">{t('newestFirst')}</option>
+              <option value="oldest">{t('oldestFirst')}</option>
+              <option value="views">{t('MostViewed')}</option>
             </select>
           </div>
         </div>
@@ -235,20 +235,20 @@ export default function BlogDashboardPage() {
         {/* Active Filters Summary */}
         {(filterStatus !== 'all' || filterFeatured !== 'all' || filterCategory !== 'all' || searchQuery || sortBy !== 'newest') && (
           <div className="mt-4 flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-gray-600">Active filters:</span>
+            <span className="text-sm text-gray-600">{t('activeFilters')}</span>
             {filterStatus !== 'all' && (
               <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                Status: {filterStatus}
+                {t('statusLabel')} {filterStatus}
               </span>
             )}
             {filterFeatured !== 'all' && (
               <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
-                Featured: {filterFeatured === 'featured' ? 'Yes' : 'No'}
+                {t('featured')}: {filterFeatured === 'featured' ? 'Yes' : 'No'}
               </span>
             )}
             {filterCategory !== 'all' && (
               <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
-                Category: {filterCategory}
+                {t('category')}: {filterCategory}
               </span>
             )}
             {searchQuery && (
@@ -280,7 +280,7 @@ export default function BlogDashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <Card className="p-3 md:p-4">
-          <div className="text-xs md:text-sm text-gray-600">Total Posts</div>
+          <div className="text-xs md:text-sm text-gray-600">{t('totalPosts')}</div>
           <div className="text-xl md:text-2xl font-bold text-gray-900">
             {filteredPosts.length}
             {filteredPosts.length !== posts.length && (
@@ -289,19 +289,19 @@ export default function BlogDashboardPage() {
           </div>
         </Card>
         <Card className="p-3 md:p-4">
-          <div className="text-xs md:text-sm text-gray-600">Published</div>
+          <div className="text-xs md:text-sm text-gray-600">{t('published')}</div>
           <div className="text-xl md:text-2xl font-bold text-green-600">
             {filteredPosts.filter((p) => p.is_published).length}
           </div>
         </Card>
         <Card className="p-3 md:p-4">
-          <div className="text-xs md:text-sm text-gray-600">Featured</div>
+          <div className="text-xs md:text-sm text-gray-600">{t('featured')}</div>
           <div className="text-xl md:text-2xl font-bold text-yellow-600">
             {filteredPosts.filter((p) => p.is_featured).length}
           </div>
         </Card>
         <Card className="p-3 md:p-4">
-          <div className="text-xs md:text-sm text-gray-600">Total Views</div>
+          <div className="text-xs md:text-sm text-gray-600">{t('totalViews')}</div>
           <div className="text-xl md:text-2xl font-bold text-blue-600">
             {filteredPosts.reduce((sum, p) => sum + (p.views || 0), 0)}
           </div>
@@ -324,7 +324,7 @@ export default function BlogDashboardPage() {
                 className="cursor-pointer bg-red-600 hover:bg-red-700 text-white"
               >
                 <FontAwesomeIcon icon={faPlus} className="mr-2" />
-                New Post
+                {t('newPost')}
               </Button>
             ) : (
               <Button
@@ -338,7 +338,7 @@ export default function BlogDashboardPage() {
                 variant="outline"
                 className="cursor-pointer"
               >
-                Clear Filters
+                {t('clearFilters')}
               </Button>
             )}
           </Card>
@@ -366,7 +366,7 @@ export default function BlogDashboardPage() {
                         {post.is_featured && (
                           <Badge variant="default" className="bg-yellow-500">
                             <FontAwesomeIcon icon={faStar} className="mr-1" size="xs" />
-                            Featured
+                            {t('featured')}
                           </Badge>
                         )}
                         <Badge variant={post.is_published ? "default" : "secondary"} className={post.is_published ? "bg-green-500" : ""}>
@@ -398,7 +398,7 @@ export default function BlogDashboardPage() {
                         )}
                         <span>
                           <FontAwesomeIcon icon={faEye} className="mr-1" />
-                          {post.views || 0} views
+                          {post.views || 0} {t('views')}
                         </span>
                       </div>
 
@@ -422,7 +422,7 @@ export default function BlogDashboardPage() {
                         className="cursor-pointer flex-1 md:flex-none"
                       >
                         <FontAwesomeIcon icon={faEdit} className="mr-1" />
-                        Edit
+                        {tc('edit')}
                       </Button>
                       
                       <Button
@@ -435,7 +435,7 @@ export default function BlogDashboardPage() {
                           icon={post.is_published ? faTimesCircle : faCheckCircle} 
                           className="mr-1" 
                         />
-                        <span className="hidden sm:inline">{post.is_published ? 'Unpublish' : 'Publish'}</span>
+                        <span className="hidden sm:inline">{post.is_published ? t('unpublish') : t('publish')}</span>
                         <span className="sm:hidden">{post.is_published ? 'Hide' : 'Show'}</span>
                       </Button>
 
@@ -446,7 +446,7 @@ export default function BlogDashboardPage() {
                         className="cursor-pointer flex-1 md:flex-none"
                       >
                         <FontAwesomeIcon icon={faStar} className="mr-1" />
-                        {post.is_featured ? 'Unfeature' : 'Feature'}
+                        {post.is_featured ? t('unfeature') : t('feature')}
                       </Button>
 
                       <Button
@@ -457,7 +457,7 @@ export default function BlogDashboardPage() {
                         className="cursor-pointer flex-1 md:flex-none"
                       >
                         <FontAwesomeIcon icon={faTrash} className="mr-1" />
-                        {deletingId === post.id ? 'Deleting...' : 'Delete'}
+                        {deletingId === post.id ? t('deleting') : tc('delete')}
                       </Button>
                     </div>
                   </div>

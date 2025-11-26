@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUpload, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { createClient } from '@/lib/supabase/client';
+import { useTranslations } from 'next-intl';
 
 interface ImageUploadProps {
   value: string;
@@ -26,54 +27,53 @@ export default function ImageUpload({
   label = 'Image'
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
+  const t = useTranslations('buttons');
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      onError?.('Please select an image file');
+      onError?.(t('errorInvalidImage'));
       return;
     }
 
     if (file.size > maxSize * 1024 * 1024) {
-      onError?.(`Image size must be less than ${maxSize}MB`);
+      onError?.(t('errorImageTooLarge', { size: maxSize }));
       return;
     }
 
     try {
       setUploading(true);
       const supabase = createClient();
-      
-      // Delete old image if it exists
+
+      // Delete old image
       if (value && value.includes(bucket)) {
         const oldFileName = value.split('/').pop();
         if (oldFileName) {
           await supabase.storage.from(bucket).remove([oldFileName]);
         }
       }
-      
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${fileName}`;
 
-      const { data, error: uploadError } = await supabase.storage
+      // Upload new file
+      const ext = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
         .from(bucket)
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+        .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
+      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
 
       onChange(publicUrl);
       onError?.('');
-    } catch (error: any) {
-      onError?.(error.message || 'Failed to upload image');
+    } catch (err: any) {
+      onError?.(err.message || t('errorUpload'));
     } finally {
       setUploading(false);
     }
@@ -83,44 +83,48 @@ export default function ImageUpload({
     if (!value) return;
 
     try {
-      if (value.includes(bucket)) {
-        const supabase = createClient();
-        const fileName = value.split('/').pop();
-        if (fileName) {
-          await supabase.storage.from(bucket).remove([fileName]);
-        }
+      const supabase = createClient();
+      const fileName = value.split('/').pop();
+
+      if (fileName) {
+        await supabase.storage.from(bucket).remove([fileName]);
       }
+
       onChange('');
-    } catch (error: any) {
-      onError?.('Failed to remove image');
+    } catch {
+      onError?.(t('errorRemove'));
     }
   };
 
-  const inputId = `image-upload-${Math.random().toString(36).substring(7)}`;
+  // Unique ID for label/input
+  const inputId = `image-upload-${Math.random().toString(36).slice(2)}`;
 
   return (
     <div>
       {value ? (
         <div className="space-y-2">
-          <div className={`relative ${previewHeight} w-full rounded-lg overflow-hidden border-2 border-gray-200`}>
-            <img 
-              src={value} 
-              alt={label} 
+          <div
+            className={`relative ${previewHeight} w-full rounded-lg overflow-hidden border-2 border-gray-200 `}
+          >
+            <img
+              src={value}
+              alt={label}
               className="w-full h-full object-cover"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = '/placeholder.jpg';
               }}
             />
           </div>
+
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleRemoveImage}
-            className="text-red-600"
+            className="text-red-600 cursor-pointer"
           >
             <FontAwesomeIcon icon={faTrash} className="mr-2" />
-            Remove Image
+            {t('removeImage')}
           </Button>
         </div>
       ) : (
@@ -132,19 +136,25 @@ export default function ImageUpload({
             onChange={handleImageUpload}
             className="hidden"
           />
-          <label htmlFor={inputId}>
+
+          <label htmlFor={inputId} className="w-full">
             <Button
               type="button"
               variant="outline"
               disabled={uploading}
-              onClick={() => document.getElementById(inputId)?.click()}
               className="w-full"
             >
               <FontAwesomeIcon icon={faUpload} className="mr-2" />
-              {uploading ? 'Uploading...' : `Upload ${label}`}
+
+              {uploading
+                ? t('uploading')
+                : `${t('upload')} ${label}`}
             </Button>
           </label>
-          <p className="text-xs text-gray-500 mt-1">Max {maxSize}MB, JPG/PNG/WEBP</p>
+
+          <p className="text-xs text-gray-500 mt-1">
+            {t('maxSize', { size: maxSize })}
+          </p>
         </div>
       )}
     </div>

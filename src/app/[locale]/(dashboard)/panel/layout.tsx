@@ -19,6 +19,7 @@ import {
   faXmark,
   faUserCircle,
   faUserShield,
+  faMoneyBill1Wave,
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function DashboardLayout({
@@ -64,7 +65,7 @@ export default function DashboardLayout({
     { name: t('classes'), href: '/panel/clases', icon: faBookOpen, roles: ['owner', 'admin', 'officer'] },
     { name: 'Blog', href: '/panel/blog', icon: faCalendarDays, roles: ['owner', 'admin', 'officer'] },
     { name: t('hskExam'), href: '/panel/hsk/sessiones', icon: faAward, roles: ['owner', 'admin', 'officer'] },
-    { name: t('hskprice'), href: '/panel/hsk/precios', icon: faAward, roles: ['owner', 'admin', 'officer'] },
+    { name: t('hskprice'), href: '/panel/hsk/precios', icon: faMoneyBill1Wave, roles: ['owner', 'admin', 'officer'] },
     { name: t('hskRegistrations'), href: '/panel/hsk/registraciones', icon: faUserCircle, roles: ['owner', 'admin', 'officer'] },
     { name: t('team'), href: '/panel/equipo', icon: faUsers, roles: ['owner', 'admin'] },
     { name: t('users'), href: '/panel/usuarios', icon: faUserShield, roles: ['owner', 'admin'] },
@@ -157,7 +158,7 @@ export default function DashboardLayout({
               }}
               className="flex items-center gap-3 w-full px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
             >
-              <FontAwesomeIcon icon={faSignOutAlt} className="w-5 h-5" />
+              <FontAwesomeIcon icon={faSignOutAlt} className="w-5 h-5 hover:cursor-pointer" />
               <span className="font-medium">{t('logout')}</span>
             </button>
           </div>

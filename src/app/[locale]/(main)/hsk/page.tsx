@@ -21,8 +21,17 @@ import {
     faUser,
     faEnvelope,
     faPhone,
-    faCircleExclamation
+    faCircleExclamation,
+    faDollarSign
 } from "@fortawesome/free-solid-svg-icons";
+
+// Define the Fee interface at the top of the file
+interface Fee {
+    level: string;
+    total: string;
+    writtenFee: string;
+    oralFee: string;
+}
 
 function HSKTestingPageContent() {
     const { sessions, loading: sessionsLoading, fetchSessions } = useHSK();
@@ -39,10 +48,34 @@ function HSKTestingPageContent() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [validationError, setValidationError] = useState<string | null>(null);
+    const [feeStructure, setFeeStructure] = useState<Fee[]>([]);
     const { executeRecaptcha } = useGoogleReCaptcha();
 
     useEffect(() => {
-        fetchSessions(true); // Fetch only active sessions
+        fetchSessions(true); // Explicitly fetch only active sessions
+    }, []);
+
+    useEffect(() => {
+        const fetchFeeStructure = async () => {
+            try {
+                const response = await fetch('/api/hsk/pricing?active=true');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch fee structure');
+                }
+                const data = await response.json();
+                const formattedData = data.data.map((item: any) => ({
+                    level: item.level,
+                    total: `$${(item.written_fee_usd || 0) + (item.oral_fee_usd || 0)}`,
+                    writtenFee: `$${item.written_fee_usd || 0}`,
+                    oralFee: `$${item.oral_fee_usd || 0}`,
+                }));
+                setFeeStructure(formattedData);
+            } catch (error) {
+                console.error('Error fetching fee structure:', error);
+            }
+        };
+
+        fetchFeeStructure();
     }, []);
 
     const requirements = [
@@ -234,12 +267,13 @@ function HSKTestingPageContent() {
     };
 
     // Get selected session details for display
-    const selectedSession = sessions.find(s => s.id === formData.examSessionId);
+    const activeSessions = sessions.filter(s => s.is_active);
+    const selectedSession = activeSessions.find(s => s.id === formData.examSessionId);
     
     return (
-        <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 pb-20">
+        <div className="min-h-screen bg-linear-to-b from-white to-gray-50 pb-20">
             {/* Header */}
-            <section className="bg-gradient-to-r from-[#C8102E] to-[#8B0000] text-white py-16">
+            <section className="bg-linear-to-r from-[#C8102E] to-[#8B0000] text-white py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
                         <div className="flex-1">
@@ -256,14 +290,14 @@ function HSKTestingPageContent() {
                                 Centro oficial autorizado para la administración del examen HSK. Certifica tu nivel de chino mandarín con reconocimiento internacional.
                             </p>
                         </div>
-                        {sessions.length > 0 && (
+                        {activeSessions.length > 0 && (
                             <div className="bg-white/10 backdrop-blur rounded-2xl p-6 text-center">
                                 <div className="text-[#FFD700] mb-2">Próximo Examen</div>
                                 <div className="text-3xl mb-1">
-                                    {new Date(sessions[0].exam_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).toUpperCase()}
+                                    {new Date(activeSessions[0].exam_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).toUpperCase()}
                                 </div>
                                 <div className="text-white/80 text-sm">
-                                    {new Date(sessions[0].exam_date).getFullYear()}
+                                    {new Date(activeSessions[0].exam_date).getFullYear()}
                                 </div>
                                 <Button 
                                     className="mt-4 hover:cursor-pointer bg-[#FFD700] text-[#C8102E] hover:bg-[#FFA500] w-full"
@@ -292,9 +326,9 @@ function HSKTestingPageContent() {
                         <div className="flex justify-center py-16">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
                         </div>
-                    ) : sessions.length > 0 ? (
+                    ) : activeSessions.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {sessions.map((session: any) => {
+                            {activeSessions.map((session: any) => {
                                 const examDate = new Date(session.exam_date);
                                 const registrationDeadline = new Date(session.registration_deadline);
                                 const isAvailable = session.is_active && new Date() < registrationDeadline;
@@ -425,6 +459,35 @@ function HSKTestingPageContent() {
                                     Los documentos deben presentarse al menos 2 semanas antes de la fecha del examen.
                                 </p>
                             </div>
+                        </div>
+                    </Card>
+
+
+                {/* Pricing Information Section */}
+
+                    <Card className="p-6">
+                        <div className="flex items-center gap-2 mb-6">
+                            <FontAwesomeIcon icon={faDollarSign} className="w-6 h-6 text-[#C8102E]"/>
+                            <h3 className="text-xl text-gray-900">Estructura de Tarifas</h3>
+                        </div>
+                        <div className="space-y-2">
+                            {feeStructure.map((fee, index) => (
+                                <div key={index} className="p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-gray-900">{fee.level}</span>
+                                        <span className="text-[#C8102E]">{fee.total}</span>
+                                    </div>
+                                    <div className="flex gap-4 text-xs text-gray-600">
+                                        <span>Escrito: {fee.writtenFee}</span>
+                                        <span>Oral: {fee.oralFee}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-6 p-4 bg-[#FFD700]/10 rounded-lg border border-[#FFD700]">
+                            <p className="text-sm text-gray-700">
+                                💳 Métodos de pago aceptados: Transferencia bancaria, tarjeta de crédito/débito.
+                            </p>
                         </div>
                     </Card>
                 </section>
@@ -700,14 +763,14 @@ function HSKTestingPageContent() {
                             {step < 3 ? (
                                 <Button
                                     onClick={handleNextStep}
-                                    className="ml-auto bg-gradient-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
+                                    className="ml-auto bg-linear-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
                                     Siguiente
                                 </Button>
                             ) : (
                                 <Button
                                     onClick={handleSubmitRegistration}
                                     disabled={isSubmitting}
-                                    className="ml-auto bg-gradient-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                                    className="ml-auto bg-linear-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white disabled:opacity-50 disabled:cursor-not-allowed">
                                     {isSubmitting ? 'Enviando...' : 'Confirmar Inscripción'}
                                 </Button>
                             )}
