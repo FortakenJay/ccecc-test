@@ -100,13 +100,13 @@ export default function Navigation() {
                     <div className="hidden md:flex items-center gap-4">
                         <button
                             onClick={toggleLanguage}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-[#C8102E] text-[#C8102E] hover:bg-[#C8102E] hover:text-white transition-colors"
+                            className="flex items-center hover:cursor-pointer gap-2 px-3 py-2 rounded-lg border-2 border-[#C8102E] text-[#C8102E] hover:bg-[#C8102E] hover:text-white transition-colors"
                             aria-label="Toggle language">
                             <FontAwesomeIcon icon={faGlobe} className="w-4 h-4"/>
                             <span className="text-sm font-medium uppercase">{getLanguageDisplay()}</span>
                         </button>
                         <button
-                            className="bg-gradient-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white font-medium px-6 py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md">
+                            className="bg-linear-to-r hover:cursor-pointer from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white font-medium px-6 py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md">
                             {t("enroll")}
                         </button>
                     </div>
@@ -141,12 +141,12 @@ export default function Navigation() {
                         <div className="pt-3 border-t flex items-center justify-between">
                             <button
                                 onClick={toggleLanguage}
-                                className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-[#C8102E] text-[#C8102E] hover:bg-[#C8102E] hover:text-white transition-colors">
+                                className="flex  items-center gap-2 px-3 py-2 rounded-lg border-2 border-[#C8102E] text-[#C8102E] hover:bg-[#C8102E] hover:text-white transition-colors">
                                 <FontAwesomeIcon icon={faGlobe} className="w-4 h-4"/>
                                 <span className="text-sm font-medium uppercase">{getLanguageDisplay()}</span>
                             </button>
                             <button
-                                className="bg-gradient-to-r from-[#C8102E] to-[#B00E29] text-white font-medium px-4 py-2 rounded-lg shadow-sm">
+                                className="bg-linear-to-r  from-[#C8102E] to-[#B00E29] text-white font-medium px-4 py-2 rounded-lg shadow-sm">
                                 {t("enroll")}
                             </button>
                         </div>

@@ -178,7 +178,7 @@ export default function UsuariosPage() {
         </div>
         <Button
           onClick={() => router.push('/panel/usuarios/invitations')}
-          className="bg-red-600 hover:bg-red-700 text-white"
+          className="cursor-pointer bg-red-600 hover:bg-red-700 text-white"
         >
           <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
           {t('inviteUser')}
@@ -311,7 +311,7 @@ export default function UsuariosPage() {
                             <Button
                               onClick={() => handleSaveEdit(usr.id)}
                               size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white"
+                              className="cursor-pointer bg-green-600 hover:bg-green-700 text-white"
                             >
                               {tc('save')}
                             </Button>
@@ -319,6 +319,7 @@ export default function UsuariosPage() {
                               onClick={handleCancelEdit}
                               variant="ghost"
                               size="sm"
+                              className="cursor-pointer"
                             >
                               {tc('cancel')}
                             </Button>
@@ -330,7 +331,7 @@ export default function UsuariosPage() {
                               variant="ghost"
                               size="sm"
                               disabled={usr.role === 'owner'}
-                              className={usr.role === 'owner' ? 'opacity-50 cursor-not-allowed' : ''}
+                              className={usr.role === 'owner' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                             >
                               <FontAwesomeIcon icon={faEdit} className="w-4 h-4" />
                             </Button>
@@ -339,7 +340,7 @@ export default function UsuariosPage() {
                                 onClick={() => handleDelete(usr.id)}
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-600 hover:text-red-700"
+                                className="cursor-pointer text-red-600 hover:text-red-700"
                               >
                                 <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
                               </Button>

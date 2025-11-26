@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRole } from '@/lib/hooks/useRole';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -39,6 +39,7 @@ interface Pricing {
 
 export default function HSKPricingPage() {
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations('dashboard.hsk.pricing');
   const tc = useTranslations('dashboard.common');
   const { user, loading: authLoading } = useAuth();
@@ -248,7 +249,7 @@ export default function HSKPricingPage() {
               setShowForm(true);
             }
           }}
-          className="bg-red-600 hover:bg-red-700 text-white"
+          className="bg-red-600 hover:bg-red-700 text-white cursor-pointer"
         >
           <FontAwesomeIcon icon={showForm ? faAward : faPlus} className="mr-2" />
           {showForm ? tc('cancel') : t('newPricing')}
@@ -382,6 +383,7 @@ export default function HSKPricingPage() {
                   variant="outline"
                   onClick={resetForm}
                   disabled={submitting}
+                  className="cursor-pointer"
                 >
                   {tc('cancel')}
                 </Button>
@@ -434,9 +436,12 @@ export default function HSKPricingPage() {
                       <tr key={price.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3">
                           <div className="text-sm font-medium text-gray-900">{price.level}</div>
-                          {price.description && (
-                            <div className="text-xs text-gray-500">{price.description}</div>
-                          )}
+                          {price.translations && price.translations.length > 0 && (() => {
+                            const translation = price.translations.find(t => t.locale === locale);
+                            return translation?.description ? (
+                              <div className="text-xs text-gray-500">{translation.description}</div>
+                            ) : null;
+                          })()}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-700">
                           {writtenFee > 0 ? `$${writtenFee.toFixed(2)}` : '-'}
@@ -464,8 +469,8 @@ export default function HSKPricingPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleEdit(price)}
-                              className="text-blue-600 hover:text-blue-700"
+                              onClick={() => handleDelete(price.id)}
+                              className="text-red-600 hover:text-red-700 cursor-pointer"
                             >
                               <FontAwesomeIcon icon={faEdit} />
                             </Button>

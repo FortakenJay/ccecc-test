@@ -139,6 +139,10 @@ export async function PATCH(
         const sanitizedTrans: Record<string, any> = {};
         if (transObj.title) sanitizedTrans.title = sanitizeTextInput(transObj.title);
         if (transObj.description) sanitizedTrans.description = sanitizeTextInput(transObj.description);
+        if (transObj.schedule) sanitizedTrans.schedule = sanitizeTextInput(transObj.schedule);
+        if (transObj.features) sanitizedTrans.features = transObj.features;
+        if (transObj.type) sanitizedTrans.type = sanitizeTextInput(transObj.type);
+        if (transObj.level) sanitizedTrans.level = sanitizeTextInput(transObj.level);
 
         const { error: transError } = await supabase
           .from('class_translations')

@@ -338,12 +338,13 @@ export default function EditClassPage() {
               variant="outline"
               onClick={() => router.push('/panel/clases')}
               disabled={saving}
+              className="cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-red-600 hover:bg-red-700 text-white cursor-pointer"
               disabled={saving}
             >
               {saving ? (

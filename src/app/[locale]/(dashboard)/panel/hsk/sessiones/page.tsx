@@ -17,8 +17,7 @@ import {
   faTrash,
   faCalendar,
   faMapMarkerAlt,
-  faSave,
-  faUsers
+  faSave
 } from '@fortawesome/free-solid-svg-icons';
 
 interface Session {
@@ -252,7 +251,7 @@ export default function HSKSessionsPage() {
               setShowForm(true);
             }
           }}
-          className="bg-red-600 hover:bg-red-700 text-white"
+          className="bg-red-600 hover:bg-red-700 text-white cursor-pointer"
         >
           <FontAwesomeIcon icon={showForm ? faCalendar : faPlus} className="mr-2" />
           {showForm ? tc('cancel') : t('newSession')}
@@ -344,6 +343,7 @@ export default function HSKSessionsPage() {
                   variant="outline"
                   onClick={() => setShowForm(false)}
                   disabled={submitting}
+                  className="cursor-pointer"
                 >
                   {tc('cancel')}
                 </Button>
@@ -377,7 +377,7 @@ export default function HSKSessionsPage() {
               <Input
                 id="search"
                 type="text"
-                placeholder="Search location or level..."
+                placeholder={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -400,7 +400,7 @@ export default function HSKSessionsPage() {
 
             {/* Time Filter */}
             <div>
-              <Label htmlFor="filterTime">Time</Label>
+              <Label htmlFor="filterTime">{t('time')}</Label>
               <select
                 id="filterTime"
                 value={filterTime}
@@ -408,8 +408,8 @@ export default function HSKSessionsPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
               >
                 <option value="all">{tc('all')}</option>
-                <option value="upcoming">Upcoming</option>
-                <option value="past">Past</option>
+                <option value="upcoming">{t('upcoming')}</option>
+                <option value="past">{t('past')}</option>
               </select>
             </div>
 
@@ -433,25 +433,25 @@ export default function HSKSessionsPage() {
           {/* Active Filters Summary */}
           {(filterStatus !== 'all' || filterTime !== 'all' || filterLevel !== 'all' || searchQuery) && (
             <div className="mt-4 flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-gray-600">Active filters:</span>
+              <span className="text-sm text-gray-600">{t('activeFilters')}</span>
               {filterStatus !== 'all' && (
                 <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                  Status: {filterStatus}
+                  {t('statusLabel')} {filterStatus}
                 </span>
               )}
               {filterTime !== 'all' && (
                 <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                  Time: {filterTime}
+                  {t('timeLabel')} {filterTime}
                 </span>
               )}
               {filterLevel !== 'all' && (
                 <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
-                  Level: {filterLevel}
+                  {t('levelLabel')} {filterLevel}
                 </span>
               )}
               {searchQuery && (
                 <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
-                  Search: {searchQuery}
+                  {t('searchLabel')} {searchQuery}
                 </span>
               )}
               <button
@@ -463,7 +463,7 @@ export default function HSKSessionsPage() {
                 }}
                 className="px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-xs hover:bg-gray-300"
               >
-                Clear all
+                {t('clearAll')}
               </button>
             </div>
           )}
@@ -477,7 +477,7 @@ export default function HSKSessionsPage() {
           <div className="text-2xl font-bold text-gray-900">
             {filteredSessions.length}
             {filteredSessions.length !== sessions.length && (
-              <span className="text-sm text-gray-500 ml-2">of {sessions.length}</span>
+              <span className="text-sm text-gray-500 ml-2">{t('of')} {sessions.length}</span>
             )}
           </div>
         </Card>
@@ -547,7 +547,7 @@ export default function HSKSessionsPage() {
                   <div className="pt-3 border-t border-gray-200">
                     <div className="text-xs text-gray-500 mb-1">{t('registrationDeadline')}</div>
                     <div className="text-sm font-medium text-gray-900">
-                      {deadline.toLocaleDateString()} at {deadline.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {deadline.toLocaleDateString()} {t('at')} {deadline.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
 
@@ -557,7 +557,7 @@ export default function HSKSessionsPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleEdit(session)}
-                        className="flex-1 text-blue-600 hover:text-blue-700"
+                        className="flex-1 text-blue-600 hover:text-blue-700 cursor-pointer"
                       >
                         <FontAwesomeIcon icon={faEdit} className="mr-2" />
                         {tc('edit')}
@@ -567,7 +567,7 @@ export default function HSKSessionsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleDelete(session.id)}
-                          className="flex-1 text-red-600 hover:text-red-700"
+                          className="flex-1 text-red-600 hover:text-red-700 cursor-pointer"
                         >
                           <FontAwesomeIcon icon={faTrash} className="mr-2" />
                           {tc('delete')}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useBlog } from '@/lib/hooks/useBlog';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ export default function EditBlogPostPage() {
   const router = useRouter();
   const params = useParams();
   const locale = useLocale();
+  const t = useTranslations('dashboard.blog');
   const { getPost, updatePost, deletePost, loading } = useBlog(locale);
   
   const [formData, setFormData] = useState<any>(null);
@@ -135,7 +136,7 @@ export default function EditBlogPostPage() {
 
   const handleSubmit = async (publish?: boolean) => {
     if (!formData.translations[locale].title) {
-      setError('Title is required');
+      setError(t('titleRequired'));
       return;
     }
 
@@ -164,7 +165,7 @@ export default function EditBlogPostPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+    if (!confirm(t('deleteConfirm'))) {
       return;
     }
 
@@ -193,7 +194,7 @@ export default function EditBlogPostPage() {
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-5xl mx-auto">
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            Post not found
+            {t('postNotFound')}
           </div>
         </div>
       </div>
@@ -210,9 +211,9 @@ export default function EditBlogPostPage() {
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
           >
             <FontAwesomeIcon icon={faArrowLeft} />
-            Back to Blog
+            {t('backToBlog')}
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Edit Blog Post</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('editPost')}</h1>
         </div>
 
         {error && (
@@ -228,47 +229,47 @@ export default function EditBlogPostPage() {
             <Card className="p-6">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="title">Title *</Label>
+                  <Label htmlFor="title">{t('titleLabel')} *</Label>
                   <Input
                     id="title"
                     value={formData.translations[locale].title}
                     onChange={(e) => handleTranslationChange('title', e.target.value)}
-                    placeholder="Enter post title"
+                    placeholder={t('titlePlaceholder')}
                     className="mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="slug">Slug</Label>
+                  <Label htmlFor="slug">{t('slugLabel')}</Label>
                   <Input
                     id="slug"
                     value={formData.slug}
                     onChange={(e) => handleInputChange('slug', e.target.value)}
-                    placeholder="auto-generated-slug"
+                    placeholder={t('slugPlaceholder')}
                     className="mt-1"
                   />
-                  <p className="text-xs text-gray-500 mt-1">URL-friendly version of the title</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('slugHelp')}</p>
                 </div>
 
                 <div>
-                  <Label htmlFor="excerpt">Excerpt</Label>
+                  <Label htmlFor="excerpt">{t('excerptLabel')}</Label>
                   <Textarea
                     id="excerpt"
                     value={formData.translations[locale].excerpt}
                     onChange={(e) => handleTranslationChange('excerpt', e.target.value)}
-                    placeholder="Brief summary of the post"
+                    placeholder={t('excerptPlaceholder')}
                     rows={3}
                     className="mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="seo">SEO Description</Label>
+                  <Label htmlFor="seo">{t('seoLabel')}</Label>
                   <Textarea
                     id="seo"
                     value={formData.translations[locale].seo_description}
                     onChange={(e) => handleTranslationChange('seo_description', e.target.value)}
-                    placeholder="SEO meta description (150-160 characters)"
+                    placeholder={t('seoPlaceholder')}
                     rows={2}
                     className="mt-1"
                   />
@@ -278,14 +279,14 @@ export default function EditBlogPostPage() {
 
             {/* Content Editor */}
             <Card className="p-6">
-              <Label>Content *</Label>
+              <Label>{t('contentLabel')} *</Label>
               <p className="text-sm text-gray-600 mb-3">
-                Write your blog post content. You can add text, images, headings, lists, and more.
+                {t('contentHelp')}
               </p>
               <TiptapEditor
                 content={formData.translations[locale].content}
                 onChange={handleContentChange}
-                placeholder="Start writing your amazing blog post..."
+                placeholder={t('contentPlaceholder')}
               />
             </Card>
           </div>
@@ -294,44 +295,44 @@ export default function EditBlogPostPage() {
           <div className="space-y-6">
             {/* Publish Actions */}
             <Card className="p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Publish</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">{t('publish')}</h3>
               <div className="space-y-3">
                 <Button
                   onClick={() => handleSubmit()}
                   disabled={loading}
                   variant="secondary"
-                  className="w-full"
+                  className="cursor-pointer w-full"
                 >
                   <FontAwesomeIcon icon={faSave} className="mr-2" />
-                  Update
+                  {t('update')}
                 </Button>
                 {formData.is_published ? (
                   <Button
                     onClick={() => handleSubmit(false)}
                     disabled={loading}
                     variant="secondary"
-                    className="w-full"
+                    className="cursor-pointer w-full"
                   >
-                    Unpublish
+                    {t('unpublish')}
                   </Button>
                 ) : (
                   <Button
                     onClick={() => handleSubmit(true)}
                     disabled={loading}
-                    className="w-full bg-green-600 hover:bg-green-700"
+                    className="cursor-pointer w-full bg-green-600 hover:bg-green-700"
                   >
                     <FontAwesomeIcon icon={faEye} className="mr-2" />
-                    Publish
+                    {t('publish')}
                   </Button>
                 )}
                 <Button
                   onClick={handleDelete}
                   disabled={loading}
                   variant="secondary"
-                  className="w-full bg-red-600 hover:bg-red-700 text-white"
+                  className="cursor-pointer w-full bg-red-600 hover:bg-red-700 text-white"
                 >
                   <FontAwesomeIcon icon={faTrash} className="mr-2" />
-                  Delete Post
+                  {t('deletePost')}
                 </Button>
               </div>
             </Card>
@@ -340,7 +341,7 @@ export default function EditBlogPostPage() {
             <Card className="p-6">
               <Label className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon icon={faImage} />
-                Featured Image
+                {t('featuredImage')}
               </Label>
               <ImageUpload
                 value={formData.featured_image_url || ''}
@@ -348,7 +349,7 @@ export default function EditBlogPostPage() {
                 bucket="blog-images"
                 onError={(error) => error && setError(error)}
                 previewHeight="h-40"
-                label="Featured Image"
+                label={t('featuredImage')}
               />
             </Card>
 
@@ -356,7 +357,7 @@ export default function EditBlogPostPage() {
             <Card className="p-6">
               <Label htmlFor="category" className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon icon={faFolder} />
-                Category
+                {t('categoryLabel')}
               </Label>
               <select
                 id="category"
@@ -364,7 +365,7 @@ export default function EditBlogPostPage() {
                 onChange={(e) => handleInputChange('category', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
               >
-                <option value="">Select category</option>
+                <option value="">{t('categoryPlaceholder')}</option>
                 {categories.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
@@ -375,17 +376,17 @@ export default function EditBlogPostPage() {
             <Card className="p-6">
               <Label className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon icon={faTag} />
-                Tags
+                {t('tagsLabel')}
               </Label>
               <div className="flex gap-2 mb-3">
                 <Input
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                  placeholder="Add tag"
+                  placeholder={t('tagPlaceholder')}
                 />
-                <Button onClick={handleAddTag} type="button" size="sm">
-                  Add
+                <Button onClick={handleAddTag} type="button" size="sm" className="cursor-pointer">
+                  {t('addTag')}
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -404,7 +405,7 @@ export default function EditBlogPostPage() {
 
             {/* Settings */}
             <Card className="p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Settings</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">{t('settings')}</h3>
               <div className="space-y-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -413,7 +414,7 @@ export default function EditBlogPostPage() {
                     onChange={(e) => handleInputChange('is_featured', e.target.checked)}
                     className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
                   />
-                  <span className="text-sm text-gray-700">Featured Post</span>
+                  <span className="text-sm text-gray-700">{t('featuredPost')}</span>
                 </label>
               </div>
             </Card>

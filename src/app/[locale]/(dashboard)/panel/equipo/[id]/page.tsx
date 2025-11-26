@@ -155,7 +155,7 @@ export default function EditTeamMemberPage() {
         <Button
           variant="outline"
           onClick={() => router.push('/panel/equipo')}
-          className="mb-4"
+          className="mb-4 cursor-pointer"
         >
           <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
           {t('backToTeam')}
@@ -358,6 +358,7 @@ export default function EditTeamMemberPage() {
               variant="outline"
               onClick={() => router.push('/panel/equipo')}
               disabled={saving}
+              className="cursor-pointer"
             >
               {tc('cancel')}
             </Button>

@@ -154,12 +154,12 @@ export default function EquipoPage() {
   };
 
   const categories = [
-    { value: 'all', label: 'All Members', color: 'gray' },
-    { value: 'board', label: 'Board of Directors', color: 'purple' },
-    { value: 'leadership', label: 'Leadership', color: 'blue' },
-    { value: 'local_teachers', label: 'Local Teachers', color: 'green' },
-    { value: 'volunteer_teachers', label: 'Volunteer Teachers', color: 'yellow' },
-    { value: 'partner_institutions', label: 'Partners', color: 'pink' },
+    { value: 'all', label: t('categoryLabels.all'), color: 'gray' },
+    { value: 'board', label: t('categoryLabels.board'), color: 'purple' },
+    { value: 'leadership', label: t('categoryLabels.leadership'), color: 'blue' },
+    { value: 'local_teachers', label: t('categoryLabels.local_teachers'), color: 'green' },
+    { value: 'volunteer_teachers', label: t('categoryLabels.volunteer_teachers'), color: 'yellow' },
+    { value: 'partner_institutions', label: t('categoryLabels.partner_institutions'), color: 'pink' },
   ];
 
   const filteredTeam = selectedCategory === 'all' 
@@ -200,7 +200,7 @@ export default function EquipoPage() {
         </div>
         <Button
           onClick={() => router.push('/panel/equipo/new')}
-          className="bg-red-600 hover:bg-red-700 text-white"
+          className="cursor-pointer bg-red-600 hover:bg-red-700 text-white"
         >
           <FontAwesomeIcon icon={faPlus} className="mr-2" />
           {t('addMember')}
@@ -226,7 +226,7 @@ export default function EquipoPage() {
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">Categories</div>
+          <div className="text-sm text-gray-600">{t('categories')}</div>
           <div className="text-2xl font-bold text-blue-600">
             {Object.keys(groupedTeam).length}
           </div>
@@ -237,14 +237,14 @@ export default function EquipoPage() {
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
           <FontAwesomeIcon icon={faFilter} className="text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">Filter by Category:</span>
+          <span className="text-sm font-medium text-gray-700">{t('filterByCategory')}</span>
         </div>
         <div className="flex gap-2 flex-wrap">
           {categories.map(cat => (
             <button
               key={cat.value}
               onClick={() => setSelectedCategory(cat.value)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === cat.value
                   ? 'bg-[#C8102E] text-white shadow-md'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
@@ -272,9 +272,9 @@ export default function EquipoPage() {
         Object.entries(groupedTeam).map(([category, members]: [string, any]) => (
           <div key={category} className="mb-8">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="capitalize">{category.replace(/_/g, ' ')}</span>
+              <span className="capitalize">{t(`categoryLabels.${category}` as any) || category.replace(/_/g, ' ')}</span>
               <span className="text-sm font-normal text-gray-500">
-                ({members.length} member{members.length !== 1 ? 's' : ''})
+                ({members.length} {members.length !== 1 ? t('members') : t('member')})
               </span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -290,13 +290,13 @@ export default function EquipoPage() {
                         />
                       </div>
                     ) : (
-                      <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                      <div className="h-48 bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                         <FontAwesomeIcon icon={faUserTie} className="w-16 h-16 text-gray-400" />
                       </div>
                     )}
                     {!member.is_active && (
                       <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded shadow-md">
-                        Inactive
+                        {t('inactive')}
                       </div>
                     )}
                   </div>
@@ -310,10 +310,10 @@ export default function EquipoPage() {
                         <p className="text-sm text-red-600 font-medium">{member.role}</p>
                       )}
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs text-gray-500">Order: {member.display_order}</span>
+                        <span className="text-xs text-gray-500">{t('orderLabel')} {member.display_order}</span>
                         {member.category && (
                           <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
-                            {member.category.replace(/_/g, ' ')}
+                            {t(`categoryLabels.${member.category}` as any) || member.category.replace(/_/g, ' ')}
                           </span>
                         )}
                       </div>
@@ -330,21 +330,21 @@ export default function EquipoPage() {
                         <button
                           onClick={() => handleReorder(member.id, 'up', member.display_order, category)}
                           disabled={index === 0}
-                          title="Move up"
-                          className="p-1.5 text-gray-600 hover:text-[#C8102E] hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed">
+                          title={t('moveUp')}
+                          className="cursor-pointer p-1.5 text-gray-600 hover:text-[#C8102E] hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed">
                           <FontAwesomeIcon icon={faArrowUp} className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => handleReorder(member.id, 'down', member.display_order, category)}
                           disabled={index === members.length - 1}
-                          title="Move down"
-                          className="p-1.5 text-gray-600 hover:text-[#C8102E] hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed">
+                          title={t('moveDown')}
+                          className="cursor-pointer p-1.5 text-gray-600 hover:text-[#C8102E] hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed">
                           <FontAwesomeIcon icon={faArrowDown} className="w-3 h-3" />
                         </button>
                       </div>
                       <button
                         onClick={() => toggleActive(member.id, member.is_active)}
-                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                        className={`cursor-pointer px-2 py-1 rounded text-xs font-medium transition-colors ${
                           member.is_active 
                             ? 'bg-green-100 text-green-800 hover:bg-green-200' 
                             : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
@@ -353,7 +353,7 @@ export default function EquipoPage() {
                           icon={member.is_active ? faCheckCircle : faTimesCircle}
                           className="mr-1 w-3 h-3"
                         />
-                        {member.is_active ? 'Active' : 'Inactive'}
+                        {member.is_active ? tc('active') : t('inactive')}
                       </button>
                     </div>
 
@@ -362,15 +362,15 @@ export default function EquipoPage() {
                         onClick={() => router.push(`/panel/equipo/${member.id}`)}
                         variant="outline"
                         size="sm"
-                        className="flex-1 text-xs">
+                        className="cursor-pointer flex-1 text-xs">
                         <FontAwesomeIcon icon={faEdit} className="mr-1 w-3 h-3" />
-                        Edit
+                        {tc('edit')}
                       </Button>
                       <Button
                         onClick={() => handleDelete(member.id)}
                         variant="outline"
                         size="sm"
-                        className="text-red-600 hover:text-red-700 hover:border-red-300 text-xs">
+                        className="cursor-pointer text-red-600 hover:text-red-700 hover:border-red-300 text-xs">
                         <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
                       </Button>
                     </div>

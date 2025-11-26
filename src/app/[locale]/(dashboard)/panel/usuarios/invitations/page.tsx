@@ -226,7 +226,7 @@ export default function InvitationsPage() {
           <Button
             type="submit"
             disabled={sending}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-red-600 hover:bg-red-700 text-white cursor-pointer"
           >
             {sending ? (
               <>
@@ -315,7 +315,7 @@ export default function InvitationsPage() {
                           onClick={() => copyInviteLink(inv.token)}
                           variant="ghost"
                           size="sm"
-                          className="text-blue-600 hover:text-blue-700"
+                          className="text-blue-600 hover:text-blue-700 cursor-pointer"
                         >
                           <FontAwesomeIcon icon={faCopy} className="w-4 h-4" />
                         </Button>
@@ -323,7 +323,7 @@ export default function InvitationsPage() {
                           onClick={() => handleDeleteInvitation(inv.id)}
                           variant="ghost"
                           size="sm"
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 hover:text-red-700 cursor-pointer"
                         >
                           <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
                         </Button>

@@ -30,6 +30,12 @@ export default function EditClassPage() {
   const [titleEn, setTitleEn] = useState('');
   const [titleEs, setTitleEs] = useState('');
   const [titleZh, setTitleZh] = useState('');
+  const [typeEn, setTypeEn] = useState('');
+  const [typeEs, setTypeEs] = useState('');
+  const [typeZh, setTypeZh] = useState('');
+  const [levelEn, setLevelEn] = useState('');
+  const [levelEs, setLevelEs] = useState('');
+  const [levelZh, setLevelZh] = useState('');
   const [descEn, setDescEn] = useState('');
   const [descEs, setDescEs] = useState('');
   const [descZh, setDescZh] = useState('');
@@ -65,14 +71,20 @@ export default function EditClassPage() {
         
         if (en) {
           setTitleEn(en.title || '');
+          setTypeEn(en.type || '');
+          setLevelEn(en.level || '');
           setDescEn(en.description || '');
         }
         if (es) {
           setTitleEs(es.title || '');
+          setTypeEs(es.type || '');
+          setLevelEs(es.level || '');
           setDescEs(es.description || '');
         }
         if (zh) {
           setTitleZh(zh.title || '');
+          setTypeZh(zh.type || '');
+          setLevelZh(zh.level || '');
           setDescZh(zh.description || '');
         }
       }
@@ -109,9 +121,9 @@ export default function EditClassPage() {
           price_colones: priceColones ? parseFloat(priceColones) : null,
           is_active: isActive,
           translations: {
-            en: { title: titleEn, description: descEn || null },
-            es: { title: titleEs, description: descEs || null },
-            zh: { title: titleZh, description: descZh || null }
+            en: { title: titleEn, description: descEn || null, type: typeEn || null, level: levelEn || null },
+            es: { title: titleEs, description: descEs || null, type: typeEs || null, level: levelEs || null },
+            zh: { title: titleZh, description: descZh || null, type: typeZh || null, level: levelZh || null }
           }
         }),
       });
@@ -156,7 +168,7 @@ export default function EditClassPage() {
         <Button
           variant="outline"
           onClick={() => router.push('/panel/clases')}
-          className="mb-4"
+          className="mb-4 cursor-pointer"
         >
           <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
           Back to Classes
@@ -278,6 +290,26 @@ export default function EditClassPage() {
                 />
               </div>
               <div>
+                <Label htmlFor="typeEn">Class Type (English)</Label>
+                <Input
+                  id="typeEn"
+                  value={typeEn}
+                  onChange={(e) => setTypeEn(e.target.value)}
+                  placeholder="e.g., Cultural, Workshop, HSK, Language"
+                />
+                <p className="text-xs text-gray-500 mt-1">Translated class type for English</p>
+              </div>
+              <div>
+                <Label htmlFor="levelEn">Level (English)</Label>
+                <Input
+                  id="levelEn"
+                  value={levelEn}
+                  onChange={(e) => setLevelEn(e.target.value)}
+                  placeholder="e.g., Beginner, Intermediate, Advanced"
+                />
+                <p className="text-xs text-gray-500 mt-1">Translated level for English</p>
+              </div>
+              <div>
                 <Label htmlFor="descEn">Description</Label>
                 <Textarea
                   id="descEn"
@@ -305,6 +337,26 @@ export default function EditClassPage() {
                   placeholder="Título de la clase en español"
                   required
                 />
+              </div>
+              <div>
+                <Label htmlFor="typeEs">Tipo de Clase (Español)</Label>
+                <Input
+                  id="typeEs"
+                  value={typeEs}
+                  onChange={(e) => setTypeEs(e.target.value)}
+                  placeholder="ej., Cultural, Taller, HSK, Idioma"
+                />
+                <p className="text-xs text-gray-500 mt-1">Tipo de clase traducido al español</p>
+              </div>
+              <div>
+                <Label htmlFor="levelEs">Nivel (Español)</Label>
+                <Input
+                  id="levelEs"
+                  value={levelEs}
+                  onChange={(e) => setLevelEs(e.target.value)}
+                  placeholder="ej., Principiante, Intermedio, Avanzado"
+                />
+                <p className="text-xs text-gray-500 mt-1">Nivel traducido al español</p>
               </div>
               <div>
                 <Label htmlFor="descEs">Descripción</Label>
@@ -336,6 +388,26 @@ export default function EditClassPage() {
                 />
               </div>
               <div>
+                <Label htmlFor="typeZh">课程类型 (中文)</Label>
+                <Input
+                  id="typeZh"
+                  value={typeZh}
+                  onChange={(e) => setTypeZh(e.target.value)}
+                  placeholder="例如：文化、工作坊、HSK、语言"
+                />
+                <p className="text-xs text-gray-500 mt-1">中文翻译的课程类型</p>
+              </div>
+              <div>
+                <Label htmlFor="levelZh">级别 (中文)</Label>
+                <Input
+                  id="levelZh"
+                  value={levelZh}
+                  onChange={(e) => setLevelZh(e.target.value)}
+                  placeholder="例如：初级、中级、高级"
+                />
+                <p className="text-xs text-gray-500 mt-1">中文翻译的级别</p>
+              </div>
+              <div>
                 <Label htmlFor="descZh">描述</Label>
                 <Textarea
                   id="descZh"
@@ -355,6 +427,7 @@ export default function EditClassPage() {
               variant="outline"
               onClick={() => router.push('/panel/clases')}
               disabled={saving}
+              className="cursor-pointer"
             >
               Cancel
             </Button>

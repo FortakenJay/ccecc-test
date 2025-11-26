@@ -142,7 +142,7 @@ export default function BlogDashboardPage() {
         </div>
         <Button
           onClick={() => router.push('/panel/blog/new')}
-          className="bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto"
+          className="cursor-pointer bg-red-600 hover:bg-red-700 text-white w-full sm:w-auto"
         >
           <FontAwesomeIcon icon={faPlus} className="mr-2" />
           New Post
@@ -269,7 +269,7 @@ export default function BlogDashboardPage() {
                 setFilterCategory('all');
                 setSortBy('newest');
               }}
-              className="px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-xs hover:bg-gray-300"
+              className="cursor-pointer px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-xs hover:bg-gray-300"
             >
               Clear all
             </button>
@@ -321,7 +321,7 @@ export default function BlogDashboardPage() {
             {posts.length === 0 ? (
               <Button
                 onClick={() => router.push('/panel/blog/new')}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="cursor-pointer bg-red-600 hover:bg-red-700 text-white"
               >
                 <FontAwesomeIcon icon={faPlus} className="mr-2" />
                 New Post
@@ -336,6 +336,7 @@ export default function BlogDashboardPage() {
                   setSortBy('newest');
                 }}
                 variant="outline"
+                className="cursor-pointer"
               >
                 Clear Filters
               </Button>
@@ -418,7 +419,7 @@ export default function BlogDashboardPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => router.push(`/panel/blog/${post.id}`)}
-                        className="flex-1 md:flex-none"
+                        className="cursor-pointer flex-1 md:flex-none"
                       >
                         <FontAwesomeIcon icon={faEdit} className="mr-1" />
                         Edit
@@ -428,7 +429,7 @@ export default function BlogDashboardPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleTogglePublish(post.id, post.is_published || false)}
-                        className="flex-1 md:flex-none"
+                        className="cursor-pointer flex-1 md:flex-none"
                       >
                         <FontAwesomeIcon 
                           icon={post.is_published ? faTimesCircle : faCheckCircle} 
@@ -442,7 +443,7 @@ export default function BlogDashboardPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleToggleFeatured(post.id, post.is_featured || false)}
-                        className="flex-1 md:flex-none"
+                        className="cursor-pointer flex-1 md:flex-none"
                       >
                         <FontAwesomeIcon icon={faStar} className="mr-1" />
                         {post.is_featured ? 'Unfeature' : 'Feature'}
@@ -453,7 +454,7 @@ export default function BlogDashboardPage() {
                         size="sm"
                         onClick={() => handleDelete(post.id)}
                         disabled={deletingId === post.id}
-                        className="flex-1 md:flex-none"
+                        className="cursor-pointer flex-1 md:flex-none"
                       >
                         <FontAwesomeIcon icon={faTrash} className="mr-1" />
                         {deletingId === post.id ? 'Deleting...' : 'Delete'}

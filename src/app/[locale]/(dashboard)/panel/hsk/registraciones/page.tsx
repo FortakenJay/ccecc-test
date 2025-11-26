@@ -164,6 +164,7 @@ export default function HSKRegistrationsPage() {
           variant={filter === 'all' ? 'default' : 'outline'}
           onClick={() => setFilter('all')}
           size="sm"
+          className="cursor-pointer"
         >
           {t('all')}
         </Button>
@@ -171,6 +172,7 @@ export default function HSKRegistrationsPage() {
           variant={filter === 'pending' ? 'default' : 'outline'}
           onClick={() => setFilter('pending')}
           size="sm"
+          className="cursor-pointer"
         >
           {t('pending')}
         </Button>
@@ -178,6 +180,7 @@ export default function HSKRegistrationsPage() {
           variant={filter === 'confirmed' ? 'default' : 'outline'}
           onClick={() => setFilter('confirmed')}
           size="sm"
+          className="cursor-pointer"
         >
           <FontAwesomeIcon icon={faCheckSquare} className="mr-2" />
           {t('confirmed')}
@@ -186,6 +189,7 @@ export default function HSKRegistrationsPage() {
           variant={filter === 'cancelled' ? 'default' : 'outline'}
           onClick={() => setFilter('cancelled')}
           size="sm"
+          className="cursor-pointer"
         >
           {t('cancelled')}
         </Button>
@@ -193,6 +197,7 @@ export default function HSKRegistrationsPage() {
           variant={filter === 'completed' ? 'default' : 'outline'}
           onClick={() => setFilter('completed')}
           size="sm"
+          className="cursor-pointer"
         >
           {t('completed')}
         </Button>
@@ -274,7 +279,7 @@ export default function HSKRegistrationsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleDelete(reg.id)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 hover:text-red-700 cursor-pointer"
                         >
                           <FontAwesomeIcon icon={faTrash} />
                         </Button>

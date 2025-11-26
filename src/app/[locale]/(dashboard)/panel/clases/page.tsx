@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRole } from '@/lib/hooks/useRole';
 import { Card } from '@/components/ui/Card';
@@ -32,6 +32,7 @@ interface Class {
 
 export default function ClasesPage() {
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations('dashboard.classes');
   const tc = useTranslations('dashboard.common');
   const { user, loading: authLoading } = useAuth();
@@ -54,12 +55,12 @@ export default function ClasesPage() {
       return;
     }
     fetchClasses();
-  }, [user, isAdmin, isOwner, authLoading, roleLoading]);
+  }, [user, isAdmin, isOwner, authLoading, roleLoading, locale]);
 
   const fetchClasses = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/clases');
+      const res = await fetch(`/api/clases?locale=${locale}&showAll=true`);
       if (!res.ok) throw new Error('Failed to fetch classes');
       const data = await res.json();
       setClasses(data.data || []);
@@ -137,7 +138,7 @@ export default function ClasesPage() {
         </div>
         <Button
           onClick={() => router.push('/panel/clases/new')}
-          className="bg-red-600 hover:bg-red-700 text-white"
+          className="cursor-pointer bg-red-600 hover:bg-red-700 text-white"
         >
           <FontAwesomeIcon icon={faPlus} className="mr-2" />
           {t('addClass')}
@@ -159,7 +160,7 @@ export default function ClasesPage() {
             <Input
               id="search"
               type="text"
-              placeholder="Search title, description..."
+              placeholder={t('searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -182,7 +183,7 @@ export default function ClasesPage() {
 
           {/* Type Filter */}
           <div>
-            <Label htmlFor="filterType">Type</Label>
+            <Label htmlFor="filterType">{t('type')}</Label>
             <select
               id="filterType"
               value={filterType}
@@ -198,7 +199,7 @@ export default function ClasesPage() {
 
           {/* Level Filter */}
           <div>
-            <Label htmlFor="filterLevel">Level</Label>
+            <Label htmlFor="filterLevel">{t('level')}</Label>
             <select
               id="filterLevel"
               value={filterLevel}
@@ -216,25 +217,25 @@ export default function ClasesPage() {
         {/* Active Filters Summary */}
         {(filterStatus !== 'all' || filterType !== 'all' || filterLevel !== 'all' || searchQuery) && (
           <div className="mt-4 flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-gray-600">Active filters:</span>
+            <span className="text-sm text-gray-600">{t('activeFilters')}</span>
             {filterStatus !== 'all' && (
               <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                Status: {filterStatus}
+                {t('statusLabel')} {filterStatus}
               </span>
             )}
             {filterType !== 'all' && (
               <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                Type: {filterType}
+                {t('typeLabel')} {filterType}
               </span>
             )}
             {filterLevel !== 'all' && (
               <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
-                Level: {filterLevel}
+                {t('levelLabel')} {filterLevel}
               </span>
             )}
             {searchQuery && (
               <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
-                Search: {searchQuery}
+                {t('searchLabel')} {searchQuery}
               </span>
             )}
             <button
@@ -244,9 +245,9 @@ export default function ClasesPage() {
                 setFilterType('all');
                 setFilterLevel('all');
               }}
-              className="px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-xs hover:bg-gray-300"
+              className="cursor-pointer px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-xs hover:bg-gray-300"
             >
-              Clear all
+              {t('clearAll')}
             </button>
           </div>
         )}
@@ -259,7 +260,7 @@ export default function ClasesPage() {
           <div className="text-2xl font-bold text-gray-900">
             {filteredClasses.length}
             {filteredClasses.length !== classes.length && (
-              <span className="text-sm text-gray-500 ml-2">of {classes.length}</span>
+              <span className="text-sm text-gray-500 ml-2">{t('of')} {classes.length}</span>
             )}
           </div>
         </Card>
@@ -320,7 +321,7 @@ export default function ClasesPage() {
                   onClick={() => router.push(`/panel/clases/${cls.id}`)}
                   variant="outline"
                   size="sm"
-                  className="flex-1"
+                  className="cursor-pointer flex-1"
                 >
                   <FontAwesomeIcon icon={faEdit} className="mr-2 w-4 h-4" />
                   {tc('edit')}
@@ -329,7 +330,7 @@ export default function ClasesPage() {
                   onClick={() => handleDelete(cls.id)}
                   variant="outline"
                   size="sm"
-                  className="text-red-600 hover:text-red-700 hover:border-red-300"
+                  className="cursor-pointer text-red-600 hover:text-red-700 hover:border-red-300"
                 >
                   <FontAwesomeIcon icon={faTrash} className="w-4 h-4" />
                 </Button>
@@ -343,7 +344,7 @@ export default function ClasesPage() {
             <p className="text-gray-500 mb-4">{t('getStarted')}</p>
             <Button
               onClick={() => router.push('/panel/clases/new')}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="cursor-pointer bg-red-600 hover:bg-red-700 text-white"
             >
               <FontAwesomeIcon icon={faPlus} className="mr-2" />
               {t('addClass')}

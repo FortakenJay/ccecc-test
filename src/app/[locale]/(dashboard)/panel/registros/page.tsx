@@ -171,7 +171,7 @@ export default function RegistrosPage() {
             onClick={() => setFilter(action)}
             variant={filter === action ? 'default' : 'outline'}
             size="sm"
-            className={filter === action ? 'bg-red-600 hover:bg-red-700' : ''}
+            className={`cursor-pointer ${filter === action ? 'bg-red-600 hover:bg-red-700' : ''}`}
           >
             {action === 'all' ? t('all') : t(action.toLowerCase())}
           </Button>

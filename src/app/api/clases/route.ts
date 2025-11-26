@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     const locale = searchParams.get('locale') || 'es';
     const limitParam = searchParams.get('limit');
     const offsetParam = searchParams.get('offset');
+    const showAll = searchParams.get('showAll') === 'true'; // For dashboard to see all classes
     const { limit, offset } = parsePaginationParams(limitParam, offsetParam);
 
     // Validate locale
@@ -29,13 +30,19 @@ export async function GET(request: NextRequest) {
       return errorResponse('Invalid locale', 400);
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('classes')
       .select(`
         *,
         translations:class_translations(*)
-      `)
-      .eq('is_active', true)
+      `);
+    
+    // Only filter by is_active if not showing all
+    if (!showAll) {
+      query = query.eq('is_active', true);
+    }
+    
+    const { data, error } = await query
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -50,8 +57,8 @@ export async function GET(request: NextRequest) {
       return {
         id: cls.id,
         slug: cls.slug,
-        type: cls.type,
-        level: cls.level,
+        type: translation?.type || cls.type, // Use translated type if available, fallback to main type
+        level: translation?.level || cls.level, // Use translated level if available, fallback to main level
         duration_months: cls.duration_months,
         price_colones: cls.price_colones,
         max_students: cls.max_students,
@@ -145,6 +152,8 @@ export async function POST(request: NextRequest) {
       description: trans.description ? sanitizeTextInput(trans.description) : null,
       schedule: trans.schedule ? sanitizeTextInput(trans.schedule) : null,
       features: trans.features,
+      type: trans.type ? sanitizeTextInput(trans.type) : null,
+      level: trans.level ? sanitizeTextInput(trans.level) : null,
     }));
 
     const { error: transError } = await supabase
