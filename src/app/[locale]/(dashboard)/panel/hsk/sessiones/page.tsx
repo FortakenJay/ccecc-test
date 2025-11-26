@@ -54,6 +54,12 @@ export default function HSKSessionsPage() {
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  // Filter state
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [filterTime, setFilterTime] = useState<'all' | 'upcoming' | 'past'>('all');
+  const [filterLevel, setFilterLevel] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -83,6 +89,36 @@ export default function HSKSessionsPage() {
       setLoading(false);
     }
   };
+
+  // Filter sessions
+  const filteredSessions = sessions.filter(session => {
+    const now = new Date();
+    const examDate = new Date(session.exam_date);
+
+    // Status filter
+    if (filterStatus === 'active' && !session.is_active) return false;
+    if (filterStatus === 'inactive' && session.is_active) return false;
+
+    // Time filter
+    if (filterTime === 'upcoming' && examDate < now) return false;
+    if (filterTime === 'past' && examDate >= now) return false;
+
+    // Level filter
+    if (filterLevel !== 'all' && session.level !== filterLevel) return false;
+
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesLocation = session.location?.toLowerCase().includes(query);
+      const matchesLevel = session.level?.toLowerCase().includes(query);
+      if (!matchesLocation && !matchesLevel) return false;
+    }
+
+    return true;
+  });
+
+  // Get unique levels for filter
+  const uniqueLevels = Array.from(new Set(sessions.map(s => s.level).filter(Boolean)));
 
   const handleEdit = (session: Session) => {
     setEditingId(session.id);
@@ -331,30 +367,138 @@ export default function HSKSessionsPage() {
         </Card>
       )}
 
+      {/* Filters */}
+      <Card className="mb-8">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Search */}
+            <div>
+              <Label htmlFor="search">{tc('search')}</Label>
+              <Input
+                id="search"
+                type="text"
+                placeholder="Search location or level..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <Label htmlFor="filterStatus">{tc('status')}</Label>
+              <select
+                id="filterStatus"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value as any)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="all">{tc('all')}</option>
+                <option value="active">{tc('active')}</option>
+                <option value="inactive">{tc('inactive')}</option>
+              </select>
+            </div>
+
+            {/* Time Filter */}
+            <div>
+              <Label htmlFor="filterTime">Time</Label>
+              <select
+                id="filterTime"
+                value={filterTime}
+                onChange={(e) => setFilterTime(e.target.value as any)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="all">{tc('all')}</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="past">Past</option>
+              </select>
+            </div>
+
+            {/* Level Filter */}
+            <div>
+              <Label htmlFor="filterLevel">{t('level')}</Label>
+              <select
+                id="filterLevel"
+                value={filterLevel}
+                onChange={(e) => setFilterLevel(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="all">{tc('all')}</option>
+                {uniqueLevels.map(level => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Active Filters Summary */}
+          {(filterStatus !== 'all' || filterTime !== 'all' || filterLevel !== 'all' || searchQuery) && (
+            <div className="mt-4 flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-gray-600">Active filters:</span>
+              {filterStatus !== 'all' && (
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                  Status: {filterStatus}
+                </span>
+              )}
+              {filterTime !== 'all' && (
+                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                  Time: {filterTime}
+                </span>
+              )}
+              {filterLevel !== 'all' && (
+                <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                  Level: {filterLevel}
+                </span>
+              )}
+              {searchQuery && (
+                <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
+                  Search: {searchQuery}
+                </span>
+              )}
+              <button
+                onClick={() => {
+                  setFilterStatus('all');
+                  setFilterTime('all');
+                  setFilterLevel('all');
+                  setSearchQuery('');
+                }}
+                className="px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-xs hover:bg-gray-300"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card className="p-4">
           <div className="text-sm text-gray-600">{t('totalSessions')}</div>
-          <div className="text-2xl font-bold text-gray-900">{sessions.length}</div>
+          <div className="text-2xl font-bold text-gray-900">
+            {filteredSessions.length}
+            {filteredSessions.length !== sessions.length && (
+              <span className="text-sm text-gray-500 ml-2">of {sessions.length}</span>
+            )}
+          </div>
         </Card>
         <Card className="p-4">
           <div className="text-sm text-gray-600">{t('activeSessions')}</div>
           <div className="text-2xl font-bold text-green-600">
-            {sessions.filter(s => s.is_active).length}
+            {filteredSessions.filter(s => s.is_active).length}
           </div>
         </Card>
         <Card className="p-4">
           <div className="text-sm text-gray-600">{t('upcomingExams')}</div>
           <div className="text-2xl font-bold text-blue-600">
-            {sessions.filter(s => new Date(s.exam_date) > new Date()).length}
+            {filteredSessions.filter(s => new Date(s.exam_date) > new Date()).length}
           </div>
         </Card>
       </div>
 
       {/* Sessions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sessions.length > 0 ? (
-          sessions.map((session) => {
+        {filteredSessions.length > 0 ? (
+          filteredSessions.map((session) => {
             const examDate = new Date(session.exam_date);
             const deadline = new Date(session.registration_deadline);
             const isPast = examDate < new Date();

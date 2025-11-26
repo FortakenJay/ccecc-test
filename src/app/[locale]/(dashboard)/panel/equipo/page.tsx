@@ -62,7 +62,28 @@ export default function EquipoPage() {
       const res = await fetch(`/api/equipo?locale=${locale}`);
       if (!res.ok) throw new Error('Failed to fetch team members');
       const data = await res.json();
-      setTeam(data.data || []);
+      
+      // Map role to category
+      const teamWithCategories = (data.data || []).map((member: TeamMember) => {
+        let category = 'uncategorized';
+        const role = member.role?.toLowerCase() || '';
+        
+        if (role.includes('board') || role.includes('董事会') || role.includes('junta')) {
+          category = 'board';
+        } else if (role.includes('leadership') || role.includes('领导') || role.includes('liderazgo')) {
+          category = 'leadership';
+        } else if (role.includes('local') || role.includes('本地') || role.includes('locales')) {
+          category = 'local_teachers';
+        } else if (role.includes('volunteer') || role.includes('志愿') || role.includes('voluntarios')) {
+          category = 'volunteer_teachers';
+        } else if (role.includes('partner') || role.includes('合作') || role.includes('socios')) {
+          category = 'partner_institutions';
+        }
+        
+        return { ...member, category };
+      });
+      
+      setTeam(teamWithCategories);
       setError(null);
     } catch (err: any) {
       setError(err.message);

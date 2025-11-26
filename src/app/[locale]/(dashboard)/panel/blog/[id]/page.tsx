@@ -21,6 +21,7 @@ import {
   faTrash
 } from '@fortawesome/free-solid-svg-icons';
 import TiptapEditor from '@/components/TiptapEditor';
+import ImageUpload from '@/components/ImageUpload';
 
 export default function EditBlogPostPage() {
   const router = useRouter();
@@ -337,28 +338,18 @@ export default function EditBlogPostPage() {
 
             {/* Featured Image */}
             <Card className="p-6">
-              <Label htmlFor="featured-image" className="flex items-center gap-2 mb-2">
+              <Label className="flex items-center gap-2 mb-2">
                 <FontAwesomeIcon icon={faImage} />
                 Featured Image
               </Label>
-              <Input
-                id="featured-image"
-                value={formData.featured_image_url}
-                onChange={(e) => handleInputChange('featured_image_url', e.target.value)}
-                placeholder="https://example.com/image.jpg"
+              <ImageUpload
+                value={formData.featured_image_url || ''}
+                onChange={(url) => handleInputChange('featured_image_url', url)}
+                bucket="blog-images"
+                onError={(error) => error && setError(error)}
+                previewHeight="h-40"
+                label="Featured Image"
               />
-              {formData.featured_image_url && (
-                <div className="mt-3 rounded-lg overflow-hidden">
-                  <img 
-                    src={formData.featured_image_url} 
-                    alt="Featured" 
-                    className="w-full h-40 object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/placeholder.jpg';
-                    }}
-                  />
-                </div>
-              )}
             </Card>
 
             {/* Category */}

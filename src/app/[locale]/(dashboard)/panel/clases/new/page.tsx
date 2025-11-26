@@ -27,6 +27,7 @@ export default function NewClassPage() {
   // Class data
   const [type, setType] = useState('');
   const [level, setLevel] = useState('');
+  const [slug, setSlug] = useState('');
   const [priceColones, setPriceColones] = useState('');
   const [isActive, setIsActive] = useState(true);
 
@@ -60,6 +61,7 @@ export default function NewClassPage() {
         body: JSON.stringify({
           type,
           level: level || null,
+          slug: slug || null,
           price_colones: priceColones ? parseFloat(priceColones) : null,
           is_active: isActive,
           translations: {
@@ -123,7 +125,7 @@ export default function NewClassPage() {
               <CardTitle>{t.classes.new.basicInfo}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="type">{t.classes.new.classType} *</Label>
                   <select
@@ -134,10 +136,10 @@ export default function NewClassPage() {
                     required
                   >
                     <option value="">{t.classes.new.selectType}</option>
-                    <option value="group">{t.classes.new.types.group}</option>
-                    <option value="private">{t.classes.new.types.private}</option>
-                    <option value="online">{t.classes.new.types.online}</option>
-                    <option value="intensive">{t.classes.new.types.intensive}</option>
+                    <option value="cultural">Cultural</option>
+                    <option value="taller">Taller</option>
+                    <option value="hsk">HSK</option>
+                    <option value="language">Language</option>
                   </select>
                 </div>
 
@@ -150,11 +152,35 @@ export default function NewClassPage() {
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
                   >
                     <option value="">{t.classes.new.selectLevel}</option>
-                    <option value="beginner">{t.classes.levels.beginner}</option>
-                    <option value="elementary">{t.classes.levels.elementary}</option>
-                    <option value="intermediate">{t.classes.levels.intermediate}</option>
-                    <option value="advanced">{t.classes.levels.advanced}</option>
+                    <optgroup label="General Levels">
+                      <option value="beginner">{t.classes.levels.beginner}</option>
+                      <option value="elementary">{t.classes.levels.elementary}</option>
+                      <option value="intermediate">{t.classes.levels.intermediate}</option>
+                      <option value="advanced">{t.classes.levels.advanced}</option>
+                      <option value="All">{t.classes.levels.All}</option>
+                    </optgroup>
+                    <optgroup label="HSK Levels">
+                      <option value="HSK 1">HSK 1</option>
+                      <option value="HSK 2">HSK 2</option>
+                      <option value="HSK 3">HSK 3</option>
+                      <option value="HSK 4">HSK 4</option>
+                      <option value="HSK 5">HSK 5</option>
+                      <option value="HSK 6">HSK 6</option>
+                    </optgroup>
                   </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="slug">Slug (URL)</Label>
+                  <Input
+                    id="slug"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                    placeholder="e.g., beginner-chinese-class"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Leave empty to auto-generate from title</p>
                 </div>
 
                 <div>

@@ -9,6 +9,8 @@ import { useBlog } from '@/lib/hooks/useBlog';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faPlus, 
@@ -33,6 +35,13 @@ export default function BlogDashboardPage() {
   const { posts, loading, error, fetchPosts, deletePost, togglePublish, toggleFeatured } = useBlog();
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
+  const [filterFeatured, setFilterFeatured] = useState<'all' | 'featured' | 'notFeatured'>('all');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'views'>('newest');
+
   useEffect(() => {
     if (authLoading || roleLoading) return;
     
@@ -43,6 +52,45 @@ export default function BlogDashboardPage() {
 
     fetchPosts(); // Fetch all posts (published and drafts)
   }, [user, isAdmin, isOwner, authLoading, roleLoading]);
+
+  // Filter and sort posts
+  const filteredPosts = posts.filter(post => {
+    // Status filter
+    if (filterStatus === 'published' && !post.is_published) return false;
+    if (filterStatus === 'draft' && post.is_published) return false;
+
+    // Featured filter
+    if (filterFeatured === 'featured' && !post.is_featured) return false;
+    if (filterFeatured === 'notFeatured' && post.is_featured) return false;
+
+    // Category filter
+    if (filterCategory !== 'all' && post.category !== filterCategory) return false;
+
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const translation = post.translations?.[0];
+      const matchesTitle = translation?.title?.toLowerCase().includes(query);
+      const matchesExcerpt = translation?.excerpt?.toLowerCase().includes(query);
+      const matchesCategory = post.category?.toLowerCase().includes(query);
+      const matchesTags = post.tags?.some((tag: string) => tag.toLowerCase().includes(query));
+      if (!matchesTitle && !matchesExcerpt && !matchesCategory && !matchesTags) return false;
+    }
+
+    return true;
+  }).sort((a, b) => {
+    if (sortBy === 'newest') {
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    } else if (sortBy === 'oldest') {
+      return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+    } else if (sortBy === 'views') {
+      return (b.views || 0) - (a.views || 0);
+    }
+    return 0;
+  });
+
+  // Get unique categories for filter
+  const uniqueCategories = Array.from(new Set(posts.map(p => p.category).filter(Boolean)));
 
   const handleDelete = async (id: string) => {
     if (!confirm(tc('confirmDelete'))) return;
@@ -107,48 +155,194 @@ export default function BlogDashboardPage() {
         </div>
       )}
 
+      {/* Filters */}
+      <Card className="mb-6 md:mb-8 p-4 md:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* Search */}
+          <div>
+            <Label htmlFor="search">{tc('search')}</Label>
+            <Input
+              id="search"
+              type="text"
+              placeholder="Search posts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <Label htmlFor="filterStatus">{tc('status')}</Label>
+            <select
+              id="filterStatus"
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as any)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              <option value="all">{tc('all')}</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+
+          {/* Featured Filter */}
+          <div>
+            <Label htmlFor="filterFeatured">Featured</Label>
+            <select
+              id="filterFeatured"
+              value={filterFeatured}
+              onChange={(e) => setFilterFeatured(e.target.value as any)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              <option value="all">{tc('all')}</option>
+              <option value="featured">Featured</option>
+              <option value="notFeatured">Not Featured</option>
+            </select>
+          </div>
+
+          {/* Category Filter */}
+          <div>
+            <Label htmlFor="filterCategory">Category</Label>
+            <select
+              id="filterCategory"
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              <option value="all">{tc('all')}</option>
+              {uniqueCategories.map(category => (
+                <option key={category || 'uncategorized'} value={category || ''}>{category}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sort */}
+          <div>
+            <Label htmlFor="sortBy">Sort By</Label>
+            <select
+              id="sortBy"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="views">Most Views</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Active Filters Summary */}
+        {(filterStatus !== 'all' || filterFeatured !== 'all' || filterCategory !== 'all' || searchQuery || sortBy !== 'newest') && (
+          <div className="mt-4 flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-gray-600">Active filters:</span>
+            {filterStatus !== 'all' && (
+              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                Status: {filterStatus}
+              </span>
+            )}
+            {filterFeatured !== 'all' && (
+              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
+                Featured: {filterFeatured === 'featured' ? 'Yes' : 'No'}
+              </span>
+            )}
+            {filterCategory !== 'all' && (
+              <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                Category: {filterCategory}
+              </span>
+            )}
+            {searchQuery && (
+              <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
+                Search: {searchQuery}
+              </span>
+            )}
+            {sortBy !== 'newest' && (
+              <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                Sort: {sortBy === 'oldest' ? 'Oldest First' : 'Most Views'}
+              </span>
+            )}
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setFilterStatus('all');
+                setFilterFeatured('all');
+                setFilterCategory('all');
+                setSortBy('newest');
+              }}
+              className="px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-xs hover:bg-gray-300"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+      </Card>
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <Card className="p-3 md:p-4">
           <div className="text-xs md:text-sm text-gray-600">Total Posts</div>
-          <div className="text-xl md:text-2xl font-bold text-gray-900">{posts.length}</div>
+          <div className="text-xl md:text-2xl font-bold text-gray-900">
+            {filteredPosts.length}
+            {filteredPosts.length !== posts.length && (
+              <span className="text-sm text-gray-500 ml-2">of {posts.length}</span>
+            )}
+          </div>
         </Card>
         <Card className="p-3 md:p-4">
           <div className="text-xs md:text-sm text-gray-600">Published</div>
           <div className="text-xl md:text-2xl font-bold text-green-600">
-            {posts.filter((p) => p.is_published).length}
+            {filteredPosts.filter((p) => p.is_published).length}
           </div>
         </Card>
         <Card className="p-3 md:p-4">
           <div className="text-xs md:text-sm text-gray-600">Featured</div>
           <div className="text-xl md:text-2xl font-bold text-yellow-600">
-            {posts.filter((p) => p.is_featured).length}
+            {filteredPosts.filter((p) => p.is_featured).length}
           </div>
         </Card>
         <Card className="p-3 md:p-4">
           <div className="text-xs md:text-sm text-gray-600">Total Views</div>
           <div className="text-xl md:text-2xl font-bold text-blue-600">
-            {posts.reduce((sum, p) => sum + (p.views || 0), 0)}
+            {filteredPosts.reduce((sum, p) => sum + (p.views || 0), 0)}
           </div>
         </Card>
       </div>
 
       <div className="grid gap-6">
-        {posts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <Card className="p-8 text-center">
             <FontAwesomeIcon icon={faNewspaper} className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No blog posts found</h3>
-            <p className="text-gray-500 mb-4">Create your first post!</p>
-            <Button
-              onClick={() => router.push('/panel/blog/new')}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              <FontAwesomeIcon icon={faPlus} className="mr-2" />
-              New Post
-            </Button>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {posts.length === 0 ? 'No blog posts found' : 'No posts match your filters'}
+            </h3>
+            <p className="text-gray-500 mb-4">
+              {posts.length === 0 ? 'Create your first post!' : 'Try adjusting your filters'}
+            </p>
+            {posts.length === 0 ? (
+              <Button
+                onClick={() => router.push('/panel/blog/new')}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                New Post
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterStatus('all');
+                  setFilterFeatured('all');
+                  setFilterCategory('all');
+                  setSortBy('newest');
+                }}
+                variant="outline"
+              >
+                Clear Filters
+              </Button>
+            )}
           </Card>
         ) : (
-          posts.map((post: any) => (
+          filteredPosts.map((post: any) => (
             <Card key={post.id} className="p-4 md:p-6">
               <div className="flex flex-col md:flex-row gap-4 md:gap-6">
                 {/* Featured Image */}

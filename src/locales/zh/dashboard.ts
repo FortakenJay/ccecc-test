@@ -3,6 +3,7 @@ export default {
   common: {
     loading: '加载中...',
     save: '保存',
+    saving: '保存中...',
     cancel: '取消',
     delete: '删除',
     edit: '编辑',
@@ -266,6 +267,7 @@ export default {
       intermediate: '中级',
       advanced: '高级',
       elementary: '基础',
+      All: '所有级别'
     },
     new: {
       title: '创建新课程',
@@ -423,7 +425,6 @@ export default {
       writtenFee: '笔试费用 (USD)',
       oralFee: '口试费用 (USD)',
       feePlaceholder: '输入费用金额',
-      description: '描述',
       descriptionEn: '描述 (英文)',
       descriptionEs: '描述 (西班牙文)',
       descriptionZh: '描述 (中文)',

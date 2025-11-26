@@ -3,6 +3,7 @@ export default {
   common: {
     loading: 'Cargando...',
     save: 'Guardar',
+    saving: 'Guardando...',
     cancel: 'Cancelar',
     delete: 'Eliminar',
     edit: 'Editar',
@@ -266,6 +267,7 @@ export default {
       intermediate: 'Intermedio',
       advanced: 'Avanzado',
       elementary: 'Elemental',
+      All: 'Todos los niveles'
     },
     new: {
       title: 'Crear Nueva Clase',
@@ -423,7 +425,6 @@ export default {
       writtenFee: 'Tarifa Examen Escrito (USD)',
       oralFee: 'Tarifa Examen Oral (USD)',
       feePlaceholder: 'Ingrese monto de tarifa',
-      description: 'Descripción',
       descriptionEn: 'Descripción (Inglés)',
       descriptionEs: 'Descripción (Español)',
       descriptionZh: 'Descripción (Chino)',

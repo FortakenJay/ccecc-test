@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textArea';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUsers, faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons';
+import ImageUpload from '@/components/ImageUpload';
 
 export default function EditTeamMemberPage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function EditTeamMemberPage() {
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
   // Team member data
-  const [photoUrl, setPhotoUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [displayOrder, setDisplayOrder] = useState('');
   const [isActive, setIsActive] = useState(true);
 
@@ -55,17 +56,15 @@ export default function EditTeamMemberPage() {
       
       const { data } = await res.json();
       
-      setPhotoUrl(data.photo_url || '');
+      setImageUrl(data.image_url || '');
       setDisplayOrder(data.display_order?.toString() || '');
       setIsActive(data.is_active ?? true);
       
-      // Load translations
-      const transRes = await fetch(`/api/equipo/${memberId}/translations`);
-      if (transRes.ok) {
-        const { data: translations } = await transRes.json();
-        const en = translations.find((t: any) => t.language === 'en');
-        const es = translations.find((t: any) => t.language === 'es');
-        const zh = translations.find((t: any) => t.language === 'zh');
+      // Load translations from main response
+      if (data.translations && Array.isArray(data.translations)) {
+        const en = data.translations.find((t: any) => t.locale === 'en');
+        const es = data.translations.find((t: any) => t.locale === 'es');
+        const zh = data.translations.find((t: any) => t.locale === 'zh');
         
         if (en) {
           setNameEn(en.name || '');
@@ -105,7 +104,7 @@ export default function EditTeamMemberPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          photo_url: photoUrl || null,
+          image_url: imageUrl || null,
           display_order: displayOrder ? parseInt(displayOrder) : null,
           is_active: isActive,
           translations: {
@@ -177,15 +176,16 @@ export default function EditTeamMemberPage() {
               <CardTitle>{t('basicInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <Label htmlFor="photoUrl">{t('imageUrl')}</Label>
-                  <Input
-                    id="photoUrl"
-                    type="url"
-                    value={photoUrl}
-                    onChange={(e) => setPhotoUrl(e.target.value)}
-                    placeholder="https://example.com/photo.jpg"
+                  <Label>Team Member Photo</Label>
+                  <ImageUpload
+                    value={imageUrl}
+                    onChange={setImageUrl}
+                    bucket="team-photos"
+                    onError={(error) => error && showToast(error, 'error')}
+                    previewHeight="h-32"
+                    label="Photo"
                   />
                 </div>
 
@@ -234,12 +234,19 @@ export default function EditTeamMemberPage() {
               </div>
               <div>
                 <Label htmlFor="roleEn">{t('position')}</Label>
-                <Input
+                <select
                   id="roleEn"
                   value={roleEn}
                   onChange={(e) => setRoleEn(e.target.value)}
-                  placeholder={t('rolePlaceholderEn')}
-                />
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                >
+                  <option value="">Select position</option>
+                  <option value="Board of Directors">Board of Directors</option>
+                  <option value="Leadership">Leadership</option>
+                  <option value="Local Teachers">Local Teachers</option>
+                  <option value="Volunteer Teachers">Volunteer Teachers</option>
+                  <option value="Partners">Partners</option>
+                </select>
               </div>
               <div>
                 <Label htmlFor="bioEn">{t('bio')}</Label>
@@ -272,12 +279,19 @@ export default function EditTeamMemberPage() {
               </div>
               <div>
                 <Label htmlFor="roleEs">{t('position')}</Label>
-                <Input
+                <select
                   id="roleEs"
                   value={roleEs}
                   onChange={(e) => setRoleEs(e.target.value)}
-                  placeholder={t('rolePlaceholderEs')}
-                />
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                >
+                  <option value="">Seleccionar posición</option>
+                  <option value="Junta Directiva">Junta Directiva</option>
+                  <option value="Liderazgo">Liderazgo</option>
+                  <option value="Profesores Locales">Profesores Locales</option>
+                  <option value="Profesores Voluntarios">Profesores Voluntarios</option>
+                  <option value="Socios">Socios</option>
+                </select>
               </div>
               <div>
                 <Label htmlFor="bioEs">{t('bio')}</Label>
@@ -310,12 +324,19 @@ export default function EditTeamMemberPage() {
               </div>
               <div>
                 <Label htmlFor="roleZh">{t('position')}</Label>
-                <Input
+                <select
                   id="roleZh"
                   value={roleZh}
                   onChange={(e) => setRoleZh(e.target.value)}
-                  placeholder={t('rolePlaceholderZh')}
-                />
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                >
+                  <option value="">选择职位</option>
+                  <option value="董事会">董事会</option>
+                  <option value="领导层">领导层</option>
+                  <option value="本地教师">本地教师</option>
+                  <option value="志愿教师">志愿教师</option>
+                  <option value="合作伙伴">合作伙伴</option>
+                </select>
               </div>
               <div>
                 <Label htmlFor="bioZh">{t('bio')}</Label>

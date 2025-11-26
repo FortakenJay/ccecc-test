@@ -64,11 +64,13 @@ const es = {
         newsletter: 'Newsletter',
         newsletterDesc: 'Recibe noticias y eventos culturales',
         emailPlaceholder: 'Tu email',
-        copyright: '© 2025 Centro Cultural Chino Costarricense. Todos los derechos reservados. Hecho con ❤️ por Saken Et Al.'
+        copyright: '© 2025 Centro Cultural Chino Costarricense. Todos los derechos reservados. Hecho' +
+                ' con ❤️ por Saken Et Al.'
     },
     dashboard: {
         common: {
             loading: 'Cargando...',
+            saving: 'Saving...',
             save: 'Guardar',
             cancel: 'Cancelar',
             delete: 'Eliminar',
@@ -92,6 +94,12 @@ const es = {
             next: 'Siguiente',
             submit: 'Enviar',
             close: 'Cerrar',
+            requiredFields: 'Por favor complete todos los campos requeridos',
+            success: 'Operación completada exitosamente',
+            error: 'Ocurrió un error',
+            deleteConfirm: '¿Está seguro de que desea eliminar este elemento?',
+            creating: 'Creando...',
+            updating: 'Actualizando...'
         },
         panel: {
             title: 'Panel de Administración',
@@ -102,7 +110,7 @@ const es = {
             loading: 'Cargando panel...',
             loadingStats: 'Cargando estadísticas...',
             error: 'Error',
-            
+
             // Tarjetas de Estadísticas
             stats: {
                 totalUsers: 'Total de Usuarios',
@@ -112,9 +120,9 @@ const es = {
                 events: 'Eventos',
                 upcomingPast: 'Próximos y pasados',
                 pendingInquiries: 'Consultas Pendientes',
-                total: 'total',
+                total: 'total'
             },
-            
+
             // Estadísticas Secundarias
             userRoles: 'Roles de Usuario',
             contentOverview: 'Resumen de Contenido',
@@ -123,7 +131,7 @@ const es = {
             hskSessions: 'Sesiones HSK',
             totalItems: 'Artículos Totales',
             contacted: 'Contactado',
-            
+
             // Registro de Auditoría
             auditLog: 'Registro de Auditoría',
             officerActionsOnly: '(Solo acciones de oficiales)',
@@ -133,7 +141,7 @@ const es = {
             by: 'por',
             on: 'en',
             unknownUser: 'Usuario desconocido',
-            
+
             // Acciones Rápidas
             quickActions: 'Acciones Rápidas',
             manageUsers: 'Gestionar Usuarios',
@@ -143,7 +151,7 @@ const es = {
             manageEvents: 'Gestionar Eventos',
             manageEventsDesc: 'Crear y actualizar eventos',
             viewInquiries: 'Ver Consultas',
-            viewInquiriesDesc: 'Responder a consultas de clientes',
+            viewInquiriesDesc: 'Responder a consultas de clientes'
         },
         users: {
             title: 'Gestión de Usuarios',
@@ -164,7 +172,7 @@ const es = {
             deleteError: 'Error al eliminar usuario',
             owner: 'Propietario',
             admin: 'Administrador',
-            officer: 'Oficial',
+            officer: 'Oficial'
         },
         invitations: {
             title: 'Invitar Nuevo Usuario',
@@ -183,7 +191,7 @@ const es = {
             roleRequired: 'El rol es obligatorio',
             invitationSent: 'Invitación enviada exitosamente',
             invitationError: 'Error al enviar la invitación',
-            revokeConfirm: '¿Está seguro de que desea revocar esta invitación?',
+            revokeConfirm: '¿Está seguro de que desea revocar esta invitación?'
         },
         events: {
             title: 'Eventos',
@@ -207,7 +215,7 @@ const es = {
             totalAttendees: 'Total de Asistentes',
             attendees: 'asistentes',
             noDescription: 'No hay descripción disponible',
-            getStarted: 'Comience creando su primer evento',
+            getStarted: 'Comience creando su primer evento'
         },
         classes: {
             title: 'Clases',
@@ -233,7 +241,7 @@ const es = {
             deleteConfirm: '¿Está seguro de que desea eliminar esta clase?',
             getStarted: 'Comience creando su primera clase',
             noDescription: 'No hay descripción disponible',
-            perMonth: '/ mes',
+            perMonth: '/ mes'
         },
         team: {
             title: 'Miembros del Equipo',
@@ -277,7 +285,7 @@ const es = {
             updateError: 'Error al actualizar miembro del equipo',
             updateSuccess: '¡Miembro del equipo actualizado con éxito!',
             createSuccess: '¡Miembro del equipo creado con éxito!',
-            createError: 'Error al crear miembro del equipo',
+            createError: 'Error al crear miembro del equipo'
         },
         consultations: {
             title: 'Consultas de Alquiler de Espacio',
@@ -308,7 +316,7 @@ const es = {
             consultations: 'consultas',
             markAsRead: 'Marcar como Leído',
             markAsUnread: 'Marcar como No Leído',
-            deleteConfirm: '¿Está seguro de que desea eliminar esta consulta?',
+            deleteConfirm: '¿Está seguro de que desea eliminar esta consulta?'
         },
         hsk: {
             title: 'Gestión de Examen HSK',
@@ -339,7 +347,30 @@ const es = {
                 max: 'Máx',
                 students: 'estudiantes',
                 noSessions: 'No se encontraron sesiones de examen. Crea una para comenzar.',
-                deleteConfirm: '¿Está seguro de que desea eliminar esta sesión?',
+                deleteConfirm: '¿Está seguro de que desea eliminar esta sesión?'
+            },
+            pricing: {
+                title: 'Gestión de Precios HSK',
+                description: 'Gestionar tarifas estándar de exámenes HSK',
+                createPricing: 'Crear Precio',
+                editPricing: 'Editar Precio',
+                updatePricing: 'Actualizar Precio',
+                newPricing: 'Nuevo Precio',
+                pricingList: 'Lista de Precios',
+                level: 'Nivel HSK',
+                levelPlaceholder: 'ej., HSK 1, HSK 2',
+                levelNumber: 'Número de Nivel',
+                writtenFee: 'Tarifa Examen Escrito (USD)',
+                oralFee: 'Tarifa Examen Oral (USD)',
+                feePlaceholder: 'Ingrese monto de tarifa',
+                descriptionEn: 'Descripción (Inglés)',
+                descriptionEs: 'Descripción (Español)',
+                descriptionZh: 'Descripción (Chino)',
+                descriptionPlaceholder: 'Descripción opcional',
+                displayOrder: 'Orden de Visualización',
+                activeLabel: 'Precio Activo',
+                total: 'Total',
+                noPricing: 'No se encontraron precios'
             },
             registrations: {
                 title: 'Registros de Estudiantes',
@@ -363,8 +394,8 @@ const es = {
                 completed: 'Completado',
                 all: 'Todos',
                 pending: 'Pendiente',
-                actions: 'Acciones',
-            },
+                actions: 'Acciones'
+            }
         },
         auditLogs: {
             title: 'Registros de Auditoría',
@@ -388,11 +419,12 @@ const es = {
             noLogs: 'No se encontraron registros de auditoría',
             noOfficerActivity: 'No se encontró actividad de oficiales',
             no: 'No',
-            actionsFound: 'acciones encontradas',
+            actionsFound: 'acciones encontradas'
         },
         nav: {
             dashboard: 'Panel de Control',
             classes: 'Clases',
+            hskprice: 'Tarifas HSK',
             events: 'Eventos',
             hskExam: 'Examen HSK',
             hskRegistrations: 'Registros HSK',
@@ -401,8 +433,8 @@ const es = {
             users: 'Usuarios',
             auditLogs: 'Registros',
             adminPanel: 'Panel de Administración',
-            logout: 'Cerrar Sesión',
-        },
+            logout: 'Cerrar Sesión'
+        }
     }
 };
 

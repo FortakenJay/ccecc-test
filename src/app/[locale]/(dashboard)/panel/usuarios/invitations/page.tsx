@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRole } from '@/lib/hooks/useRole';
 import { Card } from '@/components/ui/Card';
@@ -21,6 +20,11 @@ import {
   faTrash,
   faClock
 } from '@fortawesome/free-solid-svg-icons';
+import en from '@/locales/en/dashboard';
+import es from '@/locales/es/dashboard';
+import zh from '@/locales/zh/dashboard';
+
+const translations = { en, es, zh };
 
 interface Invitation {
   id: string;
@@ -35,8 +39,10 @@ interface Invitation {
 
 export default function InvitationsPage() {
   const router = useRouter();
-  const t = useTranslations('dashboard.invitations');
-  const tc = useTranslations('dashboard.common');
+  const params = useParams();
+  const locale = (params.locale as string) || 'en';
+  const t = translations[locale as keyof typeof translations].invitations;
+  const tc = translations[locale as keyof typeof translations].common;
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, loading: roleLoading } = useRole();
   const { toast, showToast, hideToast } = useToast();
@@ -75,19 +81,19 @@ export default function InvitationsPage() {
     e.preventDefault();
 
     if (!email.trim()) {
-      showToast(t('enterEmail'), 'error');
+      showToast(t.enterEmail, 'error');
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      showToast(t('validEmail'), 'error');
+      showToast(t.validEmail, 'error');
       return;
     }
 
     // Check permission to invite this role
     if (role === 'admin' && !isOwner) {
-      showToast(t('onlyOwnersInviteAdmins'), 'error');
+      showToast(t.onlyOwnersInviteAdmins, 'error');
       return;
     }
 
@@ -102,16 +108,16 @@ export default function InvitationsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        showToast(data.error || t('sendError'), 'error');
+        showToast(data.error || t.sendError, 'error');
         return;
       }
 
-      showToast(t('otpEmailSent'), 'success');
+      showToast(t.otpEmailSent, 'success');
       setEmail('');
       setRole('officer');
       fetchInvitations();
     } catch (err: any) {
-      showToast(t('genericError'), 'error');
+      showToast(t.genericError, 'error');
     } finally {
       setSending(false);
     }
@@ -120,11 +126,11 @@ export default function InvitationsPage() {
   const copyInviteLink = (token: string) => {
     const link = `${window.location.origin}/login?invitation=${token}`;
     navigator.clipboard.writeText(link);
-    showToast(t('inviteLinkCopied'), 'success');
+    showToast(t.inviteLinkCopied, 'success');
   };
 
   const handleDeleteInvitation = async (id: string) => {
-    if (!confirm(t('deleteConfirm'))) return;
+    if (!confirm(t.deleteConfirm)) return;
 
     try {
       const res = await fetch('/api/invitaciones', {
@@ -133,9 +139,9 @@ export default function InvitationsPage() {
         body: JSON.stringify({ id }),
       });
 
-      if (!res.ok) throw new Error(t('deleteError'));
+      if (!res.ok) throw new Error(t.deleteError);
 
-      showToast(t('invitationDeleted'), 'success');
+      showToast(t.invitationDeleted, 'success');
       fetchInvitations();
     } catch (err: any) {
       showToast(err.message, 'error');
@@ -159,20 +165,20 @@ export default function InvitationsPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
           <FontAwesomeIcon icon={faUserPlus} className="w-8 h-8 text-red-600" />
-          {t('title')}
+          {t.title}
         </h1>
-        <p className="text-gray-600 mt-2">{t('subtitle')}</p>
+        <p className="text-gray-600 mt-2">{t.subtitle}</p>
       </div>
 
       {/* Invite Form */}
       <Card className="mb-8 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('sendInvitation')}</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t.sendInvitation}</h2>
         <form onSubmit={handleSendInvitation} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="email">
                 <FontAwesomeIcon icon={faEnvelope} className="mr-2 w-4 h-4" />
-                {t('email')} *
+                {t.email} *
               </Label>
               <Input
                 id="email"
@@ -187,7 +193,7 @@ export default function InvitationsPage() {
             <div className="space-y-2">
               <Label htmlFor="role">
                 <FontAwesomeIcon icon={faShield} className="mr-2 w-4 h-4" />
-                {t('role')} *
+                {t.role} *
               </Label>
               <select
                 id="role"
@@ -196,8 +202,8 @@ export default function InvitationsPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
                 required
               >
-                <option value="officer">{t('roleOfficer')}</option>
-                {isOwner && <option value="admin">{t('roleAdmin')}</option>}
+                <option value="officer">{t.roleOfficer}</option>
+                {isOwner && <option value="admin">{t.roleAdmin}</option>}
               </select>
             </div>
           </div>
@@ -206,12 +212,12 @@ export default function InvitationsPage() {
             <div className="flex items-start gap-3">
               <FontAwesomeIcon icon={faExclamationCircle} className="w-5 h-5 text-blue-600 mt-0.5" />
               <div className="text-sm text-blue-800">
-                <p className="font-semibold mb-1">{t('otpInstructions')}</p>
+                <p className="font-semibold mb-1">{t.otpInstructions}</p>
                 <ol className="list-decimal list-inside space-y-1">
-                  <li>{t('otpStep1')}</li>
-                  <li>{t('otpStep2')}</li>
-                  <li>{t('otpStep3')}</li>
-                  <li>{t('otpStep4')}</li>
+                  <li>{t.otpStep1}</li>
+                  <li>{t.otpStep2}</li>
+                  <li>{t.otpStep3}</li>
+                  <li>{t.otpStep4}</li>
                 </ol>
               </div>
             </div>
@@ -225,12 +231,12 @@ export default function InvitationsPage() {
             {sending ? (
               <>
                 <FontAwesomeIcon icon={faClock} className="mr-2 animate-spin" />
-                {t('sending')}
+                {t.sending}
               </>
             ) : (
               <>
                 <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
-                {t('sendInvitation')}
+                {t.sendInvitation}
               </>
             )}
           </Button>
@@ -240,15 +246,15 @@ export default function InvitationsPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card className="p-4">
-          <div className="text-sm text-gray-600">{t('totalInvitations')}</div>
+          <div className="text-sm text-gray-600">{t.totalInvitations}</div>
           <div className="text-2xl font-bold text-gray-900">{invitations.length}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">{t('pending')}</div>
+          <div className="text-sm text-gray-600">{t.pending}</div>
           <div className="text-2xl font-bold text-yellow-600">{pendingInvitations.length}</div>
         </Card>
         <Card className="p-4">
-          <div className="text-sm text-gray-600">{t('accepted')}</div>
+          <div className="text-sm text-gray-600">{t.accepted}</div>
           <div className="text-2xl font-bold text-green-600">{acceptedInvitations.length}</div>
         </Card>
       </div>
@@ -256,26 +262,26 @@ export default function InvitationsPage() {
       {/* Pending Invitations */}
       <Card className="mb-6">
         <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">{t('pendingInvitations')}</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t.pendingInvitations}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('email')}
+                  {t.email}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('role')}
+                  {t.role}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('sent')}
+                  {t.sent}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('expires')}
+                  {t.expires}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('actions')}
+                  {t.actions}
                 </th>
               </tr>
             </thead>
@@ -328,7 +334,7 @@ export default function InvitationsPage() {
               ) : (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                    {t('noPending')}
+                    {t.noPending}
                   </td>
                 </tr>
               )}
@@ -340,20 +346,20 @@ export default function InvitationsPage() {
       {/* Accepted Invitations */}
       <Card>
         <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">{t('acceptedInvitations')}</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t.acceptedInvitations}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('email')}
+                  {t.email}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('role')}
+                  {t.role}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('accepted')}
+                  {t.accepted}
                 </th>
               </tr>
             </thead>
@@ -386,7 +392,7 @@ export default function InvitationsPage() {
               ) : (
                 <tr>
                   <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
-                    {t('noAccepted')}
+                    {t.noAccepted}
                   </td>
                 </tr>
               )}

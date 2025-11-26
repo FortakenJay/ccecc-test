@@ -72,27 +72,13 @@ export async function PATCH(
     await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = await request.json();
-    const { name, role, bio, photo_url, translations } = body;
+    const { image_url, display_order, is_active, translations } = body;
 
-    // Validate field lengths if provided
-    if (name && !isValidTextLength(name, MAX_NAME_LENGTH)) {
-      return errorResponse(`Name must not exceed ${MAX_NAME_LENGTH} characters`, 400);
-    }
-
-    if (role && !isValidTextLength(role, 50)) {
-      return errorResponse('Role must not exceed 50 characters', 400);
-    }
-
-    if (bio && !isValidTextLength(bio, MAX_BIO_LENGTH)) {
-      return errorResponse(`Bio must not exceed ${MAX_BIO_LENGTH} characters`, 400);
-    }
-
-    // Build update object with XSS sanitization
+    // Build update object with XSS sanitization for team_members table fields only
     const updateData: Record<string, any> = {};
-    if (name !== undefined) updateData.name = sanitizeTextInput(name);
-    if (role !== undefined) updateData.role = sanitizeTextInput(role);
-    if (bio !== undefined) updateData.bio = sanitizeTextInput(bio);
-    if (photo_url !== undefined) updateData.photo_url = photo_url?.trim() || null;
+    if (image_url !== undefined) updateData.image_url = image_url?.trim() || null;
+    if (display_order !== undefined) updateData.display_order = display_order;
+    if (is_active !== undefined) updateData.is_active = is_active;
 
     const { data: updatedMember, error: memberError } = await supabase
       .from('team_members')

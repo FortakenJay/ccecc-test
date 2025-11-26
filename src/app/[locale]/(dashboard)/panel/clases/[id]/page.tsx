@@ -22,6 +22,7 @@ export default function EditClassPage() {
   // Class data
   const [type, setType] = useState('');
   const [level, setLevel] = useState('');
+  const [slug, setSlug] = useState('');
   const [priceColones, setPriceColones] = useState('');
   const [isActive, setIsActive] = useState(true);
 
@@ -52,16 +53,15 @@ export default function EditClassPage() {
       
       setType(data.type || '');
       setLevel(data.level || '');
+      setSlug(data.slug || '');
       setPriceColones(data.price_colones?.toString() || '');
       setIsActive(data.is_active ?? true);
       
-      // Load translations
-      const transRes = await fetch(`/api/clases/${classId}/translations`);
-      if (transRes.ok) {
-        const { data: translations } = await transRes.json();
-        const en = translations.find((t: any) => t.language === 'en');
-        const es = translations.find((t: any) => t.language === 'es');
-        const zh = translations.find((t: any) => t.language === 'zh');
+      // Load translations from the class data
+      if (data.translations && Array.isArray(data.translations)) {
+        const en = data.translations.find((t: any) => t.locale === 'en');
+        const es = data.translations.find((t: any) => t.locale === 'es');
+        const zh = data.translations.find((t: any) => t.locale === 'zh');
         
         if (en) {
           setTitleEn(en.title || '');
@@ -105,6 +105,7 @@ export default function EditClassPage() {
         body: JSON.stringify({
           type,
           level: level || null,
+          slug: slug || null,
           price_colones: priceColones ? parseFloat(priceColones) : null,
           is_active: isActive,
           translations: {
@@ -176,7 +177,7 @@ export default function EditClassPage() {
               <CardTitle>Basic Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="type">Class Type *</Label>
                   <select
@@ -187,10 +188,10 @@ export default function EditClassPage() {
                     required
                   >
                     <option value="">Select type</option>
-                    <option value="group">Group Class</option>
-                    <option value="private">Private Class</option>
-                    <option value="online">Online Class</option>
-                    <option value="intensive">Intensive Course</option>
+                    <option value="cultural">Cultural</option>
+                    <option value="taller">Taller</option>
+                    <option value="hsk">HSK</option>
+                    <option value="language">Language</option>
                   </select>
                 </div>
 
@@ -203,11 +204,35 @@ export default function EditClassPage() {
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
                   >
                     <option value="">Select level</option>
-                    <option value="beginner">Beginner</option>
-                    <option value="elementary">Elementary</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
+                    <optgroup label="General Levels">
+                      <option value="beginner">Beginner</option>
+                      <option value="elementary">Elementary</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                      <option value="All">All Levels</option>
+                    </optgroup>
+                    <optgroup label="HSK Levels">
+                      <option value="HSK 1">HSK 1</option>
+                      <option value="HSK 2">HSK 2</option>
+                      <option value="HSK 3">HSK 3</option>
+                      <option value="HSK 4">HSK 4</option>
+                      <option value="HSK 5">HSK 5</option>
+                      <option value="HSK 6">HSK 6</option>
+                    </optgroup>
                   </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="slug">Slug (URL)</Label>
+                  <Input
+                    id="slug"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                    placeholder="e.g., beginner-chinese-class"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Leave empty to auto-generate from title</p>
                 </div>
 
                 <div>

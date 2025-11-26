@@ -65,12 +65,14 @@ const en = {
         newsletter: 'Newsletter',
         newsletterDesc: 'Receive news and cultural events',
         emailPlaceholder: 'Your email',
-        copyright: '© 2025 Chinese Cultural Center of Costa Rica. All rights reserved. Made with ❤️ by Saken Et Al.'
+        copyright: '© 2025 Chinese Cultural Center of Costa Rica. All rights reserved. Made with ❤️ ' +
+                'by Saken Et Al.'
     },
     dashboard: {
         // Common
         common: {
             loading: 'Loading...',
+            saving: 'Saving...',
             save: 'Save',
             cancel: 'Cancel',
             delete: 'Delete',
@@ -94,6 +96,12 @@ const en = {
             next: 'Next',
             submit: 'Submit',
             close: 'Close',
+            requiredFields: 'Please fill in all required fields',
+            success: 'Operation completed successfully',
+            error: 'An error occurred',
+            deleteConfirm: 'Are you sure you want to delete this item?',
+            creating: 'Creating...',
+            updating: 'Updating...'
         },
         panel: {
             title: 'Admin Dashboard',
@@ -104,7 +112,7 @@ const en = {
             loading: 'Loading dashboard...',
             loadingStats: 'Loading statistics...',
             error: 'Error',
-            
+
             // Stats Cards
             stats: {
                 totalUsers: 'Total Users',
@@ -114,9 +122,9 @@ const en = {
                 events: 'Events',
                 upcomingPast: 'Upcoming & past',
                 pendingInquiries: 'Pending Inquiries',
-                total: 'total',
+                total: 'total'
             },
-            
+
             // Secondary Stats
             userRoles: 'User Roles',
             contentOverview: 'Content Overview',
@@ -125,7 +133,7 @@ const en = {
             hskSessions: 'HSK Sessions',
             totalItems: 'Total Items',
             contacted: 'Contacted',
-            
+
             // Audit Log
             auditLog: 'Audit Log',
             officerActionsOnly: '(Officer actions only)',
@@ -135,7 +143,7 @@ const en = {
             by: 'by',
             on: 'on',
             unknownUser: 'Unknown user',
-            
+
             // Quick Actions
             quickActions: 'Quick Actions',
             manageUsers: 'Manage Users',
@@ -145,7 +153,7 @@ const en = {
             manageEvents: 'Manage Events',
             manageEventsDesc: 'Create and update events',
             viewInquiries: 'View Inquiries',
-            viewInquiriesDesc: 'Respond to customer inquiries',
+            viewInquiriesDesc: 'Respond to customer inquiries'
         },
         users: {
             title: 'User Management',
@@ -166,7 +174,7 @@ const en = {
             deleteError: 'Failed to delete user',
             owner: 'Owner',
             admin: 'Admin',
-            officer: 'Officer',
+            officer: 'Officer'
         },
         invitations: {
             title: 'Invite New User',
@@ -185,7 +193,7 @@ const en = {
             roleRequired: 'Role is required',
             invitationSent: 'Invitation sent successfully',
             invitationError: 'Failed to send invitation',
-            revokeConfirm: 'Are you sure you want to revoke this invitation?',
+            revokeConfirm: 'Are you sure you want to revoke this invitation?'
         },
         events: {
             title: 'Events',
@@ -209,7 +217,7 @@ const en = {
             totalAttendees: 'Total Attendees',
             attendees: 'attendees',
             noDescription: 'No description available',
-            getStarted: 'Get started by creating your first event',
+            getStarted: 'Get started by creating your first event'
         },
         classes: {
             title: 'Classes',
@@ -235,7 +243,7 @@ const en = {
             deleteConfirm: 'Are you sure you want to delete this class?',
             getStarted: 'Get started by creating your first class',
             noDescription: 'No description available',
-            perMonth: '/ month',
+            perMonth: '/ month'
         },
         team: {
             title: 'Team Members',
@@ -279,7 +287,7 @@ const en = {
             updateError: 'Failed to update team member',
             updateSuccess: 'Team member updated successfully!',
             createSuccess: 'Team member created successfully!',
-            createError: 'Failed to create team member',
+            createError: 'Failed to create team member'
         },
         consultations: {
             title: 'Space Rental Inquiries',
@@ -310,7 +318,7 @@ const en = {
             consultations: 'inquiries',
             markAsRead: 'Mark as Read',
             markAsUnread: 'Mark as Unread',
-            deleteConfirm: 'Are you sure you want to delete this consultation?',
+            deleteConfirm: 'Are you sure you want to delete this consultation?'
         },
         hsk: {
             title: 'HSK Exam Management',
@@ -341,7 +349,30 @@ const en = {
                 max: 'Max',
                 students: 'students',
                 noSessions: 'No exam sessions found. Create one to get started.',
-                deleteConfirm: 'Are you sure you want to delete this session?',
+                deleteConfirm: 'Are you sure you want to delete this session?'
+            },
+            pricing: {
+                title: 'HSK Pricing Management',
+                description: 'Manage standard HSK exam pricing',
+                createPricing: 'Create Pricing',
+                editPricing: 'Edit Pricing',
+                updatePricing: 'Update Pricing',
+                newPricing: 'New Pricing',
+                pricingList: 'Pricing List',
+                level: 'HSK Level',
+                levelPlaceholder: 'e.g., HSK 1, HSK 2',
+                levelNumber: 'Level Number',
+                writtenFee: 'Written Exam Fee (USD)',
+                oralFee: 'Oral Exam Fee (USD)',
+                feePlaceholder: 'Enter fee amount',
+                descriptionEn: 'Description (English)',
+                descriptionEs: 'Description (Spanish)',
+                descriptionZh: 'Description (Chinese)',
+                descriptionPlaceholder: 'Optional description',
+                displayOrder: 'Display Order',
+                activeLabel: 'Active Pricing',
+                total: 'Total',
+                noPricing: 'No pricing found'
             },
             registrations: {
                 title: 'Student Registrations',
@@ -365,8 +396,8 @@ const en = {
                 completed: 'Completed',
                 all: 'All',
                 pending: 'Pending',
-                actions: 'Actions',
-            },
+                actions: 'Actions'
+            }
         },
         auditLogs: {
             title: 'Audit Logs',
@@ -390,21 +421,23 @@ const en = {
             noLogs: 'No audit logs found',
             noOfficerActivity: 'No officer activity found',
             no: 'No',
-            actionsFound: 'actions found',
+            actionsFound: 'actions found'
         },
         nav: {
             dashboard: 'Dashboard',
-            classes: 'Classes',
-            events: 'Events',
-            hskExam: 'HSK Exam',
-            hskRegistrations: 'HSK Registrations',
-            consultations: 'Consultations',
-            team: 'Team',
             users: 'Users',
-            auditLogs: 'Audit Logs',
             adminPanel: 'Admin Panel',
-            logout: 'Sign Out',
-        },
+            events: 'Events',
+            classes: 'Classes',
+            team: 'Team',
+            hskExam: 'HSK Exam',
+            hskprice: 'HSK Pricing',
+            hskRegistrations: 'HSK Registrations',
+            hsk: 'HSK Exams',
+            auditLogs: 'Audit Logs',
+            settings: 'Settings',
+            logout: 'Logout'
+        }
     }
 };
 

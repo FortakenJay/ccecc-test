@@ -20,7 +20,8 @@ import {
   faUndo,
   faRedo,
 } from '@fortawesome/free-solid-svg-icons';
-import { useCallback } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
 interface TiptapEditorProps {
   content: any;
@@ -29,6 +30,10 @@ interface TiptapEditorProps {
 }
 
 export default function TiptapEditor({ content, onChange, placeholder = 'Start writing your blog post...' }: TiptapEditorProps) {
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const previousImagesRef = useRef<Set<string>>(new Set());
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -50,7 +55,39 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
     content,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
-      onChange(editor.getJSON());
+      const json = editor.getJSON();
+      onChange(json);
+      
+      // Check for deleted images
+      const currentImages = new Set<string>();
+      const extractImages = (node: any) => {
+        if (node.type === 'image' && node.attrs?.src) {
+          currentImages.add(node.attrs.src);
+        }
+        if (node.content) {
+          node.content.forEach(extractImages);
+        }
+      };
+      extractImages(json);
+      
+      // Find and delete removed images from storage
+      const deletedImages = Array.from(previousImagesRef.current).filter(
+        img => !currentImages.has(img) && img.includes('blog-images')
+      );
+      
+      deletedImages.forEach(async (imageUrl) => {
+        try {
+          const supabase = createClient();
+          const fileName = imageUrl.split('/').pop();
+          if (fileName) {
+            await supabase.storage.from('blog-images').remove([fileName]);
+          }
+        } catch (error) {
+          console.error('Failed to delete image:', error);
+        }
+      });
+      
+      previousImagesRef.current = currentImages;
     },
     editorProps: {
       attributes: {
@@ -59,12 +96,74 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
     },
   });
 
-  const addImage = useCallback(() => {
-    const url = window.prompt('Enter image URL:');
-    if (url && editor) {
-      editor.chain().focus().setImage({ src: url }).run();
+  // Initialize previousImages when content is loaded
+  useEffect(() => {
+    if (content && previousImagesRef.current.size === 0) {
+      const currentImages = new Set<string>();
+      const extractImages = (node: any) => {
+        if (node.type === 'image' && node.attrs?.src) {
+          currentImages.add(node.attrs.src);
+        }
+        if (node.content) {
+          node.content.forEach(extractImages);
+        }
+      };
+      extractImages(content);
+      previousImagesRef.current = currentImages;
     }
-  }, [editor]);
+  }, [content]);
+
+  const addImage = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editor) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const supabase = createClient();
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('blog-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('blog-images')
+        .getPublicUrl(filePath);
+
+      editor.chain().focus().setImage({ src: publicUrl }).run();
+      
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error: any) {
+      alert(error.message || 'Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const setLink = useCallback(() => {
     const previousUrl = editor?.getAttributes('link').href;
@@ -88,6 +187,15 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
 
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageUpload}
+        className="hidden"
+      />
+      
       {/* Toolbar */}
       <div className="bg-gray-50 border-b border-gray-300 p-2 flex flex-wrap gap-1">
         {/* Text Formatting */}
@@ -188,9 +296,10 @@ export default function TiptapEditor({ content, onChange, placeholder = 'Start w
         {/* Media */}
         <button
           onClick={addImage}
-          className="p-2 rounded hover:bg-gray-200"
+          disabled={uploading}
+          className="p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
           type="button"
-          title="Add Image"
+          title={uploading ? "Uploading..." : "Add Image"}
         >
           <FontAwesomeIcon icon={faImage} className="w-4 h-4" />
         </button>

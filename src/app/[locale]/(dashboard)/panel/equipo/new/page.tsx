@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textArea';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUsers, faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons';
+import ImageUpload from '@/components/ImageUpload';
 
 export default function NewTeamMemberPage() {
   const router = useRouter();
@@ -136,15 +137,16 @@ export default function NewTeamMemberPage() {
                 <p className="text-xs text-gray-500 mt-1">{t('slugHint')}</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <Label htmlFor="imageUrl">{t('imageUrl')}</Label>
-                  <Input
-                    id="imageUrl"
-                    type="url"
+                  <Label>Team Member Photo</Label>
+                  <ImageUpload
                     value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://example.com/photo.jpg"
+                    onChange={setImageUrl}
+                    bucket="team-photos"
+                    onError={(error) => error && showToast(error, 'error')}
+                    previewHeight="h-32"
+                    label="Photo"
                   />
                 </div>
 
@@ -182,12 +184,19 @@ export default function NewTeamMemberPage() {
               </div>
               <div>
                 <Label htmlFor="roleEn">{t('position')}</Label>
-                <Input
+                <select
                   id="roleEn"
                   value={roleEn}
                   onChange={(e) => setRoleEn(e.target.value)}
-                  placeholder={t('rolePlaceholderEn')}
-                />
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                >
+                  <option value="">Select position</option>
+                  <option value="Board of Directors">Board of Directors</option>
+                  <option value="Leadership">Leadership</option>
+                  <option value="Local Teachers">Local Teachers</option>
+                  <option value="Volunteer Teachers">Volunteer Teachers</option>
+                  <option value="Partners">Partners</option>
+                </select>
               </div>
               <div>
                 <Label htmlFor="bioEn">{t('bio')}</Label>
@@ -220,12 +229,19 @@ export default function NewTeamMemberPage() {
               </div>
               <div>
                 <Label htmlFor="roleEs">{t('position')}</Label>
-                <Input
+                <select
                   id="roleEs"
                   value={roleEs}
                   onChange={(e) => setRoleEs(e.target.value)}
-                  placeholder={t('rolePlaceholderEs')}
-                />
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                >
+                  <option value="">Seleccionar posición</option>
+                  <option value="Junta Directiva">Junta Directiva</option>
+                  <option value="Liderazgo">Liderazgo</option>
+                  <option value="Profesores Locales">Profesores Locales</option>
+                  <option value="Profesores Voluntarios">Profesores Voluntarios</option>
+                  <option value="Socios">Socios</option>
+                </select>
               </div>
               <div>
                 <Label htmlFor="bioEs">{t('bio')}</Label>
@@ -258,12 +274,19 @@ export default function NewTeamMemberPage() {
               </div>
               <div>
                 <Label htmlFor="roleZh">{t('position')}</Label>
-                <Input
+                <select
                   id="roleZh"
                   value={roleZh}
                   onChange={(e) => setRoleZh(e.target.value)}
-                  placeholder={t('rolePlaceholderZh')}
-                />
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                >
+                  <option value="">选择职位</option>
+                  <option value="董事会">董事会</option>
+                  <option value="领导层">领导层</option>
+                  <option value="本地教师">本地教师</option>
+                  <option value="志愿教师">志愿教师</option>
+                  <option value="合作伙伴">合作伙伴</option>
+                </select>
               </div>
               <div>
                 <Label htmlFor="bioZh">{t('bio')}</Label>
