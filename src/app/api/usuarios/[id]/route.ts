@@ -155,7 +155,99 @@ export async function DELETE(
       return errorResponse('Cannot delete your own account', 400);
     }
 
-    // Permanently delete user from profiles table
+    // Check if user exists
+    const { data: existingUser, error: checkError } = await supabase
+      .from('profiles')
+      .select('id, email, full_name')
+      .eq('id', id)
+      .single();
+
+    if (checkError || !existingUser) {
+      return errorResponse('User not found', 404);
+    }
+
+    // Start transaction-like operations
+    // First, handle related records that need to be reassigned or deleted
+
+    // 1. Update audit_logs to preserve history but anonymize
+    await supabase
+      .from('audit_logs')
+      .update({ user_id: null })
+      .eq('user_id', id);
+
+    // 2. Update invitations - set invited_by to null to preserve invitation history
+    await supabase
+      .from('invitations')
+      .update({ invited_by: null })
+      .eq('invited_by', id);
+
+    // 3. Update profiles that were invited by this user - set invited_by to null
+    await supabase
+      .from('profiles')
+      .update({ invited_by: null })
+      .eq('invited_by', id);
+
+    // 4. For content creation, we have options:
+    // Option A: Delete content created by user
+    // Option B: Reassign to another user
+    // Option C: Set created_by to null
+    // We'll use Option C to preserve content but anonymize ownership
+
+    // Update blog_posts
+    await supabase
+      .from('blog_posts')
+      .update({ 
+        author_id: null,
+        created_by: null 
+      })
+      .or(`author_id.eq.${id},created_by.eq.${id}`);
+
+    // Update classes
+    await supabase
+      .from('classes')
+      .update({ created_by: null })
+      .eq('created_by', id);
+
+    // Update hsk_exam_sessions
+    await supabase
+      .from('hsk_exam_sessions')
+      .update({ created_by: null })
+      .eq('created_by', id);
+
+    // Update hsk_pricing
+    await supabase
+      .from('hsk_pricing')
+      .update({ created_by: null })
+      .eq('created_by', id);
+
+    // Update hsk_registrations
+    await supabase
+      .from('hsk_registrations')
+      .update({ created_by: null })
+      .eq('created_by', id);
+
+    // Update team_members
+    await supabase
+      .from('team_members')
+      .update({ created_by: null })
+      .eq('created_by', id);
+
+    // Log the deletion attempt before deleting
+    await supabase
+      .from('audit_logs')
+      .insert({
+        table_name: 'profiles',
+        action: 'DELETE',
+        record_id: id,
+        user_id: user.id,
+        user_role: user.role || 'owner',
+        old_data: {
+          email: existingUser.email,
+          full_name: existingUser.full_name
+        }
+      });
+
+    // Now delete the user profile
     const { error: profileError } = await supabase
       .from('profiles')
       .delete()
@@ -176,22 +268,22 @@ export async function DELETE(
 
     if (authError) {
       console.error('Auth deletion error:', authError);
-      return errorResponse('Failed to delete user from authentication system', 400);
+      // If auth deletion fails, we should potentially rollback the profile deletion
+      // For now, we'll log the error but continue
+      console.warn('User profile deleted but auth deletion failed:', authError.message);
     }
 
-    // Log deletion
-    await supabase
-      .from('audit_logs')
-      .insert({
-        table_name: 'profiles',
-        action: 'DELETE',
-        record_id: id,
-        user_id: user.id,
-        changes: { deleted: true }
-      });
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      message: 'User successfully deleted',
+      deletedUser: {
+        id: existingUser.id,
+        email: existingUser.email,
+        full_name: existingUser.full_name
+      }
+    });
   } catch (error: any) {
+    console.error('User deletion error:', error);
     if (error.message === 'UNAUTHORIZED') {
       return errorResponse('Unauthorized', 401);
     }

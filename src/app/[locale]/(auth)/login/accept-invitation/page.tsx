@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Toast, useToast } from '@/components/ui/toast';
+import { useTranslations } from 'next-intl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faLock, 
@@ -22,6 +23,7 @@ import { createClient } from '@/lib/supabase/client';
 export default function AcceptInvitationPage() {
   const router = useRouter();
   const { toast, showToast, hideToast } = useToast();
+  const t = useTranslations('acceptInvitation');
   
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
@@ -46,7 +48,7 @@ export default function AcceptInvitationPage() {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !user || !user.email) {
-        showToast('Please sign in with the OTP link from your email first', 'error');
+        showToast(t('errors.signInFirst'), 'error');
         setTimeout(() => router.push('/login'), 3000);
         return;
       }
@@ -62,7 +64,7 @@ export default function AcceptInvitationPage() {
         .limit(1);
 
       if (invError || !invitations || invitations.length === 0) {
-        showToast('No valid invitation found for your email', 'error');
+        showToast(t('errors.noValidInvitation'), 'error');
         setTimeout(() => router.push('/login'), 3000);
         return;
       }
@@ -73,7 +75,7 @@ export default function AcceptInvitationPage() {
       setInvitation(invite);
       setValid(true);
     } catch (error) {
-      showToast('Failed to verify invitation', 'error');
+      showToast(t('errors.verifyFailed'), 'error');
       setTimeout(() => router.push('/login'), 3000);
     } finally {
       setVerifying(false);
@@ -85,52 +87,52 @@ export default function AcceptInvitationPage() {
 
     // Validation
     if (!fullName.trim()) {
-      showToast('Please enter your full name', 'error');
+      showToast(t('errors.enterFullName'), 'error');
       return;
     }
 
     if (fullName.trim().length < 2) {
-      showToast('Full name must be at least 2 characters', 'error');
+      showToast(t('errors.nameMinLength'), 'error');
       return;
     }
 
     if (password.length < 8) {
-      showToast('Password must be at least 8 characters', 'error');
+      showToast(t('errors.passwordMinLength'), 'error');
       return;
     }
 
     if (!/[A-Z]/.test(password)) {
-      showToast('Password must contain at least one uppercase letter', 'error');
+      showToast(t('errors.passwordUppercase'), 'error');
       return;
     }
 
     if (!/[a-z]/.test(password)) {
-      showToast('Password must contain at least one lowercase letter', 'error');
+      showToast(t('errors.passwordLowercase'), 'error');
       return;
     }
 
     if (!/\d/.test(password)) {
-      showToast('Password must contain at least one number', 'error');
+      showToast(t('errors.passwordNumber'), 'error');
       return;
     }
 
     if (!/[@$!%*?&#^()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      showToast('Password must contain at least one special character', 'error');
+      showToast(t('errors.passwordSpecial'), 'error');
       return;
     }
 
     if (password !== confirmPassword) {
-      showToast('Passwords do not match', 'error');
+      showToast(t('errors.passwordsNotMatch'), 'error');
       return;
     }
 
     if (!invitation) {
-      showToast('No invitation found', 'error');
+      showToast(t('errors.noInvitation'), 'error');
       return;
     }
 
     if (!invitation.role || !['owner', 'admin', 'officer'].includes(invitation.role)) {
-      showToast('Invalid invitation role', 'error');
+      showToast(t('errors.invalidRole'), 'error');
       return;
     }
 
@@ -149,7 +151,7 @@ export default function AcceptInvitationPage() {
       const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
       
       if (userError || !currentUser) {
-        showToast('Authentication session invalid. Please sign in again.', 'error');
+        showToast(t('errors.sessionInvalid'), 'error');
         return;
       }
 
@@ -239,18 +241,18 @@ export default function AcceptInvitationPage() {
         console.log('Profile created successfully via invitation API:', result);
       } catch (apiError) {
         console.error('Invitation API failed:', apiError);
-        showToast(`Failed to create profile: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`, 'error');
+        showToast(`${t('errors.profileFailed')}: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`, 'error');
         return;
       }
 
       const successMessage = passwordSetSuccessfully 
-        ? 'Account setup complete! Redirecting...' 
-        : 'Account setup complete! Password can be set later in your profile. Redirecting...';
+        ? t('success.complete')
+        : t('success.completePasswordLater');
         
       showToast(successMessage, 'success');
       setTimeout(() => router.push('/panel'), 2000);
     } catch (error) {
-      showToast('An error occurred. Please try again.', 'error');
+      showToast(t('errors.genericError'), 'error');
     } finally {
       setLoading(false);
     }
@@ -265,8 +267,8 @@ export default function AcceptInvitationPage() {
               icon={faSpinner} 
               className="w-12 h-12 text-red-600 animate-spin mx-auto mb-4" 
             />
-            <h2 className="text-xl font-semibold text-gray-900">Verifying invitation...</h2>
-            <p className="text-sm text-gray-600 mt-2">Please wait</p>
+            <h2 className="text-xl font-semibold text-gray-900">{t('verifyingTitle')}</h2>
+            <p className="text-sm text-gray-600 mt-2">{t('verifyingSubtitle')}</p>
           </CardContent>
         </Card>
       </div>
@@ -282,9 +284,9 @@ export default function AcceptInvitationPage() {
               icon={faExclamationCircle} 
               className="w-16 h-16 text-red-600 mx-auto mb-4" 
             />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Invalid Invitation</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('invalidTitle')}</h2>
             <p className="text-sm text-gray-600">
-              This invitation link is invalid or has expired.
+              {t('invalidMessage')}
             </p>
           </CardContent>
         </Card>
@@ -300,13 +302,13 @@ export default function AcceptInvitationPage() {
           <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
             <FontAwesomeIcon icon={faCheckCircle} className="w-8 h-8 text-green-600" />
           </div>
-          <CardTitle className="text-2xl">Accept Invitation</CardTitle>
+          <CardTitle className="text-2xl">{t('title')}</CardTitle>
           <p className="text-sm text-gray-600 mt-2">
-            You've been invited to join as <span className="font-semibold text-red-600">{role}</span>
+            {t('invitedAs')} <span className="font-semibold text-red-600">{role}</span>
           </p>
           <div className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-md p-2 mt-3">
             <FontAwesomeIcon icon={faCircleInfo} className="mr-1" />
-            You're authenticated via email link. Setting a password is optional for future convenience.
+            {t('authNotice')}
           </div>
         </CardHeader>
 
@@ -316,7 +318,7 @@ export default function AcceptInvitationPage() {
             <div className="space-y-2">
               <Label htmlFor="email">
                 <FontAwesomeIcon icon={faEnvelope} className="mr-2 w-4 h-4" />
-                Email Address
+                {t('emailLabel')}
               </Label>
               <Input
                 id="email"
@@ -331,12 +333,12 @@ export default function AcceptInvitationPage() {
             <div className="space-y-2">
               <Label htmlFor="fullName">
                 <FontAwesomeIcon icon={faUser} className="mr-2 w-4 h-4" />
-                Full Name *
+                {t('fullNameLabel')}
               </Label>
               <Input
                 id="fullName"
                 type="text"
-                placeholder="Enter your full name"
+                placeholder={t('fullNamePlaceholder')}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
@@ -349,12 +351,12 @@ export default function AcceptInvitationPage() {
             <div className="space-y-2">
               <Label htmlFor="password">
                 <FontAwesomeIcon icon={faLock} className="mr-2 w-4 h-4" />
-                Password *
+                {t('passwordLabel')}
               </Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Create a strong password"
+                placeholder={t('passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -362,22 +364,22 @@ export default function AcceptInvitationPage() {
                 maxLength={72}
               />
               <div className="text-xs text-gray-600 space-y-1 mt-2">
-                <p>Password must contain:</p>
+                <p>{t('passwordRequirements')}</p>
                 <ul className="list-disc list-inside ml-2 space-y-0.5">
                   <li className={password.length >= 8 ? 'text-green-600' : ''}>
-                    At least 8 characters
+                    {t('req8Chars')}
                   </li>
                   <li className={/[A-Z]/.test(password) ? 'text-green-600' : ''}>
-                    One uppercase letter
+                    {t('reqUppercase')}
                   </li>
                   <li className={/[a-z]/.test(password) ? 'text-green-600' : ''}>
-                    One lowercase letter
+                    {t('reqLowercase')}
                   </li>
                   <li className={/\d/.test(password) ? 'text-green-600' : ''}>
-                    One number
+                    {t('reqNumber')}
                   </li>
                   <li className={/[@$!%*?&#^()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? 'text-green-600' : ''}>
-                    One special character
+                    {t('reqSpecial')}
                   </li>
                 </ul>
               </div>
@@ -387,12 +389,12 @@ export default function AcceptInvitationPage() {
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">
                 <FontAwesomeIcon icon={faLock} className="mr-2 w-4 h-4" />
-                Confirm Password *
+                {t('confirmPasswordLabel')}
               </Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="Re-enter your password"
+                placeholder={t('confirmPasswordPlaceholder')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -400,12 +402,12 @@ export default function AcceptInvitationPage() {
                 maxLength={72}
               />
               {confirmPassword && password !== confirmPassword && (
-                <p className="text-xs text-red-600">Passwords do not match</p>
+                <p className="text-xs text-red-600">{t('passwordsDontMatch')}</p>
               )}
               {confirmPassword && password === confirmPassword && (
                 <p className="text-xs text-green-600 flex items-center gap-1">
                   <FontAwesomeIcon icon={faCheckCircle} className="w-3 h-3" />
-                  Passwords match
+                  {t('passwordsMatch')}
                 </p>
               )}
             </div>
@@ -419,12 +421,12 @@ export default function AcceptInvitationPage() {
               {loading ? (
                 <>
                   <FontAwesomeIcon icon={faSpinner} className="mr-2 animate-spin" />
-                  Creating Account...
+                  {t('submittingButton')}
                 </>
               ) : (
                 <>
                   <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
-                  Accept & Create Account
+                  {t('submitButton')}
                 </>
               )}
             </Button>
@@ -432,12 +434,12 @@ export default function AcceptInvitationPage() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Already have an account?{' '}
+              {t('alreadyAccount')}{' '}
               <button
                 onClick={() => router.push('/login')}
                 className="text-red-600 hover:text-red-700 font-medium"
               >
-                Sign in
+                {t('signIn')}
               </button>
             </p>
           </div>

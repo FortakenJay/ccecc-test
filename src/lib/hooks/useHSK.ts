@@ -106,10 +106,6 @@ export function useHSK() {
         return { data: null, error: 'Exam date must be in the future' };
       }
 
-      // Validate available_slots
-      if (sessionData.available_slots && !isValidSlots(sessionData.available_slots)) {
-        return { data: null, error: `Available slots must be between ${MIN_SLOTS} and ${MAX_SLOTS}` };
-      }
 
       const response = await fetch('/api/hsk/sessions', {
         method: 'POST',
@@ -143,10 +139,6 @@ export function useHSK() {
         return { data: null, error: 'Exam date must be in the future' };
       }
 
-      // Validate available_slots if provided
-      if (sessionData.available_slots && !isValidSlots(sessionData.available_slots)) {
-        return { data: null, error: `Available slots must be between ${MIN_SLOTS} and ${MAX_SLOTS}` };
-      }
 
       const response = await fetch(`/api/hsk/sessions/${id}`, {
         method: 'PATCH',

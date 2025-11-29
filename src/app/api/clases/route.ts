@@ -56,22 +56,15 @@ export async function GET(request: NextRequest) {
       const translation = cls.translations?.find((t: any) => t.locale === locale);
       return {
         id: cls.id,
-        slug: cls.slug,
-        type: translation?.type || cls.type, // Use translated type if available, fallback to main type
-        level: translation?.level || cls.level, // Use translated level if available, fallback to main level
-        duration_months: cls.duration_months,
+        type: cls.type,
+        level: translation?.level || cls.level,
         price_colones: cls.price_colones,
-        max_students: cls.max_students,
         is_active: cls.is_active,
-        metadata: cls.metadata,
         created_by: cls.created_by,
         created_at: cls.created_at,
         updated_at: cls.updated_at,
         // Translation fields
         title: translation?.title || null,
-        description: translation?.description || null,
-        schedule: translation?.schedule || null,
-        features: translation?.features || null,
       };
     });
 
@@ -123,12 +116,6 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      if (!isValidTextLength(t.description, MAX_TEXT_LENGTH)) {
-        return NextResponse.json(
-          { error: `Description exceeds max length of ${MAX_TEXT_LENGTH}` },
-          { status: 400 }
-        );
-      }
     }
 
     // Insert class
@@ -149,10 +136,6 @@ export async function POST(request: NextRequest) {
       class_id: newClass.id,
       locale: loc,
       title: sanitizeTextInput(trans.title),
-      description: trans.description ? sanitizeTextInput(trans.description) : null,
-      schedule: trans.schedule ? sanitizeTextInput(trans.schedule) : null,
-      features: trans.features,
-      type: trans.type ? sanitizeTextInput(trans.type) : null,
       level: trans.level ? sanitizeTextInput(trans.level) : null,
     }));
 
@@ -164,6 +147,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: newClass }, { status: 201 });
   } catch (error: any) {
+    console.error('API Error in /api/clases:', error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     return NextResponse.json(
       { error: sanitizeError(error) },
       { status: 500 }

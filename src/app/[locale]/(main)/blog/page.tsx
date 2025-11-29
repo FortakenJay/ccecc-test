@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { useBlog } from '@/lib/hooks/useBlog';
@@ -18,7 +18,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { formatPublishedDate } from '@/lib/utils/blog';
 
-export default function BlogPage() {
+function BlogPageContent() {
   const router = useRouter();
   const locale = useLocale();
   const searchParams = useSearchParams();
@@ -275,5 +275,13 @@ export default function BlogPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function BlogPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BlogPageContent />
+    </Suspense>
   );
 }

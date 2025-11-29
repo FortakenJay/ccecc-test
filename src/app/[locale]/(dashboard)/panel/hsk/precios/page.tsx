@@ -19,22 +19,15 @@ import {
   faAward
 } from '@fortawesome/free-solid-svg-icons';
 
-interface Translation {
-  locale: string;
-  description: string;
-}
-
 interface Pricing {
   id: string;
   level: string;
   level_number?: number;
   written_fee_usd?: number;
   oral_fee_usd?: number;
-  description?: string;
   is_active: boolean;
   display_order: number;
   created_at: string;
-  translations?: Translation[];
 }
 
 export default function HSKPricingPage() {
@@ -59,11 +52,6 @@ export default function HSKPricingPage() {
   const [isActive, setIsActive] = useState(true);
   const [displayOrder, setDisplayOrder] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
-  // Translation states
-  const [descriptionEn, setDescriptionEn] = useState('');
-  const [descriptionEs, setDescriptionEs] = useState('');
-  const [descriptionZh, setDescriptionZh] = useState('');
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
@@ -104,14 +92,6 @@ export default function HSKPricingPage() {
     setIsActive(price.is_active);
     setDisplayOrder(price.display_order?.toString() || '');
     
-    // Set translations
-    const enTrans = price.translations?.find(t => t.locale === 'en');
-    const esTrans = price.translations?.find(t => t.locale === 'es');
-    const zhTrans = price.translations?.find(t => t.locale === 'zh');
-    setDescriptionEn(enTrans?.description || '');
-    setDescriptionEs(esTrans?.description || '');
-    setDescriptionZh(zhTrans?.description || '');
-    
     setShowForm(true);
   };
 
@@ -123,9 +103,6 @@ export default function HSKPricingPage() {
     setOralFeeUsd('');
     setIsActive(true);
     setDisplayOrder('');
-    setDescriptionEn('');
-    setDescriptionEs('');
-    setDescriptionZh('');
     setShowForm(false);
   };
 
@@ -143,12 +120,6 @@ export default function HSKPricingPage() {
       const url = editingId ? `/api/hsk/pricing/${editingId}` : '/api/hsk/pricing';
       const method = editingId ? 'PATCH' : 'POST';
 
-      const translations = [
-        { locale: 'en', description: descriptionEn || null },
-        { locale: 'es', description: descriptionEs || null },
-        { locale: 'zh', description: descriptionZh || null }
-      ].filter(t => t.description);
-
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -158,8 +129,7 @@ export default function HSKPricingPage() {
           written_fee_usd: writtenFeeUsd ? parseFloat(writtenFeeUsd) : null,
           oral_fee_usd: oralFeeUsd ? parseFloat(oralFeeUsd) : null,
           is_active: isActive,
-          display_order: displayOrder ? parseInt(displayOrder) : 0,
-          translations
+          display_order: displayOrder ? parseInt(displayOrder) : 0
         }),
       });
 
@@ -336,36 +306,6 @@ export default function HSKPricingPage() {
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="descriptionEn">{t('descriptionEn')}</Label>
-                <Input
-                  id="descriptionEn"
-                  value={descriptionEn}
-                  onChange={(e) => setDescriptionEn(e.target.value)}
-                  placeholder={t('descriptionPlaceholder')}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="descriptionEs">{t('descriptionEs')}</Label>
-                <Input
-                  id="descriptionEs"
-                  value={descriptionEs}
-                  onChange={(e) => setDescriptionEs(e.target.value)}
-                  placeholder={t('descriptionPlaceholder')}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="descriptionZh">{t('descriptionZh')}</Label>
-                <Input
-                  id="descriptionZh"
-                  value={descriptionZh}
-                  onChange={(e) => setDescriptionZh(e.target.value)}
-                  placeholder={t('descriptionPlaceholder')}
-                />
-              </div>
-
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -436,12 +376,6 @@ export default function HSKPricingPage() {
                       <tr key={price.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3">
                           <div className="text-sm font-medium text-gray-900">{price.level}</div>
-                          {price.translations && price.translations.length > 0 && (() => {
-                            const translation = price.translations.find(t => t.locale === locale);
-                            return translation?.description ? (
-                              <div className="text-xs text-gray-500">{translation.description}</div>
-                            ) : null;
-                          })()}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-700">
                           {writtenFee > 0 ? `$${writtenFee.toFixed(2)}` : '-'}
@@ -455,7 +389,7 @@ export default function HSKPricingPage() {
                         <td className="px-4 py-3">
                           <button
                             onClick={() => toggleActive(price.id, price.is_active)}
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            className={`px-2 py-1 rounded-full text-xs font-medium cursor-pointer ${
                               price.is_active 
                                 ? 'bg-green-100 text-green-800' 
                                 : 'bg-gray-100 text-gray-800'
@@ -469,17 +403,17 @@ export default function HSKPricingPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleDelete(price.id)}
+                              onClick={() => handleEdit(price)}
                               className="text-red-600 hover:text-red-700 cursor-pointer"
                             >
                               <FontAwesomeIcon icon={faEdit} />
                             </Button>
-                            {isOwner && (
+                            {(isOwner || isAdmin || isOfficer) && (
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleDelete(price.id)}
-                                className="text-red-600 hover:text-red-700"
+                                className="text-red-600 hover:text-red-700 cursor-pointer"
                               >
                                 <FontAwesomeIcon icon={faTrash} />
                               </Button>

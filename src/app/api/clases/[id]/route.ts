@@ -73,38 +73,30 @@ export async function PATCH(
     await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     const body = (await request.json()) as {
-      title?: string;
-      description?: string;
-      schedule?: string;
-      features?: string;
+      type?: string;
+      level?: string;
+      price_colones?: number;
+      is_active?: boolean;
       translations?: Record<string, Record<string, any>>;
     };
 
-    const { title, description, schedule, features, translations } = body;
+    const { type, level, price_colones, is_active, translations } = body;
 
     // Validate fields if provided
-    if (title !== undefined && !isValidTextLength(title, MAX_TITLE_LENGTH)) {
-      return errorResponse(`Title must not exceed ${MAX_TITLE_LENGTH} characters`, 400);
+    if (type !== undefined && !isValidTextLength(type, MAX_TEXT_LENGTH)) {
+      return errorResponse(`Type must not exceed ${MAX_TEXT_LENGTH} characters`, 400);
     }
 
-    if (description !== undefined && !isValidTextLength(description, MAX_DESCRIPTION_LENGTH)) {
-      return errorResponse(`Description must not exceed ${MAX_DESCRIPTION_LENGTH} characters`, 400);
-    }
-
-    if (schedule !== undefined && !isValidTextLength(schedule, MAX_TEXT_LENGTH)) {
-      return errorResponse(`Schedule must not exceed ${MAX_TEXT_LENGTH} characters`, 400);
-    }
-
-    if (features !== undefined && !isValidTextLength(features, 1000)) {
-      return errorResponse('Features must not exceed 1000 characters', 400);
+    if (level !== undefined && !isValidTextLength(level, MAX_TEXT_LENGTH)) {
+      return errorResponse(`Level must not exceed ${MAX_TEXT_LENGTH} characters`, 400);
     }
 
     // Update class
     const classData: Record<string, any> = {};
-    if (title !== undefined) classData.title = sanitizeTextInput(title);
-    if (description !== undefined) classData.description = sanitizeTextInput(description);
-    if (schedule !== undefined) classData.schedule = sanitizeTextInput(schedule);
-    if (features !== undefined) classData.features = sanitizeTextInput(features);
+    if (type !== undefined) classData.type = sanitizeTextInput(type);
+    if (level !== undefined) classData.level = sanitizeTextInput(level);
+    if (price_colones !== undefined) classData.price_colones = price_colones;
+    if (is_active !== undefined) classData.is_active = is_active;
 
     const { data: updatedClass, error: classError } = await supabase
       .from('classes')
@@ -132,16 +124,8 @@ export async function PATCH(
           return errorResponse(`Translation title must not exceed ${MAX_TITLE_LENGTH} characters`, 400);
         }
 
-        if (transObj.description && !isValidTextLength(transObj.description, MAX_DESCRIPTION_LENGTH)) {
-          return errorResponse(`Translation description must not exceed ${MAX_DESCRIPTION_LENGTH} characters`, 400);
-        }
-
         const sanitizedTrans: Record<string, any> = {};
         if (transObj.title) sanitizedTrans.title = sanitizeTextInput(transObj.title);
-        if (transObj.description) sanitizedTrans.description = sanitizeTextInput(transObj.description);
-        if (transObj.schedule) sanitizedTrans.schedule = sanitizeTextInput(transObj.schedule);
-        if (transObj.features) sanitizedTrans.features = transObj.features;
-        if (transObj.type) sanitizedTrans.type = sanitizeTextInput(transObj.type);
         if (transObj.level) sanitizedTrans.level = sanitizeTextInput(transObj.level);
 
         const { error: transError } = await supabase

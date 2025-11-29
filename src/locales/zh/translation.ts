@@ -1,4 +1,38 @@
 const zh = {
+    blogPage: {
+        heroTitle: '博客',
+        heroDesc: '探索关于中国文化、语言学习和社区活动的故事、新闻和见解。',
+        filterByCategory: '按类别筛选',
+        allPosts: '所有文章',
+        featuredPosts: '精选文章',
+        recentPosts: '最新文章',
+        clearFilter: '清除筛选',
+        noPosts: '暂无文章',
+        noPostsDesc: '请稍后再来查看新内容！'
+    },
+    BlogPreview: {
+        blog: '博客',
+        lastUpdate: '最新动态',
+        viewAllBlogs: '查看所有文章'
+    },
+    ClassesPage: {
+        title: '课程',
+        subtitle: '探索我们的中文课程和文化工作坊，适合所有年龄和水平的学习者。',
+        noClass: '暂时没有可用的课程',
+        comeBack: '请稍后再来查看新课程！',
+        inquireWhatsApp: '通过 WhatsApp 咨询',
+        per: '每个月',
+        prepHSK: 'HSK考试准备课程',
+        prepHSKdesc: '专为HSK考试设计的强化课程，涵盖听说读写各方面的技能提升。',
+        chineseClass: '中文课程',
+        chineseClassdesc: '与母语教师一起学习普通话，提升您的语言技能，适合各个水平的学习者。',
+        artisticalExchange: '艺术交流',
+        artisticExchangeDesc: '探索中国传统艺术形式，如书法、国画和剪纸，体验丰富的文化遗产。',
+        workshop: '工作坊',
+        workshopDesc: '参与互动工作坊，深入了解中国文化、节日和习俗，适合所有年龄段。',
+        description: '在中哥文化教育中心，我们提供多样化的中文课程和文化工作坊，旨在满足不同年龄和水平学习者的需求。无论您是初学者还是希望提升语言技能的学生，我们都有适合您的课程。加' +
+                '入我们，开启您的中文学习之旅，深入了解中国丰富的文化传统！'
+    },
     nav: {
         home: '首页',
         classes: '课程',
@@ -8,6 +42,147 @@ const zh = {
         contact: '联系方式',
         enroll: '立即报名'
     },
+    about: {
+        pageTitle: '关于我们',
+        structure: '我们的组织结构',
+        Board: '董事会',
+        location1: 'San José, Curridabat, El Prado, Calle A020. 11801 Curridabat, Costa Rica',
+        location2: 'Calle 9, San José Province, San José, Paseo de los Estudiantes, Costa Rica',
+        admin: '行政团队',
+        LocalTeachers: '本地教师',
+        contact: '联系方式',
+        Direction: '方向',
+        schedule: '时间表',
+        phone: '电话号码',
+        monday: '周一',
+        tuesday: '周二',
+        wednesday: '周三',
+        thursday: '周四',
+        friday: '周五',
+        saturday: '周六',
+        sunday: '周日',
+        closed: '关闭',
+        hoursDiffer: '营业时间可能会有所不同，具体取决于活动和课程安排。',
+        contactDESC: '如有任何疑问或需要更多信息，请随时通过以下方式联系我们：',
+        contactINFO: '联系电话/电子邮箱：',
+        comunityTitle: '社区',
+        VolunteerTeachers: '志愿教师',
+        seeBlogs: '查看我们的博客',
+        joinClasses: '加入我们的课程',
+        communityDesc: '成为我们充满活力社区的一部分，探索中文语言和文化的丰富性。无论您是学生、家长还是文化爱好者，我们都欢迎您的加入！',
+        noMember: '当前没有可用的团队成员',
+        PartnerInstitutions: '合作机构',
+        pageSubtitle: '15年来搭建文化桥梁，促进理解，在哥斯达黎加庆祝中国传统的丰富性',
+        ourStory: '我们的故事',
+        storyTitle: '连接两个世界的梦想',
+        storyP1: '中哥文化教育中心（CCECC）成立于2010年5月28日，是一家致力于教授普通话和推广中国传统文化的私立非营利机构。该中心由八位在哥斯达黎加的中国居民创立和资助' +
+                '，在中国大使馆的直接指导下运营，并得到了来自中国和哥斯达黎加的杰出学者和专家的支持，包括中国人民大学和北京语言大学的教授。',
+        storyP2: '自成立以来，CCECC一直以"惠及当地后裔"为使命，将中国语言和文化教育融入哥斯达黎加社区，加强中国与哥斯达黎加之间的友谊纽带。目前，它是哥斯达黎加唯一一家获得' +
+                '该国教育部认可的官方中文教学机构。',
+        ourJourney: '我们的历程',
+        journeyTitle: '15年的历史',
+        achievementsSection: '成就与荣誉',
+        achievementsTitle: '我们的里程碑',
+        ourTeam: '我们的团队',
+        teamTitle: '认识董事会',
+        teamSubtitle: '一支充满热情和经验丰富的教育工作者团队，致力于教学卓越和文化推广',
+        joinCommunity: '加入我们的社区',
+        joinDescription: '成为这次美好文化体验的一部分。无论您是想学习普通话、探索传统艺术，还是只是想更多地了解中国文化，我们都为您准备了一席之地。',
+        viewClasses: '查看我们的课程',
+        upcomingEvents: '即将举办的活动',
+        mission: {
+            title: '使命',
+            description: '我们是一所教育机构，旨在通过普通话教学、创建促进文化体验与活动的空间，以及传播中国文化的风俗与传统，来促进华人和哥斯达黎加社会之间的文化交流。'
+        },
+        vision: {
+            title: '愿景',
+            description: '成为中美洲学习中文和传播中国文化的参考文化中心，促进两国之间的持久联系。'
+        },
+        values: {
+            title: '价值观',
+            description: '文化尊重、教育卓越、包容性、社区承诺和保护真实传统。'
+        },
+        team: {
+            song: {
+                name: 'Song Xiao Ning',
+                role: '董事会主席',
+                about: '关于我',
+                bio: '出生于中国哈尔滨。自1995年起居住在哥斯达黎加。毕业于美洲国际大学英语教育专业。目前担任中心志愿主席，从事商业活动。'
+            },
+            guo: {
+                name: 'Guo Yi',
+                role: '校长',
+                about: '关于我',
+                bio: '出生于中国上海。自2017年起居住在哥斯达黎加。中国人民大学硕士，曾在上海担任高级管理专业人员。目前担任中哥文化教育中心主任。'
+            }
+        },
+        achievements: {
+            modelSchool: {
+                title: '海外华文示范学校',
+                description: '因在哥斯达黎加的中文教学卓越而获得官方认可',
+                year: '2016年'
+            },
+            teacherTraining: {
+                title: '本地教师培训',
+                description: '为哥斯达黎加的中文教师组织培训和活动',
+                year: '自2010年起'
+            },
+            educationalPrograms: {
+                title: '19所学校的教育项目',
+                description: '实施"We Speak Chinese"和"K12 Star Program"，惠及数千名学生',
+                year: '2023年'
+            },
+            hskCenter: {
+                title: 'HSK授权中心',
+                description: '哥斯达黎加首个中文水平考试官方机构',
+                year: '2012年'
+            },
+            ministryRecognition: {
+                title: '教育部认可',
+                description: '小学和中学国家中文课程的共同编辑',
+                year: '自2010年起'
+            }
+        },
+        timeline: {
+            2010: {
+                title: '成立',
+                description: '中哥文化教育中心（CCECC）于2010年5月28日在中国大使馆的直接指导下正式成立。中国驻哥斯达黎加大使李长华先生担任名誉主席和董事会监督。'
+            },
+            2012: {
+                title: 'HSK认证',
+                description: 'CCECC获得哥斯达黎加HSK考试中心的官方授权，成为首个评估中文普通话水平的授权中心。'
+            },
+            2015: {
+                title: '设施扩建',
+                description: '中心设施扩建，增加了中国传统艺术项目，加强了文化和艺术教育。'
+            },
+            2016: {
+                title: '国际认可',
+                description: 'CCECC被中国政府命名为"海外华文示范学校"，巩固了其在海外教授中文语言和文化的声誉。'
+            },
+            2018: {
+                title: '本地奖项和成就',
+                description: '哥斯达黎加政府授予中心文化教育卓越奖，表彰其对教育和文化推广的贡献。'
+            },
+            2019: {
+                title: '教育扩张',
+                description: '疫情前，中心每周在公立学校提供200节课程和10小时的文化活动，影响了数千名学生。'
+            },
+            2020: {
+                title: '数字化',
+                description: '实施在线课程虚拟平台，适应疫情期间的远程教育，扩大了中心的覆盖范围。'
+            },
+            2023: {
+                title: '私立学校项目',
+                description: '私立学校每周提供150节课程，而唐人街校区在"寻根保护项目"下继续每周70节课程。'
+            },
+            2025: {
+                title: '现在',
+                description: 'CCECC每年在总部招收500多名学生，并通过合作院校触及超过数千名学习者，持续推进长达15年的中国文化推广，同时不断在哥斯达黎加拓展教育与文化项目。'
+            }
+        }
+    },
+
     buttons: {
         upload: "上传",
         uploading: "上传中...",
@@ -24,9 +199,9 @@ const zh = {
     },
     home: {
         welcome: '欢迎 BIENVENIDOS',
-        title1: '哥斯达黎加',
-        title2: '中国文化中心',
-        subtitle: '通过语言、艺术和传统连接文化。在哥斯达黎加的中心发现中国文化的丰富性。',
+        title1: '中哥文化',
+        title2: '教育中心',
+        subtitle: '通过语言、艺术和传统连接文化。在中哥文化教育中心的丰富性。',
         enrollClasses: '报名课程',
         hskExam: 'HSK考试',
         quickAccess: {
@@ -45,7 +220,7 @@ const zh = {
         viewAllEvents: '查看所有活动',
         aboutUs: '关于我们',
         buildingBridges: '自2010年以来搭建文化桥梁',
-        aboutText: '哥斯达黎加中国文化中心致力于促进中国和哥斯达黎加文化之间的相互理解和欣赏。我们提供优质的普通话教育、官方HSK认证以及丰富多样的文化艺术活动。',
+        aboutText: '中哥文化教育中心致力于促进中国和哥斯达黎加文化之间的相互理解和欣赏。我们提供优质的普通话教育、官方HSK认证以及丰富多样的文化艺术活动。',
         students: '学生',
         years: '年',
         eventsPerYear: '活动/年',
@@ -57,10 +232,101 @@ const zh = {
         activeCommunityDesc: '每月文化活动和交流活动',
         knowMore: '了解更多'
     },
+    hsk: {
+        pageTitle: 'HSK考试',
+        pageSubtitle: '官方授权的HSK考试管理中心。获得国际认可的汉语水平认证。',
+        nextExam: '下次考试',
+        enrollNow: '通过 WhatsApp 咨询',
+        testDates: '2025-2026年考试日期',
+        location: '地点',
+        available: '可报名',
+        registerNow: '立即报名',
+        selectSess: '选择您希望参加的考试场次',
+        deadline: '报名截止日期：',
+        slotsAvailable: '个名额',
+        written: '笔试',
+        oral: '口试',
+        requirements: '报名要求',
+        requirementsList: {
+            passport: '有效护照或身份证',
+            photo: '近期护照尺寸照片',
+            payment: '考试付款凭证',
+            form: '完整的报名表',
+            previousLevel: '已完成前一级别 (HSK 2+)'
+        },
+        requirementsNote: '文件必须在考试日期前至少2周提交。',
+        fees: '考试费用',
+        paymentMethods: '💳 付款方式：银行转账、SINPE Móvil、现金',
+        registrationForm: '报名表',
+        formSteps: '刅3个简单步骤完成',
+        step1: '个人信息',
+        step2: '级别和日期',
+        step3: '确认',
+        firstName: '名字',
+        firstNamePlaceholder: '您的名字',
+        lastName: '姓氏',
+        lastNamePlaceholder: '您的姓氏',
+        email: '电子邮箱',
+        phone: '电话',
+        level: '考试级别',
+        testDate: '考试日期',
+        previousLevel: '您之前参加过HSK考试吗？',
+        selectLevel: '选择级别',
+        levelBeginner: '初级',
+        levelElementary: '基础',
+        levelIntermediate: '中级',
+        levelUpperIntermediate: '中高级',
+        levelAdvanced: '高级',
+        levelSuperior: '最高级',
+        selectDate: '选择日期',
+        select: '请选择',
+        noPreviousExam: '没有，这是我的第一次HSK考试',
+        yesHSK: '是的，HSK',
+        previous: '上一步',
+        next: '下一步',
+        confirmEnrollment: '确认报名',
+        confirmationTitle: '报名摘要',
+        fullName: '全名',
+        confirmationInfo: '确认报名后，您将收到包含以下内容的电子邮件：',
+        paymentInstructions: '付款说明',
+        requiredDocuments: '所需文件清单',
+        examLocationTime: '考试地点和时间',
+        confirmationAlert: '报名已提交！您将收到确认电子邮件。',
+        faqTitle: '常见问题',
+        faqSubtitle: '关于HSK考试你需要知道的一切',
+        faqs: {
+            q1: {
+                question: '什么是HSK考试？',
+                answer: '汉语水平考试 (HSK) 是国际标准化的汉语普通话水平考试。它是非母语人士的官方语言能力认证，被教育机构和公司全球认可。'
+            },
+            q2: {
+                question: '每个级别需要学习多长时间？',
+                answer: 'HSK 1-2：3-6个月的学习。HSK 3-4：额外6-12个月。HSK 5-6：额夆12-24个月。这取决于投入、以前的经验和每周学习时间。'
+            },
+            q3: {
+                question: '我什么时候会收到成绩？',
+                answer: '官方成绩将在考试后约1个月公布。成绩出来后您将收到电子邮件通知。纸质证书将2-3个月后到达。'
+            },
+            q4: {
+                question: 'HSK证书有有效期吗？',
+                answer: 'HSK证书从考试日期起2年内有效。过了这个期限后，建议重新认证以证明你当前的水平。'
+            },
+            q5: {
+                question: '我可以在同一天参加多个级别的考试吗？',
+                answer: '可以，您可以在同一考试日期报名多个级别（笔试和/或口试），只要时间不冲突。'
+            },
+            q6: {
+                question: '考试当天我应该带什么？',
+                answer: '您必须携带原始身份证件、2支HB铅笔、橡皮擦和报名确认函。不允许携带词典、电话或电子设备。'
+            }
+        }
+    },
+
     footer: {
-        description: '哥斯达黎加中国文化中心 - 自2010年以来促进中国与哥斯达黎加之间的文化交流。',
+        description: '中哥文化教育中心 - 自2010年以来促进中国与哥斯达黎加之间的文化交流。',
         contact: '联系方式',
-        location: '哥斯达黎加圣何塞\n中央公园以北100米',
+        location1: 'San José, Curridabat, El Prado, Calle A020. 11801 Curridabat, Costa Rica',
+        location2: 'Calle 9, San José, San José, Paseo de los Estudiantes, Costa Rica',
         quickLinks: '快速链接',
         chineseClasses: '中文课程',
         hskExam: 'HSK考试',
@@ -69,7 +335,8 @@ const zh = {
         newsletter: '新闻通讯',
         newsletterDesc: '接收新闻和文化活动信息',
         emailPlaceholder: '您的邮箱',
-        copyright: '© 2025 哥斯达黎加中国文化中心。保留所有权利。由 Saken Et Al 用 ❤️ 制作。'
+        login: '登录',
+        copyright: '© 2025 中哥文化教育中心。保留所有权利。由 Saken Et Al 用 ❤️ 制作。'
     },
     dashboard: {
         common: {
@@ -357,12 +624,14 @@ const zh = {
             moveDown: '下移',
             name: '姓名',
             position: '职位',
-            bio: '简介',
-            email: '邮箱',
+            bio: '个人简介',
+            email: '电子邮件',
             phone: '电话',
             imageUrl: '图片URL',
             order: '显示顺序',
-            created: '创建',
+            created: '创建日期',
+            selectCategory: '选择类别',
+            teamMemberPhoto: '团队成员照片',
             noMembersFound: '未找到团队成员',
             deleteConfirm: '您确定要删除此成员吗？',
             backToTeam: '返回团队',
@@ -396,8 +665,9 @@ const zh = {
                 board: '董事会',
                 leadership: '领导层',
                 local_teachers: '本地教师',
-                volunteer_teachers: '志愿者教师',
-                partner_institutions: '合作机构'
+                volunteer_teachers: '志愿教师',
+                partner_institutions: '合作伙伴',
+                uncategorized: '未分类'
             }
         },
         consultations: {
@@ -441,6 +711,7 @@ const zh = {
                 createSession: '创建场次',
                 editSession: '编辑场次',
                 updateSession: '更新场次',
+                 levelPlaceholder: 'e.g., HSK 1, HSK 2, etc.',
                 totalSessions: '总场次',
                 activeSessions: '活跃场次',
                 upcomingExams: '即将举行的考试',
@@ -559,6 +830,67 @@ const zh = {
             auditLogs: '审计日志',
             settings: '设置',
             logout: '登出'
+        }
+    },
+    login: {
+        title: '登录',
+        email: '邮箱',
+        password: '密码',
+        emailPlaceholder: '请输入您的邮箱',
+        passwordPlaceholder: '请输入您的密码',
+        loginButton: '登录',
+        emptyFieldsError: '请输入邮箱和密码。',
+        loginSuccess: '登录成功！',
+        loginError: '错误'
+    },
+    acceptInvitation: {
+        title: '接受邀请',
+        verifyingTitle: '正在验证邀请...',
+        verifyingSubtitle: '请稍候',
+        invalidTitle: '邀请无效',
+        invalidMessage: '此邀请链接无效或已过期。',
+        invitedAs: '您已被邀请以以下身份加入',
+        authNotice: '您通过邮件链接进行了身份验证。设置密码是可选的，以便将来使用。',
+        emailLabel: '邮箱地址',
+        fullNameLabel: '全名 *',
+        fullNamePlaceholder: '请输入您的全名',
+        passwordLabel: '密码 *',
+        passwordPlaceholder: '创建一个强密码',
+        confirmPasswordLabel: '确认密码 *',
+        confirmPasswordPlaceholder: '重新输入密码',
+        submitButton: '接受并创建账户',
+        submittingButton: '正在创建账户...',
+        alreadyAccount: '已经有账户了？',
+        signIn: '登录',
+        passwordRequirements: '密码必须包含：',
+        req8Chars: '至少 8 个字符',
+        reqUppercase: '一个大写字母',
+        reqLowercase: '一个小写字母',
+        reqNumber: '一个数字',
+        reqSpecial: '一个特殊字符',
+        passwordsMatch: '密码匹配',
+        passwordsDontMatch: '密码不匹配',
+        errors: {
+            signInFirst: '请先使用邮件中的 OTP 链接登录',
+            noValidInvitation: '未找到您邮箱的有效邀请',
+            verifyFailed: '验证邀请失败',
+            enterFullName: '请输入您的全名',
+            nameMinLength: '全名至少必须 2 个字符',
+            passwordMinLength: '密码至少必须 8 个字符',
+            passwordUppercase: '密码必须包含至少一个大写字母',
+            passwordLowercase: '密码必须包含至少一个小写字母',
+            passwordNumber: '密码必须包含至少一个数字',
+            passwordSpecial: '密码必须包含至少一个特殊字符',
+            passwordsNotMatch: '密码不匹配',
+            noInvitation: '未找到邀请',
+            invalidRole: '邀请角色无效',
+            sessionInvalid: '身份验证会话无效。请重新登录。',
+            profileFailed: '创建配置文件失败',
+            genericError: '发生错误。请重试。'
+        },
+        success: {
+            complete: '账户设置完成！正在重定向...',
+            completePasswordLater: '账户设置完成！密码可以在您的配置文件中设置。正在重定向...'
         }
     }
 };

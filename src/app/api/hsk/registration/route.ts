@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   isValidFutureDate,
@@ -34,7 +34,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    // Use service role client to bypass RLS for public registration
+    const supabase = createServiceRoleClient();
 
     // CSRF Protection
     if (!checkCSRFProtection(request)) {

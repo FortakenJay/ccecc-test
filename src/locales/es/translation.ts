@@ -8,6 +8,149 @@ const es = {
         contact: 'Contacto',
         enroll: 'Inscríberse'
     },
+    BlogPreview: {
+        blog: 'Blog',
+        lastUpdate: 'Últimas Actualizaciones',
+        viewAllBlogs: 'Ver Todos los Artículos'
+    },
+    ClassesPage: {
+        title: 'Clases de Chino Mandarín y Talleres Culturales',
+        subtitle: 'Descubre nuestras clases de mandarín y talleres culturales diseñados para todos ' +
+                'los niveles y edades. ¡Únete a nosotros y comienza tu viaje en el aprendizaje de' +
+                'l idioma y la cultura china!',
+        noClass: 'Aún no hay clases disponibles',
+        comeBack: '¡Vuelve pronto para ver nuevas clases!',
+        inquireWhatsApp: 'Consultar por WhatsApp',
+        per: 'por sesión',
+        prepHSK: 'Preparación para HSK',
+        prepHSKdesc: 'prepara para los exámenes oficiales de competencia en chino',
+        chineseClass: 'Clases de Mandarín',
+        chineseClassdesc: 'aprende mandarín con profesores nativos',
+        artisticalExchange: 'Intercambio Artístico',
+        artisticExchangeDesc: 'explora las artes tradicionales chinas',
+        workshop: 'Talleres Culturales',
+        workshopDesc: 'participa en talleres sobre cultura china',
+        description: 'Explora nuestras clases de chino mandarín y talleres culturales diseñados para t' +
+                'odos los niveles y edades. Ya seas principiante o busques perfeccionar tus habil' +
+                'idades, tenemos el curso perfecto para ti. ¡Únete a nosotros y comienza tu viaje' +
+                ' en el aprendizaje del idioma y la cultura china!'
+    },
+
+    blogPage: {
+        heroTitle: 'Blog',
+        heroDesc: 'Descubre historias, noticias y perspectivas sobre la cultura china, el aprendiza' +
+                'je del idioma y los eventos de nuestra comunidad.',
+        filterByCategory: 'Filtrar por Categoría',
+        allPosts: 'Todas las entradas',
+        featuredPosts: 'Entradas destacadas',
+        recentPosts: 'Entradas recientes',
+        clearFilter: 'Quitar filtro',
+        noPosts: 'Aún no hay entradas',
+        noPostsDesc: '¡Vuelve pronto para ver nuevo contenido!'
+    },
+    hsk: {
+        pageTitle: 'Examen HSK',
+        deadline: 'Fecha límite de inscripción:',
+        registerNow: 'Inscribirse Ahora',
+        selectSess: 'Selecciona la sesión que deseas tomar',
+        location: 'lugar:',
+        pageSubtitle: 'Centro oficial autorizado para la administración del examen HSK. Certifica tu ni' +
+                'vel de chino mandarín con reconocimiento internacional.',
+        nextExam: 'Próximo Examen',
+        enrollNow: 'Consultar por WhatsApp',
+        testDates: 'Fechas de Examen 2025-2026',
+        available: 'Disponible',
+        slotsAvailable: 'espacios disponibles',
+        written: 'Escrito',
+        oral: 'Oral',
+        requirements: 'Requisitos de Inscripción',
+        requirementsList: {
+            passport: 'Pasaporte o cédula de identidad vigente',
+            photo: 'Fotografía tamaño pasaporte reciente',
+            payment: 'Comprobante de pago del examen',
+            form: 'Formulario de inscripción completo',
+            previousLevel: 'Haber completado el nivel anterior (HSK 2+)'
+        },
+        requirementsNote: 'Los documentos deben presentarse al menos 2 semanas antes de la fecha del examen' +
+                '.',
+        fees: 'Tarifas del Examen',
+        paymentMethods: '💳 Métodos de pago: Transferencia bancaria, SINPE Móvil, efectivo',
+        registrationForm: 'Formulario de Inscripción',
+        formSteps: 'Complete el proceso en 3 simples pasos',
+        step1: 'Datos Personales',
+        step2: 'Nivel y Fecha',
+        step3: 'Confirmación',
+        firstName: 'Nombre',
+        firstNamePlaceholder: 'Tu nombre',
+        lastName: 'Apellidos',
+        lastNamePlaceholder: 'Tus apellidos',
+        email: 'Email',
+        phone: 'Teléfono',
+        level: 'Nivel del Examen',
+        testDate: 'Fecha del Examen',
+        previousLevel: '¿Has tomado el HSK anteriormente?',
+        selectLevel: 'Selecciona un nivel',
+        levelBeginner: 'Principiante',
+        levelElementary: 'Elemental',
+        levelIntermediate: 'Intermedio',
+        levelUpperIntermediate: 'Intermedio Alto',
+        levelAdvanced: 'Avanzado',
+        levelSuperior: 'Superior',
+        selectDate: 'Selecciona una fecha',
+        select: 'Selecciona',
+        noPreviousExam: 'No, es mi primer examen HSK',
+        yesHSK: 'Sí, HSK',
+        previous: 'Anterior',
+        next: 'Siguiente',
+        confirmEnrollment: 'Confirmar Inscripción',
+        confirmationTitle: 'Resumen de Inscripción',
+        fullName: 'Nombre completo',
+        confirmationInfo: 'Al confirmar tu inscripción, recibirás un email con:',
+        paymentInstructions: 'Instrucciones de pago',
+        requiredDocuments: 'Lista de documentos requeridos',
+        examLocationTime: 'Ubicación y horario del examen',
+        confirmationAlert: '¡Inscripción enviada! Recibirás un email de confirmación.',
+        faqTitle: 'Preguntas Frecuentes',
+        faqSubtitle: 'Todo lo que necesitas saber sobre el examen HSK',
+        faqs: {
+            q1: {
+                question: '¿Qué es el examen HSK?',
+                answer: 'El Hanyu Shuiping Kaoshi (HSK) es el examen internacional estandarizado de chino' +
+                        ' mandarín. Es la certificación oficial de competencia lingüística para hablantes' +
+                        ' no nativos, reconocida globalmente por instituciones educativas y empresas.'
+            },
+            q2: {
+                question: '¿Cuánto tiempo tengo que estudiar para cada nivel?',
+                answer: 'HSK 1-2: 3-6 meses de estudio. HSK 3-4: 6-12 meses adicionales. HSK 5-6: 12-24 m' +
+                        'eses más. Esto varía según dedicación, experiencia previa y horas de estudio sem' +
+                        'anales.'
+            },
+            q3: {
+                question: '¿Cuándo recibo mis resultados?',
+                answer: 'Los resultados oficiales se publican aproximadamente 1 mes después del examen. R' +
+                        'ecibirás una notificación por email cuando estén disponibles. El certificado fís' +
+                        'ico llega 2-3 meses después.'
+            },
+            q4: {
+                question: '¿El certificado HSK tiene vencimiento?',
+                answer: 'Los certificados HSK son válidos por 2 años desde la fecha del examen. Después d' +
+                        'e este período, se recomienda volver a certificar para demostrar tu nivel actual' +
+                        '.'
+            },
+            q5: {
+                question: '¿Puedo presentar varios niveles el mismo día?',
+                answer: 'Sí, puedes inscribirte en múltiples niveles (escrito y/u oral) en la misma fecha' +
+                        ' de examen, siempre que los horarios no se superpongan.'
+            },
+            q6: {
+                question: '¿Qué debo llevar el día del examen?',
+                answer: 'Debes traer tu documento de identidad original, 2 lápices HB, borrador, y tu con' +
+                        'firmación de inscripción. No se permiten diccionarios, teléfonos ni dispositivos' +
+                        ' electrónicos.'
+            }
+        }
+    },
+
     NotFound: {
         message: "¡Ups! La página que buscas no existe o ha sido movida.",
         backHome: "Volver al inicio"
@@ -22,9 +165,193 @@ const es = {
         errorUpload: "Error al subir la imagen",
         errorRemove: "Error al eliminar la imagen"
     },
+
+    about: {
+        pageTitle: 'Sobre Nosotros',
+        structure: 'Nuestra Estructura Organizacional',
+        Board: 'JUNTA DIRECTIVA',
+        admin: 'ADMINISTRACIÓN',
+        LocalTeachers: 'DOCENTES LOCALES',
+        contact: 'CONTACTO',
+        Direction: 'DIRECCIÓN',
+        schedule: 'HORARIO DE ATENCIÓN',
+        phone: 'Teléfono',
+        monday: 'Lunes',
+        tuesday: 'Martes',
+        wednesday: 'Miércoles',
+        location1: 'San José, Curridabat, El Prado, Calle A020. 11801 Curridabat, Costa Rica',
+        location2: 'Calle 9, San José Province, San José, Paseo de los Estudiantes, Costa Rica',
+        thursday: 'Jueves',
+        friday: 'Viernes',
+        saturday: 'Sábado',
+        sunday: 'Domingo',
+        closed: 'Cerrado',
+        hoursDiffer: 'Horario puede variar en días festivos',
+        contactDESC: 'Para consultas generales, inscripciones o información sobre nuestros programas, ' +
+                'no dudes en contactarnos a través de los siguientes medios:',
+        contactINFO: 'Información de Contacto',
+        comunityTitle: 'Unete a Nuestra Comunidad',
+        VolunteerTeachers: 'DOCENTES VOLUNTARIOS',
+        seeBlogs: 'Ver Blogs',
+        joinClasses: 'Unete a Nuestras Clases',
+        communityDesc: 'Sé parte de nuestra vibrante comunidad que celebra la cultura china a través del' +
+                ' idioma, las artes y las tradiciones. Ya sea que estés comenzando tu viaje en el' +
+                ' aprendizaje del chino o buscando profundizar tu comprensión cultural, tenemos u' +
+                'n lugar para ti.',
+        noMember: '¿No eres miembro aún?',
+        PartnerInstitutions: 'INSTITUCIONES ALIADAS',
+        pageSubtitle: '15 años construyendo puentes entre culturas, promoviendo el entendimiento y cele' +
+                'brando la riqueza de la tradición china en Costa Rica',
+        ourStory: 'NUESTRA HISTORIA',
+        storyTitle: 'Un Sueño que Conecta Dos Mundos',
+        storyP1: 'Fundado el 28 de mayo de 2010, el Centro Cultural y Educativo Costarricense Chin' +
+                'o (CCECC) es una institución privada sin fines de lucro dedicada a la enseñanza ' +
+                'del idioma mandarín y la promoción de la cultura china tradicional. Establecido ' +
+                'y financiado por ocho chinos residentes en Costa Rica, el Centro opera bajo la g' +
+                'uía directa de la Embajada de China y con el apoyo de destacados académicos y ex' +
+                'pertos tanto de China como de Costa Rica, incluyendo profesores de la Renmin Uni' +
+                'versity y Beijing Language and Culture University.',
+        storyP2: 'Desde sus inicios, el CCECC ha trabajado con la misión de "beneficiar a los desc' +
+                'endientes locales", integrando la educación del idioma chino y la cultura en la ' +
+                'comunidad costarricense y fortaleciendo los lazos de amistad entre China y Costa' +
+                ' Rica. Actualmente, es la única institución oficial de enseñanza del chino en Co' +
+                'sta Rica acreditada por el Ministerio de Educación del país.',
+        ourJourney: 'NUESTRA TRAYECTORIA',
+        journeyTitle: '15 Años de Historia',
+        achievementsSection: 'LOGROS Y RECONOCIMIENTOS',
+        achievementsTitle: 'Nuestros Hitos',
+        ourTeam: 'NUESTRO EQUIPO',
+        teamTitle: 'Conoce la Junta',
+        teamSubtitle: 'Un equipo de educadores apasionados y experimentados, comprometidos con la excel' +
+                'encia en la enseñanza y la promoción cultural',
+        joinCommunity: 'Únete a Nuestra Comunidad',
+        joinDescription: 'Sé parte de esta hermosa experiencia cultural. Ya sea que quieras aprender manda' +
+                'rín, explorar las artes tradicionales o simplemente conocer más sobre la cultura' +
+                ' china, tenemos un lugar para ti.',
+        viewClasses: 'Ver Nuestras Clases',
+        upcomingEvents: 'Próximos Eventos',
+        mission: {
+            title: 'Misión',
+            description: 'Somos una institución educativa, cuya meta es promover el intercambio cultural e' +
+                    'ntre la sociedad china y costarricenses a través de la enseñanza del idioma mand' +
+                    'arín, la creación de espacios para motivar y vivencias culturales y la difusión ' +
+                    'de costumbres y tradiciones propias de la cultura China.'
+        },
+        vision: {
+            title: 'Visión',
+            description: 'Ser el centro cultural de referencia en América Central para el aprendizaje del ' +
+                    'idioma chino y la difusión de la cultura china, fomentando lazos duraderos entre' +
+                    ' ambas naciones.'
+        },
+        values: {
+            title: 'Valores',
+            description: 'Respeto cultural, excelencia educativa, inclusión, compromiso comunitario y pres' +
+                    'ervación de tradiciones auténticas.'
+        },
+        team: {
+            song: {
+                name: 'Song Xiao Ning',
+                role: 'Presidenta de la Junta Directiva',
+                about: 'Sobre Mí',
+                bio: 'Nacida en Harbin, China. Residente en Costa Rica desde 1995. Graduada en Educaci' +
+                        'ón del Inglés por la Universidad Internacional de las Américas. Actualmente pres' +
+                        'identa voluntaria del Centro y dedicada al comercio.'
+            },
+            guo: {
+                name: 'Guo Yi',
+                role: 'Directora',
+                about: 'Sobre Mí',
+                bio: 'Nacida en Shanghái, China. Residente en Costa Rica desde 2017. Máster por la Uni' +
+                        'versidad Renmin de China y exprofesional de alta gerencia en Shanghái. Actualmen' +
+                        'te directora del Centro Cultural y Educativo Costarricense Chino.'
+            }
+        },
+        achievements: {
+            modelSchool: {
+                title: 'Escuela Modelo China en el Extranjero',
+                description: 'Reconocimiento oficial por la excelencia en enseñanza de chino en Costa Rica',
+                year: '2016'
+            },
+            teacherTraining: {
+                title: 'Capacitación de Docentes Locales',
+                description: 'Organización de entrenamientos y eventos para maestros de chino en Costa Rica',
+                year: 'Desde 2010'
+            },
+            educationalPrograms: {
+                title: 'Programas Educativos en 19 Escuelas',
+                description: 'Implementación de "We Speak Chinese" y "K12 Star Program" beneficiando a miles d' +
+                        'e estudiantes',
+                year: '2023'
+            },
+            hskCenter: {
+                title: 'Centro Autorizado HSK',
+                description: 'Primera institución oficial en Costa Rica para exámenes de competencia en chino',
+                year: '2012'
+            },
+            ministryRecognition: {
+                title: 'Reconocimiento del Ministerio de Educación',
+                description: 'Co-editor del currículo nacional de chino para primaria y secundaria',
+                year: 'Desde 2010'
+            }
+        },
+        timeline: {
+            2010: {
+                title: 'Fundación',
+                description: 'Centro Cultural y Educativo Costarricense Chino (CCECC) se establece oficialment' +
+                        'e el 28 de mayo de 2010 bajo la guía directa de la Embajada de China. El Sr. Li ' +
+                        'Changhua, embajador de China en Costa Rica, actúa como Presidente Honorario y Su' +
+                        'pervisor de la Junta.'
+            },
+            2012: {
+                title: 'Certificación HSK',
+                description: 'El CCECC recibe la autorización oficial como centro de exámenes HSK en Costa Ric' +
+                        'a, convirtiéndose en el primer centro autorizado para evaluar la competencia en ' +
+                        'chino mandarín.'
+            },
+            2015: {
+                title: 'Expansión de instalaciones',
+                description: 'Se amplían las instalaciones del Centro y se incorporan programas de artes tradi' +
+                        'cionales chinas, fortaleciendo la educación cultural y artística.'
+            },
+            2016: {
+                title: 'Reconocimiento internacional',
+                description: 'CCECC es nombrado "Overseas Model Chinese School" por el gobierno chino, consoli' +
+                        'dando su prestigio en la enseñanza del idioma y cultura china fuera de China.'
+            },
+            2018: {
+                title: 'Premios y logros locales',
+                description: 'El gobierno costarricense otorga al Centro el Premio a la Excelencia en Educació' +
+                        'n Cultural, reconociendo su contribución a la educación y promoción cultural.'
+            },
+            2019: {
+                title: 'Expansión educativa',
+                description: 'Antes de la pandemia, el Centro ofrecía 200 sesiones de clases semanales y 10 ho' +
+                        'ras de actividades culturales por semana en escuelas públicas, impactando a mile' +
+                        's de estudiantes.'
+            },
+            2020: {
+                title: 'Digitalización',
+                description: 'Se implementa una plataforma virtual para clases en línea, adaptándose a la educ' +
+                        'ación remota durante la pandemia y ampliando el alcance del Centro.'
+            },
+            2023: {
+                title: 'Programas en escuelas privadas',
+                description: 'Las escuelas privadas ofrecen 150 sesiones semanales de clases, mientras que el ' +
+                        'Campus de Chinatown continúa con 70 clases semanales bajo el "Proyecto de Preser' +
+                        'vación de Raíces".'
+            },
+            2025: {
+                title: 'Presente',
+                description: 'CCECC matricula a más de 500 estudiantes cada año en su sede principal y alcanza' +
+                        ' a más de miles de estudiantes a través de instituciones asociadas. Durante 15 a' +
+                        'ños, ha seguido impulsando la promoción de la cultura china mientras expande sus' +
+                        ' programas educativos y culturales en toda Costa Rica.'
+            }
+        }
+    },
     home: {
         welcome: '欢迎 BIENVENIDOS',
-        title1: 'Centro Cultural',
+        title1: 'Centro Cultural y Educativo',
         title2: 'Chino Costarricense',
         subtitle: 'Conectando culturas a través del idioma, las artes y las tradiciones. Descubre l' +
                 'a riqueza de la cultura china en el corazón de Costa Rica.',
@@ -46,10 +373,10 @@ const es = {
         viewAllEvents: 'Ver Todos los Eventos',
         aboutUs: 'SOBRE NOSOTROS',
         buildingBridges: 'Construyendo Puentes Culturales desde 2010',
-        aboutText: 'El Centro Cultural Chino Costarricense es un espacio dedicado a promover el ente' +
-                'ndimiento y aprecio mutuo entre las culturas china y costarricense. Ofrecemos ed' +
-                'ucación de calidad en idioma mandarín, certificación HSK oficial, y una amplia g' +
-                'ama de actividades culturales y artísticas.',
+        aboutText: 'El Centro Cultural y Educativo Costarricense Chino es un espacio dedicado a prom' +
+                'over el entendimiento y aprecio mutuo entre las culturas china y costarricense. ' +
+                'Ofrecemos educación de calidad en idioma mandarín, certificación HSK oficial, y ' +
+                'una amplia gama de actividades culturales y artísticas.',
         students: 'Estudiantes',
         years: 'Años',
         eventsPerYear: 'Eventos/Año',
@@ -61,11 +388,13 @@ const es = {
         activeCommunityDesc: 'Eventos culturales mensuales y actividades de intercambio',
         knowMore: 'Conoce Más'
     },
+
     footer: {
-        description: 'Centro Cultural Chino Costarricense - Promoviendo el intercambio cultural entre ' +
-                'China y Costa Rica desde 2010.',
+        description: 'Centro Cultural y Educativo Costarricense Chino - Promoviendo el intercambio cul' +
+                'tural entre China y Costa Rica desde 2010.',
         contact: 'Contacto',
-        location: 'San José, Costa Rica\n100m norte del Parque Central',
+        location1: 'San José, Curridabat, El Prado, Calle A020. 11801 Curridabat, Costa Rica',
+        location2: 'Calle 9, San José, San José, Paseo de los Estudiantes, Costa Rica',
         quickLinks: 'Enlaces Rápidos',
         chineseClasses: 'Clases de Chino',
         hskExam: 'Examen HSK',
@@ -74,8 +403,9 @@ const es = {
         newsletter: 'Newsletter',
         newsletterDesc: 'Recibe noticias y eventos culturales',
         emailPlaceholder: 'Tu email',
-        copyright: '© 2025 Centro Cultural Chino Costarricense. Todos los derechos reservados. Hecho' +
-                ' con ❤️ por Saken Et Al.'
+        login: 'Iniciar Sesión',
+        copyright: '© 2025 Centro Cultural y Educativo Costarricense Chino. Todos los derechos reser' +
+                'vados. Hecho con ❤️ por Saken Et Al.'
     },
     dashboard: {
         common: {
@@ -369,6 +699,8 @@ const es = {
             imageUrl: 'URL de Imagen',
             order: 'Orden de Visualización',
             created: 'Creado',
+            selectCategory: 'Seleccionar categoría',
+            teamMemberPhoto: 'Foto del Miembro del Equipo',
             noMembersFound: 'No se encontraron miembros del equipo',
             deleteConfirm: '¿Está seguro de que desea eliminar este miembro del equipo?',
             backToTeam: 'Volver al Equipo',
@@ -403,7 +735,8 @@ const es = {
                 leadership: 'Liderazgo',
                 local_teachers: 'Profesores Locales',
                 volunteer_teachers: 'Profesores Voluntarios',
-                partner_institutions: 'Socios'
+                partner_institutions: 'Socios',
+                uncategorized: 'Sin categoría'
             }
         },
         consultations: {
@@ -567,7 +900,71 @@ const es = {
             settings: 'Configuración',
             logout: 'Cerrar sesión'
         }
+    },
+    login: {
+        title: 'Iniciar Sesión',
+        email: 'Correo Electrónico',
+        password: 'Contraseña',
+        emailPlaceholder: 'Ingrese su correo electrónico',
+        passwordPlaceholder: 'Ingrese su contraseña',
+        loginButton: 'Iniciar Sesión',
+        emptyFieldsError: 'Por favor ingrese tanto el correo como la contraseña.',
+        loginSuccess: '¡Inicio de sesión exitoso!',
+        loginError: 'Error'
+    },
+    acceptInvitation: {
+        title: 'Aceptar Invitación',
+        verifyingTitle: 'Verificando invitación...',
+        verifyingSubtitle: 'Por favor espere',
+        invalidTitle: 'Invitación Inválida',
+        invalidMessage: 'Este enlace de invitación es inválido o ha expirado.',
+        invitedAs: 'Has sido invitado a unirte como',
+        authNotice: 'Estás autenticado a través del enlace de correo. Establecer una contraseña es op' +
+                'cional para conveniencia futura.',
+        emailLabel: 'Dirección de Correo',
+        fullNameLabel: 'Nombre Completo *',
+        fullNamePlaceholder: 'Ingresa tu nombre completo',
+        passwordLabel: 'Contraseña *',
+        passwordPlaceholder: 'Crea una contraseña segura',
+        confirmPasswordLabel: 'Confirmar Contraseña *',
+        confirmPasswordPlaceholder: 'Reingresa tu contraseña',
+        submitButton: 'Aceptar y Crear Cuenta',
+        submittingButton: 'Creando Cuenta...',
+        alreadyAccount: '¿Ya tienes una cuenta?',
+        signIn: 'Iniciar sesión',
+        passwordRequirements: 'La contraseña debe contener:',
+        req8Chars: 'Al menos 8 caracteres',
+        reqUppercase: 'Una letra mayúscula',
+        reqLowercase: 'Una letra minúscula',
+        reqNumber: 'Un número',
+        reqSpecial: 'Un carácter especial',
+        passwordsMatch: 'Las contraseñas coinciden',
+        passwordsDontMatch: 'Las contraseñas no coinciden',
+        errors: {
+            signInFirst: 'Por favor inicia sesión con el enlace OTP de tu correo electrónico primero',
+            noValidInvitation: 'No se encontró una invitación válida para tu correo',
+            verifyFailed: 'Error al verificar la invitación',
+            enterFullName: 'Por favor ingresa tu nombre completo',
+            nameMinLength: 'El nombre completo debe tener al menos 2 caracteres',
+            passwordMinLength: 'La contraseña debe tener al menos 8 caracteres',
+            passwordUppercase: 'La contraseña debe contener al menos una letra mayúscula',
+            passwordLowercase: 'La contraseña debe contener al menos una letra minúscula',
+            passwordNumber: 'La contraseña debe contener al menos un número',
+            passwordSpecial: 'La contraseña debe contener al menos un carácter especial',
+            passwordsNotMatch: 'Las contraseñas no coinciden',
+            noInvitation: 'No se encontró invitación',
+            invalidRole: 'Rol de invitación inválido',
+            sessionInvalid: 'Sesión de autenticación inválida. Por favor inicia sesión nuevamente.',
+            profileFailed: 'Error al crear el perfil',
+            genericError: 'Ocurrió un error. Por favor inténtalo de nuevo.'
+        },
+        success: {
+            complete: '¡Configuración de cuenta completa! Redirigiendo...',
+            completePasswordLater: '¡Configuración de cuenta completa! La contraseña se puede establecer más tarde e' +
+                    'n tu perfil. Redirigiendo...'
+        }
     }
+
 };
 
 export default es;

@@ -44,6 +44,27 @@ export default function EditTeamMemberPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
+  // Function to translate position values
+  const translatePosition = (positionValue: string) => {
+    const positionTranslations = {
+      'board': { en: 'Board of Directors', es: 'Junta Directiva', zh: '董事会' },
+      'leadership': { en: 'Leadership', es: 'Liderazgo', zh: '领导层' },
+      'local_teachers': { en: 'Local Teachers', es: 'Profesores Locales', zh: '本地教师' },
+      'volunteer_teachers': { en: 'Volunteer Teachers', es: 'Profesores Voluntarios', zh: '志愿教师' },
+      'partner_institutions': { en: 'Partners', es: 'Socios', zh: '合作伙伴' },
+      'uncategorized': { en: 'Uncategorized', es: 'Sin categoría', zh: '未分类' }
+    };
+    return positionTranslations[positionValue as keyof typeof positionTranslations] || { en: '', es: '', zh: '' };
+  };
+
+  // Handle position change and update translations
+  const handlePositionChange = (newPosition: string) => {
+    const translations = translatePosition(newPosition);
+    setRoleEn(translations.en);
+    setRoleEs(translations.es);
+    setRoleZh(translations.zh);
+  };
+
   useEffect(() => {
     fetchTeamMember();
   }, [memberId]);
@@ -178,7 +199,7 @@ export default function EditTeamMemberPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <Label>Team Member Photo</Label>
+                  <Label>{t('teamMemberPhoto')}</Label>
                   <ImageUpload
                     value={imageUrl}
                     onChange={setImageUrl}
@@ -187,6 +208,23 @@ export default function EditTeamMemberPage() {
                     previewHeight="h-32"
                     label="Photo"
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="category">{t('position')}</Label>
+                  <select
+                    id="category"
+                    onChange={(e) => handlePositionChange(e.target.value)}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                  >
+                    <option value="">{t('selectCategory')}</option>
+                    <option value="board">{t('categoryLabels.board')}</option>
+                    <option value="leadership">{t('categoryLabels.leadership')}</option>
+                    <option value="local_teachers">{t('categoryLabels.local_teachers')}</option>
+                    <option value="volunteer_teachers">{t('categoryLabels.volunteer_teachers')}</option>
+                    <option value="partner_institutions">{t('categoryLabels.partner_institutions')}</option>
+                    <option value="uncategorized">{t('categoryLabels.uncategorized')}</option>
+                  </select>
                 </div>
 
                 <div>
@@ -233,20 +271,16 @@ export default function EditTeamMemberPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="roleEn">{t('position')}</Label>
-                <select
+                <Label htmlFor="roleEn">{t('position')} (English)</Label>
+                <Input
                   id="roleEn"
                   value={roleEn}
                   onChange={(e) => setRoleEn(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
-                >
-                  <option value="">Select position</option>
-                  <option value="Board of Directors">Board of Directors</option>
-                  <option value="Leadership">Leadership</option>
-                  <option value="Local Teachers">Local Teachers</option>
-                  <option value="Volunteer Teachers">Volunteer Teachers</option>
-                  <option value="Partners">Partners</option>
-                </select>
+                  placeholder="e.g., Board of Directors, Leadership"
+                  className="bg-gray-50"
+                  readOnly
+                />
+                <p className="text-xs text-gray-500 mt-1">Auto-generated from category selection above</p>
               </div>
               <div>
                 <Label htmlFor="bioEn">{t('bio')}</Label>
@@ -278,20 +312,16 @@ export default function EditTeamMemberPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="roleEs">{t('position')}</Label>
-                <select
+                <Label htmlFor="roleEs">{t('position')} (Español)</Label>
+                <Input
                   id="roleEs"
                   value={roleEs}
                   onChange={(e) => setRoleEs(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
-                >
-                  <option value="">Seleccionar posición</option>
-                  <option value="Junta Directiva">Junta Directiva</option>
-                  <option value="Liderazgo">Liderazgo</option>
-                  <option value="Profesores Locales">Profesores Locales</option>
-                  <option value="Profesores Voluntarios">Profesores Voluntarios</option>
-                  <option value="Socios">Socios</option>
-                </select>
+                  placeholder="ej., Junta Directiva, Liderazgo"
+                  className="bg-gray-50"
+                  readOnly
+                />
+                <p className="text-xs text-gray-500 mt-1">Auto-generado desde la selección de categoría arriba</p>
               </div>
               <div>
                 <Label htmlFor="bioEs">{t('bio')}</Label>
@@ -323,20 +353,16 @@ export default function EditTeamMemberPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="roleZh">{t('position')}</Label>
-                <select
+                <Label htmlFor="roleZh">{t('position')} (中文)</Label>
+                <Input
                   id="roleZh"
                   value={roleZh}
                   onChange={(e) => setRoleZh(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
-                >
-                  <option value="">选择职位</option>
-                  <option value="董事会">董事会</option>
-                  <option value="领导层">领导层</option>
-                  <option value="本地教师">本地教师</option>
-                  <option value="志愿教师">志愿教师</option>
-                  <option value="合作伙伴">合作伙伴</option>
-                </select>
+                  placeholder="例如：董事会、领导层"
+                  className="bg-gray-50"
+                  readOnly
+                />
+                <p className="text-xs text-gray-500 mt-1">从上面的职位选择自动生成</p>
               </div>
               <div>
                 <Label htmlFor="bioZh">{t('bio')}</Label>

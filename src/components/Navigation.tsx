@@ -77,7 +77,11 @@ export default function Navigation() {
                         </div>
                         <div className="hidden sm:block">
                             <div className="text-[#C8102E] font-bold text-xl">CCECC</div>
-                            <div className="text-xs text-gray-600">Centro Cultural Chino</div>
+                            <div className="text-xs text-gray-600 leading-tight">
+                                <div>Centro Cultural y Educativo</div>
+                                <div>
+                                    Costarricense Chino</div>
+                            </div>
                         </div>
                     </Link>
 

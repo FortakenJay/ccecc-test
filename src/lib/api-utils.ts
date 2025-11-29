@@ -27,7 +27,7 @@ export const VALID_ROLES = ['owner', 'admin', 'officer'];
 
 export const VALID_CONSULTA_STATUSES = ['pending', 'contacted', 'confirmed', 'cancelled'];
 
-export const VALID_HSK_STATUSES = ['pending', 'confirmed', 'cancelled', 'completed'];
+export const VALID_HSK_STATUSES = ['pending', 'approved', 'rejected', 'cancelled', 'completed'];
 
 export const VALID_INQUIRY_STATUSES = ['pending', 'contacted', 'confirmed', 'rejected'];
 
@@ -430,6 +430,7 @@ export function validateOrigin(request: Request): boolean {
     process.env.NEXT_PUBLIC_APP_URL,
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
     'http://localhost:3000',
+    'https://centroculturalchinocr.com',
     'https://localhost:3000'
   ].filter(Boolean);
   

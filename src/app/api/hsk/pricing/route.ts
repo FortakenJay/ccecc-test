@@ -15,14 +15,10 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get('active') !== 'false';
-    const locale = searchParams.get('locale') || 'en';
 
     let query = supabase
       .from('hsk_pricing')
-      .select(`
-        *,
-        translations:hsk_pricing_translations(locale, description)
-      `)
+      .select('*')
       .order('display_order', { ascending: true });
 
     if (activeOnly) {
@@ -36,17 +32,7 @@ export async function GET(request: NextRequest) {
       return errorResponse('Failed to fetch HSK pricing', 400);
     }
 
-    // Merge translations by locale
-    const mergedData = (data || []).map((pricing: any) => {
-      const translation = pricing.translations?.find((t: any) => t.locale === locale);
-      return {
-        ...pricing,
-        description: translation?.description || null,
-        translations: pricing.translations || []
-      };
-    });
-
-    return NextResponse.json({ data: mergedData });
+    return NextResponse.json({ data: data || [] });
   } catch (error: any) {
     return errorResponse(sanitizeError(error));
   }
@@ -74,7 +60,7 @@ export async function POST(request: NextRequest) {
       return errorResponse('Request body too large', 413);
     }
 
-    const { level, level_number, written_fee_usd, oral_fee_usd, is_active, display_order, translations } = body;
+    const { level, level_number, written_fee_usd, oral_fee_usd, is_active, display_order } = body;
 
     // Validate required fields
     if (!level) {
@@ -106,23 +92,6 @@ export async function POST(request: NextRequest) {
     if (error || !data) {
       console.error('Pricing insert error:', error);
       return errorResponse('Failed to create HSK pricing', 400);
-    }
-
-    // Insert translations if provided
-    if (translations && Array.isArray(translations)) {
-      const translationInserts = translations
-        .filter((t: any) => t.locale && t.description)
-        .map((t: any) => ({
-          pricing_id: data.id,
-          locale: t.locale,
-          description: sanitizeTextInput(t.description)
-        }));
-
-      if (translationInserts.length > 0) {
-        await supabase
-          .from('hsk_pricing_translations')
-          .insert(translationInserts);
-      }
     }
 
     return NextResponse.json({ data }, { status: 201 });

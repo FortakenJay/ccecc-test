@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
     // Check authentication
     const user = await checkAuth(supabase);
 
-    // Check authorization - admin only
-    await checkAuthorization(supabase, user.id, ['admin', 'owner']);
+    // Check authorization - admin, owner, and officer
+    await checkAuthorization(supabase, user.id, ['admin', 'owner', 'officer']);
 
     // Get pagination params
     const url = new URL(request.url);

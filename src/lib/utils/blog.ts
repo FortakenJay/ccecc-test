@@ -141,7 +141,7 @@ export const EXAMPLE_TIPTAP_CONTENT = {
     {
       type: 'image',
       attrs: {
-        src: 'https://example.com/image.jpg',
+        src: '/1838.jpg',
         alt: 'Description of image',
         title: 'Image title'
       }

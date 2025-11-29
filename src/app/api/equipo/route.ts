@@ -15,6 +15,17 @@ import {
   MAX_BIO_LENGTH
 } from '@/lib/api-utils';
 
+// Helper function to generate slug from name
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -79,17 +90,29 @@ export async function POST(request: NextRequest) {
       return errorResponse('Request body too large', 413);
     }
 
-    const { slug, image_url, display_order, translations } = body;
+    const { image_url, display_order, translations } = body;
 
-    // Validate required fields
-    if (!slug) {
-      return errorResponse('Missing required field: slug', 400);
+    // Validate required fields - we need at least one translation with a name
+    if (!translations || typeof translations !== 'object') {
+      return errorResponse('Missing required field: translations', 400);
     }
 
-    // Validate field lengths
-    if (!isValidTextLength(slug, 100)) {
-      return errorResponse('Slug must not exceed 100 characters', 400);
+    // Find the first translation with a name to generate slug
+    let primaryName = '';
+    for (const [locale, trans] of Object.entries(translations)) {
+      const transObj = trans as Record<string, any>;
+      if (transObj.name && transObj.name.trim()) {
+        primaryName = transObj.name.trim();
+        break;
+      }
     }
+
+    if (!primaryName) {
+      return errorResponse('At least one translation must have a name', 400);
+    }
+
+    // Generate slug from primary name
+    const slug = generateSlug(primaryName);
 
     // Validate translations if provided
     if (translations && typeof translations === 'object') {
@@ -127,7 +150,7 @@ export async function POST(request: NextRequest) {
     const { data: newMember, error: memberError } = await supabase
       .from('team_members')
       .insert({
-        slug: sanitizeTextInput(slug),
+        slug,
         image_url: image_url ? image_url.trim() : null,
         display_order: nextOrder,
         created_by: user.id,

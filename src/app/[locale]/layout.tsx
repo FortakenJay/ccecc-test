@@ -85,7 +85,7 @@ export default async function LocaleLayout({
 
             {/* WhatsApp Floating Button */}
             <Link
-              href="https://wa.me/50600000000"
+              href="https://wa.me/50687830474"
               target="_blank"
               rel="noopener noreferrer"
               className="fixed bottom-6 right-6 bg-[#25D366] text-white rounded-full p-4 shadow-lg hover:scale-110 transition-transform z-50"

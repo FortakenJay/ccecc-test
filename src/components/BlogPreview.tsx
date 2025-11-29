@@ -19,13 +19,27 @@ export function BlogPreview({ locale }: BlogPreviewProps) {
     useEffect(() => {
         async function fetchBlogs() {
             try {
-                const res = await fetch(`/api/eventos?locale=${locale}&published=true&limit=3`);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                
+                const res = await fetch(`/api/eventos?locale=${locale}&published=true&limit=3`, {
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
                 if (res.ok) {
                     const data = await res.json();
                     setBlogs(data.data || []);
+                } else {
+                    console.error('Failed to fetch blogs:', res.status, res.statusText);
                 }
             } catch (error) {
-                console.error('Failed to fetch blogs:', error);
+                if (error instanceof Error && error.name === 'AbortError') {
+                    console.error('Blog fetch timeout');
+                } else {
+                    console.error('Failed to fetch blogs:', error);
+                }
             } finally {
                 setLoading(false);
             }

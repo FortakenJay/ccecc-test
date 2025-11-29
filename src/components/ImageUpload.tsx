@@ -137,19 +137,18 @@ export default function ImageUpload({
             className="hidden"
           />
 
-          <label htmlFor={inputId} className="w-full">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={uploading}
-              className="w-full"
+          <label 
+            htmlFor={inputId} 
+            className="block w-full cursor-pointer"
+          >
+            <div
+              className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200 text-center"
             >
               <FontAwesomeIcon icon={faUpload} className="mr-2" />
-
               {uploading
                 ? t('uploading')
                 : `${t('upload')} ${label}`}
-            </Button>
+            </div>
           </label>
 
           <p className="text-xs text-gray-500 mt-1">

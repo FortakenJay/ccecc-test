@@ -161,7 +161,7 @@ export default function DashboardPage() {
     if (user && (isAdmin || isOwner || isOfficer)) {
       fetchDashboardData();
     }
-  }, [user, isAdmin, isOwner, profile?.role]);
+  }, [user, isAdmin, isOwner, isOfficer, profile?.role]);
 
   if (authLoading || roleLoading) {
     return (
@@ -382,7 +382,7 @@ export default function DashboardPage() {
               {(isAdmin || isOwner) && (
                 <button
                   onClick={() => router.push('/panel/usuarios')}
-                  className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+                  className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group cursor-pointer"
                 >
                   <FontAwesomeIcon icon={faUsers} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
                   <h4 className="font-semibold text-gray-900">{t('manageUsers')}</h4>
@@ -392,7 +392,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={() => router.push('/panel/clases')}
-                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group cursor-pointer"
               >
                 <FontAwesomeIcon icon={faBook} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
                 <h4 className="font-semibold text-gray-900">{t('manageClasses')}</h4>
@@ -401,7 +401,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={() => router.push('/panel/blog')}
-                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group cursor-pointer"
               >
                 <FontAwesomeIcon icon={faCalendar} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
                 <h4 className="font-semibold text-gray-900">{t('manageBlog')}</h4>
@@ -410,7 +410,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={() => router.push('/panel/hsk/sessiones')}
-                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group cursor-pointer"
               >
                 <FontAwesomeIcon icon={faAward} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
                 <h4 className="font-semibold text-gray-900">{t('manageHSKsessions')}</h4>
@@ -419,7 +419,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={() => router.push('/panel/hsk/precios')}
-                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group cursor-pointer"
               >
                 <FontAwesomeIcon icon={faMoneyBill1Wave} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
                 <h4 className="font-semibold text-gray-900">{t('manageHSkprice')}</h4>
@@ -428,7 +428,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={() => router.push('/panel/hsk/registraciones')}
-                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group cursor-pointer"
               >
                 <FontAwesomeIcon icon={faUserCircle} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
                 <h4 className="font-semibold text-gray-900">{t('manageHSKregistrations')}</h4>
@@ -437,7 +437,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={() => router.push('/panel/equipo')}
-                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group"
+                className="p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-red-500 hover:shadow-md transition-all text-left group cursor-pointer"
               >
                 <FontAwesomeIcon icon={faUserShield} className="w-8 h-8 text-gray-400 group-hover:text-red-600 mb-2" />
                 <h4 className="font-semibold text-gray-900">{t('manageAboutUsTeam')}</h4>

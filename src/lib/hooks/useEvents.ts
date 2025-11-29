@@ -3,31 +3,31 @@
 import { useState, useEffect } from 'react';
 import type { Database } from '@/types/database.types';
 import {
-  isValidUUID,
   isValidLocale,
   isValidTextLength,
+  isValidUUID,
   sanitizeError,
   SUPPORTED_LOCALES,
   MAX_TITLE_LENGTH,
   MAX_DESCRIPTION_LENGTH
 } from '@/lib/api-utils';
 
-type EventRow = Database['public']['Tables']['events']['Row'];
-type EventInsert = Database['public']['Tables']['events']['Insert'];
-type EventUpdate = Database['public']['Tables']['events']['Update'];
-type EventTranslation = Database['public']['Tables']['event_translations']['Row'];
+type BlogPostRow = Database['public']['Tables']['blog_posts']['Row'];
+type BlogPostInsert = Database['public']['Tables']['blog_posts']['Insert'];
+type BlogPostUpdate = Database['public']['Tables']['blog_posts']['Update'];
+type BlogPostTranslation = Database['public']['Tables']['blog_post_translations']['Row'];
 
-interface EventWithTranslations extends EventRow {
-  translations?: EventTranslation[];
+interface BlogPostWithTranslations extends BlogPostRow {
+  translations?: BlogPostTranslation[];
 }
 
-interface EventTranslationInput {
+interface BlogPostTranslationInput {
   title: string;
   description?: string;
 }
 
 export function useEvents(locale?: string) {
-  const [events, setEvents] = useState<EventWithTranslations[]>([]);
+  const [events, setEvents] = useState<BlogPostWithTranslations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,8 +84,8 @@ export function useEvents(locale?: string) {
 
   // Create new event with translations
   const createEvent = async (
-    eventData: Omit<EventInsert, 'id' | 'created_at' | 'updated_at'>,
-    translations: Record<string, EventTranslationInput>
+    eventData: Omit<BlogPostInsert, 'id' | 'created_at' | 'updated_at'>,
+    translations: Record<string, BlogPostTranslationInput>
   ) => {
     try {
       if (Object.keys(translations).length === 0) {
@@ -128,8 +128,8 @@ export function useEvents(locale?: string) {
   // Update event
   const updateEvent = async (
     id: string,
-    eventData: EventUpdate,
-    translations?: Record<string, Partial<EventTranslationInput>>
+    eventData: BlogPostUpdate,
+    translations?: Record<string, Partial<BlogPostTranslationInput>>
   ) => {
     try {
       if (!isValidUUID(id)) {
@@ -195,10 +195,12 @@ export function useEvents(locale?: string) {
     }
   };
 
-  // Update attendee count
-  const updateAttendees = async (id: string, count: number) => {
-    return updateEvent(id, { current_attendees: count });
-  };
+
+  // Update attendee count (not applicable for blog_posts, so this is a no-op or can be removed)
+  // const updateAttendees = async (id: string, count: number) => {
+  //   // No-op: blog_posts does not have current_attendees
+  //   return { error: 'Not implemented for blog_posts' };
+  // };
 
   useEffect(() => {
     fetchEvents();
@@ -213,6 +215,5 @@ export function useEvents(locale?: string) {
     createEvent,
     updateEvent,
     deleteEvent,
-    updateAttendees,
   };
 }

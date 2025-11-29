@@ -26,10 +26,7 @@ export async function GET(
 
     const { data, error } = await supabase
       .from('hsk_pricing')
-      .select(`
-        *,
-        translations:hsk_pricing_translations(locale, description)
-      `)
+      .select('*')
       .eq('id', id)
       .single();
 
@@ -74,7 +71,7 @@ export async function PATCH(
       return errorResponse('Request body too large', 413);
     }
 
-    const { level, level_number, written_fee_usd, oral_fee_usd, is_active, display_order, translations } = body;
+    const { level, level_number, written_fee_usd, oral_fee_usd, is_active, display_order } = body;
 
     // Validate fees if provided
     if (written_fee_usd !== undefined && written_fee_usd < 0) {
@@ -101,23 +98,6 @@ export async function PATCH(
 
     if (error || !data) {
       return errorResponse('Failed to update pricing', 400);
-    }
-
-    // Update translations if provided
-    if (translations && Array.isArray(translations)) {
-      for (const translation of translations) {
-        if (translation.locale && translation.description !== undefined) {
-          await supabase
-            .from('hsk_pricing_translations')
-            .upsert({
-              pricing_id: id,
-              locale: translation.locale,
-              description: translation.description ? sanitizeTextInput(translation.description) : null
-            }, {
-              onConflict: 'pricing_id,locale'
-            });
-        }
-      }
     }
 
     return NextResponse.json({ data });

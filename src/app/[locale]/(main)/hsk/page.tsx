@@ -24,6 +24,7 @@ import {
     faCircleExclamation,
     faDollarSign
 } from "@fortawesome/free-solid-svg-icons";
+import { useTranslations } from 'next-intl';
 
 // Define the Fee interface at the top of the file
 interface Fee {
@@ -34,6 +35,7 @@ interface Fee {
 }
 
 function HSKTestingPageContent() {
+    const t = useTranslations('hsk');
     const { sessions, loading: sessionsLoading, fetchSessions } = useHSK();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
@@ -79,28 +81,37 @@ function HSKTestingPageContent() {
     }, []);
 
     const requirements = [
-        'Pasaporte o cédula de identidad vigente', 
-        'Fotografía tamaño pasaporte reciente', 
-        'Comprobante de pago del examen', 
-        'Formulario de inscripción completo'
+        t('requirementsList.passport'), 
+        t('requirementsList.photo'), 
+        t('requirementsList.payment'), 
+        t('requirementsList.form')
+
     ];
 
     const faqs = [
         {
-            question: '¿Qué es el examen HSK?',
-            answer: 'El Hanyu Shuiping Kaoshi (HSK) es el examen internacional estandarizado de chino mandarín. Es la certificación oficial de competencia lingüística para hablantes no nativos, reconocida globalmente por instituciones educativas y empresas.'
+            question: t('faqs.q1.question'),
+            answer:  t('faqs.q1.answer')
         }, 
         {
-            question: '¿Cuándo recibo mis resultados?',
-            answer: 'Los resultados oficiales se publican aproximadamente 1 mes después del examen. Recibirás una notificación por email cuando estén disponibles. El certificado físico llega 2-3 meses después.'
+            question: t('faqs.q2.question'),
+            answer:  t('faqs.q2.answer')
         }, 
         {
-            question: '¿El certificado HSK tiene vencimiento?',
-            answer: 'Los certificados HSK son válidos por 2 años desde la fecha del examen. Después de este período, se recomienda volver a certificar para demostrar tu nivel actual.'
+            question: t('faqs.q3.question'),
+            answer:  t('faqs.q3.answer')
         }, 
         {
-            question: '¿Qué debo llevar el día del examen?',
-            answer: 'Debes traer tu documento de identidad original, 2 lápices HB, borrador, y tu confirmación de inscripción. No se permiten diccionarios, teléfonos ni dispositivos electrónicos.'
+            question: t('faqs.q4.question'),
+            answer:  t('faqs.q4.answer')
+        },
+         {
+            question: t('faqs.q5.question'),
+            answer:  t('faqs.q5.answer')
+        },
+         {
+            question: t('faqs.q6.question'),
+            answer:  t('faqs.q6.answer')
         }
     ];
 
@@ -160,10 +171,27 @@ function HSKTestingPageContent() {
         const { name, value } = e.target;
         const sanitizedValue = sanitizeTextInput(value);
         
-        setFormData({
-            ...formData,
-            [name]: sanitizedValue
-        });
+        // If exam session is selected, auto-set the level if the session has one
+        if (name === 'examSessionId' && value) {
+            const selectedSession = activeSessions.find(s => s.id === value);
+            if (selectedSession && selectedSession.level) {
+                setFormData({
+                    ...formData,
+                    [name]: sanitizedValue,
+                    level: selectedSession.level
+                });
+            } else {
+                setFormData({
+                    ...formData,
+                    [name]: sanitizedValue
+                });
+            }
+        } else {
+            setFormData({
+                ...formData,
+                [name]: sanitizedValue
+            });
+        }
         
         if (validationError) {
             setValidationError(null);
@@ -224,6 +252,9 @@ function HSKTestingPageContent() {
         setIsSubmitting(true);
 
         try {
+            // Convert HSK level format from "HSK 1" to "hsk1" 
+            const convertedLevel = formData.level.toLowerCase().replace(/\s+/g, '');
+
             const response = await fetch('/api/hsk/registration', {
                 method: 'POST',
                 headers: {
@@ -234,7 +265,7 @@ function HSKTestingPageContent() {
                     last_name: formData.lastName,
                     email: formData.email,
                     phone: formData.phone,
-                    level: formData.level,
+                    level: convertedLevel,
                     previous_level: formData.previousLevel || 'no',
                     exam_session_id: formData.examSessionId || null,
                     recaptcha_token: recaptchaToken,
@@ -282,17 +313,14 @@ function HSKTestingPageContent() {
                                     <FontAwesomeIcon icon={faAward} className="w-8 h-8 text-[#FFD700]"/>
                                 </div>
                                 <div>
-                                    <h1 className="text-4xl lg:text-5xl">Examen HSK</h1>
-                                    <p className="text-white/90 text-lg">汉语水平考试</p>
+                                    <h1 className="text-4xl lg:text-5xl">{t('pageTitle')}</h1>
+                                    <p className="text-white/90 text-lg">{t('pageSubtitle')}</p>
                                 </div>
                             </div>
-                            <p className="text-white/90 text-lg max-w-2xl">
-                                Centro oficial autorizado para la administración del examen HSK. Certifica tu nivel de chino mandarín con reconocimiento internacional.
-                            </p>
                         </div>
                         {activeSessions.length > 0 && (
                             <div className="bg-white/10 backdrop-blur rounded-2xl p-6 text-center">
-                                <div className="text-[#FFD700] mb-2">Próximo Examen</div>
+                                <div className="text-[#FFD700] mb-2">{t('nextExam')}</div>
                                 <div className="text-3xl mb-1">
                                     {new Date(activeSessions[0].exam_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).toUpperCase()}
                                 </div>
@@ -306,7 +334,7 @@ function HSKTestingPageContent() {
                                         formSection?.scrollIntoView({ behavior: 'smooth' });
                                     }}
                                 >
-                                    Inscribirse Ahora
+                                    {t('registerNow')}
                                 </Button>
                             </div>
                         )}
@@ -318,8 +346,8 @@ function HSKTestingPageContent() {
                 {/* Available Exam Sessions */}
                 <section className="mb-16">
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl text-gray-900 mb-2">Sesiones de Examen Disponibles</h2>
-                        <p className="text-gray-600">Selecciona la sesión de examen que deseas tomar</p>
+                        <h2 className="text-3xl text-gray-900 mb-2">{t('slotsAvailable')}</h2>
+                        <p className="text-gray-600">{t('selectSess')}</p>
                     </div>
                     
                     {sessionsLoading ? (
@@ -350,7 +378,7 @@ function HSKTestingPageContent() {
                                                 </Badge>
                                             )}
                                             {isAvailable ? (
-                                                <Badge className="bg-green-500 text-white">Disponible</Badge>
+                                                <Badge className="bg-green-500 text-white">{t('available')}</Badge>
                                             ) : new Date() >= registrationDeadline ? (
                                                 <Badge className="bg-orange-500 text-white">Inscripción Cerrada</Badge>
                                             ) : (
@@ -362,7 +390,7 @@ function HSKTestingPageContent() {
                                         <div className="mb-4">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <FontAwesomeIcon icon={faCalendar} className="w-4 h-4 text-[#C8102E]"/>
-                                                <span className="text-sm text-gray-600">Fecha del Examen</span>
+                                                <span className="text-sm text-gray-600">{t('testDates')}</span>
                                             </div>
                                             <div className="text-xl text-gray-900">
                                                 {examDate.toLocaleDateString('es-ES', { 
@@ -387,7 +415,7 @@ function HSKTestingPageContent() {
 
                                         {/* Registration Deadline */}
                                         <div className="mb-4 text-xs text-gray-600">
-                                            <span>Inscripción hasta: </span>
+                                            <span>{t('deadline')} </span>
                                             <span className="font-medium">
                                                 {registrationDeadline.toLocaleDateString('es-ES', { 
                                                     day: 'numeric', 
@@ -408,7 +436,7 @@ function HSKTestingPageContent() {
                                                     formSection?.scrollIntoView({ behavior: 'smooth' });
                                                 }}
                                             >
-                                                Inscribirse Ahora
+                                                {t('registerNow')}
                                             </Button>
                                         ) : (
                                             <Button 
@@ -438,7 +466,7 @@ function HSKTestingPageContent() {
                     <Card className="p-6 max-w-2xl mx-auto">
                         <div className="flex items-center gap-2 mb-6">
                             <FontAwesomeIcon icon={faFileLines} className="w-6 h-6 text-[#C8102E]"/>
-                            <h3 className="text-xl text-gray-900">Requisitos de Inscripción</h3>
+                            <h3 className="text-xl text-gray-900">{t('requirements')}</h3>
                         </div>
                         <div className="space-y-4">
                             {requirements.map((req, index) => (
@@ -456,7 +484,7 @@ function HSKTestingPageContent() {
                                     icon={faCircleExclamation}
                                     className="w-5 h-5 text-blue-600 shrink-0 mt-0.5"/>
                                 <p className="text-sm text-blue-900">
-                                    Los documentos deben presentarse al menos 2 semanas antes de la fecha del examen.
+                                    {t('requirementsNote')}
                                 </p>
                             </div>
                         </div>
@@ -468,7 +496,7 @@ function HSKTestingPageContent() {
                     <Card className="p-6">
                         <div className="flex items-center gap-2 mb-6">
                             <FontAwesomeIcon icon={faDollarSign} className="w-6 h-6 text-[#C8102E]"/>
-                            <h3 className="text-xl text-gray-900">Estructura de Tarifas</h3>
+                            <h3 className="text-xl text-gray-900">{t('paymentInstructions')}</h3>
                         </div>
                         <div className="space-y-2">
                             {feeStructure.map((fee, index) => (
@@ -478,15 +506,15 @@ function HSKTestingPageContent() {
                                         <span className="text-[#C8102E]">{fee.total}</span>
                                     </div>
                                     <div className="flex gap-4 text-xs text-gray-600">
-                                        <span>Escrito: {fee.writtenFee}</span>
-                                        <span>Oral: {fee.oralFee}</span>
+                                        <span>{t('written')}: {fee.writtenFee}</span>
+                                        <span>{t('oral')}: {fee.oralFee}</span>
                                     </div>
                                 </div>
                             ))}
                         </div>
                         <div className="mt-6 p-4 bg-[#FFD700]/10 rounded-lg border border-[#FFD700]">
                             <p className="text-sm text-gray-700">
-                                💳 Métodos de pago aceptados: Transferencia bancaria, tarjeta de crédito/débito.
+                                {t('paymentMethods')}
                             </p>
                         </div>
                     </Card>
@@ -495,8 +523,8 @@ function HSKTestingPageContent() {
                 {/* Registration Form Section */}
                 <section id="registration-form" className="mb-16">
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl text-gray-900 mb-2">Formulario de Inscripción</h2>
-                        <p className="text-gray-600">Complete el proceso en 3 simples pasos</p>
+                        <h2 className="text-3xl text-gray-900 mb-2">{t('registrationForm')}</h2>
+                        <p className="text-gray-600">{t('formSteps')}</p>
                     </div>
 
                     <Card className="max-w-3xl mx-auto p-8">
@@ -512,13 +540,13 @@ function HSKTestingPageContent() {
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className={step >= 1 ? 'text-[#C8102E]' : 'text-gray-400'}>
-                                    Datos Personales
+                                    {t('step1')}
                                 </span>
                                 <span className={step >= 2 ? 'text-[#C8102E]' : 'text-gray-400'}>
-                                    Nivel y Fecha
+                                    {t('step2')}
                                 </span>
                                 <span className={step >= 3 ? 'text-[#C8102E]' : 'text-gray-400'}>
-                                    Confirmación
+                                    {t('step3')}
                                 </span>
                             </div>
                         </div>
@@ -536,7 +564,7 @@ function HSKTestingPageContent() {
                                 )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <Label htmlFor="firstName">Nombre</Label>
+                                        <Label htmlFor="firstName">{t('firstName')}</Label>
                                         <div className="flex items-center gap-2 mt-1">
                                             <FontAwesomeIcon icon={faUser} className="w-4 h-4 text-gray-400"/>
                                             <Input
@@ -544,13 +572,13 @@ function HSKTestingPageContent() {
                                                 name="firstName"
                                                 value={formData.firstName}
                                                 onChange={handleInputChange}
-                                                placeholder="Tu nombre"
+                                                placeholder={t('firstNamePlaceholder')}
                                                 required
                                                 maxLength={50}/>
                                         </div>
                                     </div>
                                     <div>
-                                        <Label htmlFor="lastName">Apellidos</Label>
+                                        <Label htmlFor="lastName">{t('lastName')}</Label>
                                         <div className="flex items-center gap-2 mt-1">
                                             <FontAwesomeIcon icon={faUser} className="w-4 h-4 text-gray-400"/>
                                             <Input
@@ -558,7 +586,7 @@ function HSKTestingPageContent() {
                                                 name="lastName"
                                                 value={formData.lastName}
                                                 onChange={handleInputChange}
-                                                placeholder="Tus apellidos"
+                                                placeholder={t('lastNamePlaceholder')}
                                                 required
                                                 maxLength={50}/>
                                         </div>
@@ -566,7 +594,7 @@ function HSKTestingPageContent() {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="email">Email</Label>
+                                    <Label htmlFor="email">{t('email')}</Label>
                                     <div className="flex items-center gap-2 mt-1">
                                         <FontAwesomeIcon icon={faEnvelope} className="w-4 h-4 text-gray-400"/>
                                         <Input
@@ -582,7 +610,7 @@ function HSKTestingPageContent() {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="phone">Teléfono</Label>
+                                    <Label htmlFor="phone">{t('phone')}</Label>
                                     <div className="flex items-center gap-2 mt-1">
                                         <FontAwesomeIcon icon={faPhone} className="w-4 h-4 text-gray-400"/>
                                         <Input
@@ -611,26 +639,7 @@ function HSKTestingPageContent() {
                                     </div>
                                 )}
                                 <div>
-                                    <Label htmlFor="level">Nivel del Examen</Label>
-                                    <select
-                                        id="level"
-                                        name="level"
-                                        value={formData.level}
-                                        onChange={handleInputChange}
-                                        className="w-full mt-1 p-2 border rounded-md"
-                                        required>
-                                        <option value="">Selecciona un nivel</option>
-                                        <option value="HSK 1">HSK 1 - Principiante</option>
-                                        <option value="HSK 2">HSK 2 - Elemental</option>
-                                        <option value="HSK 3">HSK 3 - Intermedio</option>
-                                        <option value="HSK 4">HSK 4 - Intermedio Alto</option>
-                                        <option value="HSK 5">HSK 5 - Avanzado</option>
-                                        <option value="HSK 6">HSK 6 - Superior</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="examSessionId">Fecha del Examen</Label>
+                                    <Label htmlFor="examSessionId">{t('testDate')}</Label>
                                     <select
                                         id="examSessionId"
                                         name="examSessionId"
@@ -638,7 +647,7 @@ function HSKTestingPageContent() {
                                         onChange={handleInputChange}
                                         className="w-full mt-1 p-2 border rounded-md"
                                         required>
-                                        <option value="">Selecciona una fecha</option>
+                                        <option value="">{t('selectDate')}</option>
                                         {sessions.filter(s => s.is_active).map((session: any) => {
                                             const examDate = new Date(session.exam_date);
                                             const registrationDeadline = new Date(session.registration_deadline);
@@ -658,7 +667,25 @@ function HSKTestingPageContent() {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="previousLevel">¿Has tomado el HSK anteriormente?</Label>
+                                    <Label htmlFor="level">{t('level')}</Label>
+                                    {selectedSession && selectedSession.level ? (
+                                        <div className="w-full mt-1 p-3 border rounded-md bg-blue-50 border-blue-200">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-lg font-semibold text-blue-800">{selectedSession.level}</span>
+                                                <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                                                    From selected exam session
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="w-full mt-1 p-3 border rounded-md bg-gray-50">
+                                            <span className="text-gray-500">Select an exam session first</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <Label htmlFor="previousLevel">{t('previousLevel')}</Label>
                                     <select
                                         id="previousLevel"
                                         name="previousLevel"
@@ -666,13 +693,13 @@ function HSKTestingPageContent() {
                                         onChange={handleInputChange}
                                         className="w-full mt-1 p-2 border rounded-md"
                                         required>
-                                        <option value="">Selecciona</option>
-                                        <option value="no">No, es mi primer examen HSK</option>
-                                        <option value="HSK 1">Sí, HSK 1</option>
-                                        <option value="HSK 2">Sí, HSK 2</option>
-                                        <option value="HSK 3">Sí, HSK 3</option>
-                                        <option value="HSK 4">Sí, HSK 4</option>
-                                        <option value="HSK 5">Sí, HSK 5</option>
+                                        <option value="">{t('selectLevel')}</option>
+                                        <option value="no">{t('noPreviousExam')}</option>
+                                        <option value="HSK 1">{t('yesHSK')} 1</option>
+                                        <option value="HSK 2">{t('yesHSK')} 2</option>
+                                        <option value="HSK 3">{t('yesHSK')} 3</option>
+                                        <option value="HSK 4">{t('yesHSK')} 4</option>
+                                        <option value="HSK 5">{t('yesHSK')} 5</option>
                                     </select>
                                 </div>
                             </div>
@@ -684,29 +711,29 @@ function HSKTestingPageContent() {
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-6">
                                     <div className="flex items-center gap-3 mb-4">
                                         <FontAwesomeIcon icon={faCheckCircle} className="w-8 h-8 text-green-600"/>
-                                        <h3 className="text-lg text-gray-900">Resumen de Inscripción</h3>
+                                        <h3 className="text-lg text-gray-900">{t('confirmationTitle')}</h3>
                                     </div>
                                     <div className="space-y-3 text-sm">
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Nombre completo:</span>
+                                            <span className="text-gray-600">{t('fullName')}:</span>
                                             <span className="text-gray-900">{formData.firstName} {formData.lastName}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Email:</span>
+                                            <span className="text-gray-600">{t('email')}:</span>
                                             <span className="text-gray-900">{formData.email}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Teléfono:</span>
+                                            <span className="text-gray-600">{t('phone')}:</span>
                                             <span className="text-gray-900">{formData.phone}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Nivel:</span>
+                                            <span className="text-gray-600">{t('level')}:</span>
                                             <span className="text-gray-900">{formData.level}</span>
                                         </div>
                                         {selectedSession && (
                                             <>
                                                 <div className="flex justify-between">
-                                                    <span className="text-gray-600">Fecha del examen:</span>
+                                                    <span className="text-gray-600">{t('testDate')}:</span>
                                                     <span className="text-gray-900">
                                                         {new Date(selectedSession.exam_date).toLocaleDateString('es-ES', { 
                                                             day: 'numeric', 
@@ -717,7 +744,7 @@ function HSKTestingPageContent() {
                                                 </div>
                                                 {selectedSession.location && (
                                                     <div className="flex justify-between">
-                                                        <span className="text-gray-600">Ubicación:</span>
+                                                        <span className="text-gray-600">{t('location')}:</span>
                                                         <span className="text-gray-900">{selectedSession.location}</span>
                                                     </div>
                                                 )}
@@ -731,12 +758,12 @@ function HSKTestingPageContent() {
                                         <FontAwesomeIcon icon={faCircleExclamation} className="w-5 h-5 text-blue-600 shrink-0 mt-0.5"/>
                                         <div className="text-sm text-blue-900">
                                             <p className="mb-2">
-                                                Al confirmar tu inscripción, recibirás un email con:
+                                                {t('confirmationInfo')}
                                             </p>
                                             <ul className="list-disc list-inside space-y-1">
-                                                <li>Instrucciones de pago</li>
-                                                <li>Lista de documentos requeridos</li>
-                                                <li>Ubicación y horario del examen</li>
+                                                <li>{t('paymentInstructions')}</li>
+                                                <li>{t('requiredDocuments')}</li>
+                                                <li>{t('examLocationTime')}</li>
                                             </ul>
                                         </div>
                                     </div>
@@ -757,21 +784,21 @@ function HSKTestingPageContent() {
                                     variant="outline"
                                     onClick={handlePrevStep}
                                     className="border-[#C8102E] text-[#C8102E] hover:bg-[#C8102E] hover:text-white">
-                                    Anterior
+                                    {t('previous')}
                                 </Button>
                             )}
                             {step < 3 ? (
                                 <Button
                                     onClick={handleNextStep}
                                     className="ml-auto bg-linear-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white">
-                                    Siguiente
+                                    {t('next')}
                                 </Button>
                             ) : (
                                 <Button
                                     onClick={handleSubmitRegistration}
                                     disabled={isSubmitting}
                                     className="ml-auto bg-linear-to-r from-[#C8102E] to-[#B00E29] hover:from-[#B00E29] hover:to-[#A00C26] text-white disabled:opacity-50 disabled:cursor-not-allowed">
-                                    {isSubmitting ? 'Enviando...' : 'Confirmar Inscripción'}
+                                    {isSubmitting ? 'Enviando...' : t('confirmEnrollment')}
                                 </Button>
                             )}
                         </div>
@@ -781,8 +808,8 @@ function HSKTestingPageContent() {
                 {/* FAQ Section */}
                 <section>
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl text-gray-900 mb-2">Preguntas Frecuentes</h2>
-                        <p className="text-gray-600">Todo lo que necesitas saber sobre el examen HSK</p>
+                        <h2 className="text-3xl text-gray-900 mb-2">{t('faqTitle')}</h2>
+                        <p className="text-gray-600">{t('faqSubtitle')}</p>
                     </div>
 
                     <Card className="max-w-4xl mx-auto p-6">

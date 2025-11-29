@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, email, full_name, role, invited_by, invitation_id, is_active = true } = body;
 
+    console.log('Accept invitation request:', { 
+      id, 
+      email, 
+      role, 
+      invitation_id, 
+      invited_by,
+      timestamp: new Date().toISOString() 
+    });
+
     // Validate required fields
     if (!id || !email || !full_name || !role || !invitation_id) {
+      console.error('Missing required fields');
       return NextResponse.json(
         { error: 'Missing required fields: id, email, full_name, role, invitation_id' },
         { status: 400 }
@@ -23,9 +34,15 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
+    
+    // Use service role client for database operations to bypass RLS
+    const serviceSupabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    // Verify there's a valid invitation for this email
-    const { data: invitation, error: invitationError } = await supabase
+    // Verify there's a valid invitation for this email using service role
+    const { data: invitation, error: invitationError } = await serviceSupabase
       .from('invitations')
       .select('*')
       .eq('id', invitation_id)
@@ -34,26 +51,32 @@ export async function POST(request: NextRequest) {
       .gt('expires_at', new Date().toISOString())
       .single();
 
+    console.log('Invitation verification result:', { invitation: !!invitation, invitationError });
+
     if (invitationError || !invitation) {
+      console.error('Invalid invitation:', { invitationError, invitation_id, email });
       return NextResponse.json(
-        { error: 'Invalid or expired invitation' },
+        { error: 'Invalid or expired invitation', details: invitationError },
         { status: 400 }
       );
     }
 
-    // Check if profile already exists
-    const { data: existingProfile } = await supabase
+    // Check if profile already exists using service role
+    const { data: existingProfile } = await serviceSupabase
       .from('profiles')
       .select('id')
       .eq('id', id)
       .single();
 
+    console.log('Existing profile check:', { existingProfile: !!existingProfile });
+
     let profile;
     let profileError;
 
     if (existingProfile) {
-      // Update existing profile
-      const { data, error } = await supabase
+      // Update existing profile using service role
+      console.log('Updating existing profile');
+      const { data, error } = await serviceSupabase
         .from('profiles')
         .update({
           email,
@@ -70,8 +93,9 @@ export async function POST(request: NextRequest) {
       profile = data;
       profileError = error;
     } else {
-      // Create new profile using a public client (RLS policy allows this for valid invitations)
-      const { data, error } = await supabase
+      // Create new profile using service role to bypass RLS
+      console.log('Creating new profile with service role');
+      const { data, error } = await serviceSupabase
         .from('profiles')
         .insert({
           id,
@@ -89,6 +113,8 @@ export async function POST(request: NextRequest) {
       profile = data;
       profileError = error;
     }
+
+    console.log('Profile operation result:', { profile: !!profile, profileError });
 
     if (profileError) {
       console.error('Profile creation error:', profileError);
@@ -114,8 +140,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mark invitation as accepted
-    const { error: updateError } = await supabase
+    // Mark invitation as accepted using service role
+    const { error: updateError } = await serviceSupabase
       .from('invitations')
       .update({ accepted_at: new Date().toISOString() })
       .eq('id', invitation_id);

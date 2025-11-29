@@ -9,11 +9,18 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textArea';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBook, faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons';
+import en from '@/locales/en/dashboard';
+import es from '@/locales/es/dashboard';
+import zh from '@/locales/zh/dashboard';
+
+const translations = { en, es, zh };
 
 export default function EditClassPage() {
   const router = useRouter();
   const params = useParams();
   const classId = params.id as string;
+  const locale = (params.locale as string) || 'en';
+  const t = translations[locale as keyof typeof translations];
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,7 +29,6 @@ export default function EditClassPage() {
   // Class data
   const [type, setType] = useState('');
   const [level, setLevel] = useState('');
-  const [slug, setSlug] = useState('');
   const [priceColones, setPriceColones] = useState('');
   const [isActive, setIsActive] = useState(true);
 
@@ -36,13 +42,58 @@ export default function EditClassPage() {
   const [levelEn, setLevelEn] = useState('');
   const [levelEs, setLevelEs] = useState('');
   const [levelZh, setLevelZh] = useState('');
-  const [descEn, setDescEn] = useState('');
-  const [descEs, setDescEs] = useState('');
-  const [descZh, setDescZh] = useState('');
+
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  // Function to translate level values
+  const translateLevel = (levelValue: string) => {
+    const levelTranslations = {
+      'beginner': { en: 'Beginner', es: 'Principiante', zh: '初级' },
+      'elementary': { en: 'Elementary', es: 'Elemental', zh: '基础' },
+      'intermediate': { en: 'Intermediate', es: 'Intermedio', zh: '中级' },
+      'advanced': { en: 'Advanced', es: 'Avanzado', zh: '高级' },
+      'All': { en: 'All Levels', es: 'Todos los Niveles', zh: '所有级别' },
+      'HSK 1': { en: 'HSK 1', es: 'HSK 1', zh: 'HSK 1' },
+      'HSK 2': { en: 'HSK 2', es: 'HSK 2', zh: 'HSK 2' },
+      'HSK 3': { en: 'HSK 3', es: 'HSK 3', zh: 'HSK 3' },
+      'HSK 4': { en: 'HSK 4', es: 'HSK 4', zh: 'HSK 4' },
+      'HSK 5': { en: 'HSK 5', es: 'HSK 5', zh: 'HSK 5' },
+      'HSK 6': { en: 'HSK 6', es: 'HSK 6', zh: 'HSK 6' }
+    };
+    return levelTranslations[levelValue as keyof typeof levelTranslations] || { en: '', es: '', zh: '' };
+  };
+
+  // Function to translate type/category values
+  const translateType = (typeValue: string) => {
+    const typeTranslations = {
+      'hsk': { en: 'HSK Courses', es: 'Cursos HSK', zh: 'HSK课程' },
+      'language': { en: 'Chinese Language Classes', es: 'Clases de Idioma Chino', zh: '中文语言课程' },
+      'cultural': { en: 'Cultural Classes', es: 'Clases Culturales', zh: '文化课程' },
+      'talleres': { en: 'Workshops', es: 'Talleres', zh: '工作坊' }
+    };
+    return typeTranslations[typeValue as keyof typeof typeTranslations] || { en: '', es: '', zh: '' };
+  };
+
+  // Handle level change and update translations
+  const handleLevelChange = (newLevel: string) => {
+    setLevel(newLevel);
+    const translations = translateLevel(newLevel);
+    setLevelEn(translations.en);
+    setLevelEs(translations.es);
+    setLevelZh(translations.zh);
+  };
+
+  // Handle type change and update translations
+  const handleTypeChange = (newType: string) => {
+    setType(newType);
+    const translations = translateType(newType);
+    setTypeEn(translations.en);
+    setTypeEs(translations.es);
+    setTypeZh(translations.zh);
   };
 
   useEffect(() => {
@@ -59,7 +110,6 @@ export default function EditClassPage() {
       
       setType(data.type || '');
       setLevel(data.level || '');
-      setSlug(data.slug || '');
       setPriceColones(data.price_colones?.toString() || '');
       setIsActive(data.is_active ?? true);
       
@@ -73,23 +123,20 @@ export default function EditClassPage() {
           setTitleEn(en.title || '');
           setTypeEn(en.type || '');
           setLevelEn(en.level || '');
-          setDescEn(en.description || '');
         }
         if (es) {
           setTitleEs(es.title || '');
           setTypeEs(es.type || '');
           setLevelEs(es.level || '');
-          setDescEs(es.description || '');
         }
         if (zh) {
           setTitleZh(zh.title || '');
           setTypeZh(zh.type || '');
           setLevelZh(zh.level || '');
-          setDescZh(zh.description || '');
         }
       }
     } catch (error) {
-      showToast('Failed to load class', 'error');
+      showToast(t.classes.edit.failedToLoad, 'error');
     } finally {
       setLoading(false);
     }
@@ -99,12 +146,7 @@ export default function EditClassPage() {
     e.preventDefault();
 
     if (!titleEn || !titleEs || !titleZh) {
-      showToast('Please provide titles in all languages', 'error');
-      return;
-    }
-
-    if (!type) {
-      showToast('Please select a class type', 'error');
+      showToast(t.classes.edit.titleRequired, 'error');
       return;
     }
 
@@ -115,15 +157,14 @@ export default function EditClassPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type,
+          type: type || null,
           level: level || null,
-          slug: slug || null,
           price_colones: priceColones ? parseFloat(priceColones) : null,
           is_active: isActive,
           translations: {
-            en: { title: titleEn, description: descEn || null, type: typeEn || null, level: levelEn || null },
-            es: { title: titleEs, description: descEs || null, type: typeEs || null, level: levelEs || null },
-            zh: { title: titleZh, description: descZh || null, type: typeZh || null, level: levelZh || null }
+            en: { title: titleEn, type: typeEn || null, level: levelEn || null },
+            es: { title: titleEs, type: typeEs || null, level: levelEs || null },
+            zh: { title: titleZh, type: typeZh || null, level: levelZh || null }
           }
         }),
       });
@@ -131,14 +172,14 @@ export default function EditClassPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        showToast(data.error || 'Failed to update class', 'error');
+        showToast(data.error || t.classes.edit.updateError, 'error');
         return;
       }
 
-      showToast('Class updated successfully!', 'success');
+      showToast(t.classes.edit.updateSuccess, 'success');
       setTimeout(() => router.push('/panel/clases'), 1500);
     } catch (error) {
-      showToast('An error occurred. Please try again.', 'error');
+      showToast(t.classes.new.genericError, 'error');
     } finally {
       setSaving(false);
     }
@@ -171,14 +212,14 @@ export default function EditClassPage() {
           className="mb-4 cursor-pointer"
         >
           <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
-          Back to Classes
+          {t.classes.edit.backToClasses}
         </Button>
         
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
           <FontAwesomeIcon icon={faBook} className="w-8 h-8 text-red-600" />
-          Edit Class
+          {t.classes.edit.title}
         </h1>
-        <p className="text-gray-600 mt-2">Update class information and translations</p>
+        <p className="text-gray-600 mt-2">{t.classes.edit.subtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -186,78 +227,63 @@ export default function EditClassPage() {
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>{t.classes.new.basicInfo}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="type">Class Type *</Label>
-                  <select
-                    id="type"
-                    value={type}
-                    onChange={(e) => setType(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
-                    required
-                  >
-                    <option value="">Select type</option>
-                    <option value="cultural">Cultural</option>
-                    <option value="taller">Taller</option>
-                    <option value="hsk">HSK</option>
-                    <option value="language">Language</option>
-                  </select>
-                </div>
-
-                <div>
-                  <Label htmlFor="level">Level</Label>
-                  <select
-                    id="level"
-                    value={level}
-                    onChange={(e) => setLevel(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
-                  >
-                    <option value="">Select level</option>
-                    <optgroup label="General Levels">
-                      <option value="beginner">Beginner</option>
-                      <option value="elementary">Elementary</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
-                      <option value="All">All Levels</option>
-                    </optgroup>
-                    <optgroup label="HSK Levels">
-                      <option value="HSK 1">HSK 1</option>
-                      <option value="HSK 2">HSK 2</option>
-                      <option value="HSK 3">HSK 3</option>
-                      <option value="HSK 4">HSK 4</option>
-                      <option value="HSK 5">HSK 5</option>
-                      <option value="HSK 6">HSK 6</option>
-                    </optgroup>
-                  </select>
-                </div>
+              <div>
+                <Label htmlFor="type">{t.classes.new.classType}</Label>
+                <select
+                  id="type"
+                  value={type}
+                  onChange={(e) => handleTypeChange(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                >
+                  <option value="">{t.classes.new.selectType}</option>
+                  <option value="hsk">{t.classes.new.types.hsk}</option>
+                  <option value="language">{t.classes.new.types.language}</option>
+                  <option value="cultural">{t.classes.new.types.cultural}</option>
+                  <option value="talleres">{t.classes.new.types.talleres}</option>
+                </select>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="slug">Slug (URL)</Label>
-                  <Input
-                    id="slug"
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
-                    placeholder="e.g., beginner-chinese-class"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Leave empty to auto-generate from title</p>
-                </div>
+              <div>
+                <Label htmlFor="level">{t.classes.level}</Label>
+                <select
+                  id="level"
+                  value={level}
+                  onChange={(e) => handleLevelChange(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                >
+                  <option value="">{t.classes.new.selectLevel}</option>
+                  <optgroup label={locale === 'en' ? 'General Levels' : locale === 'es' ? 'Niveles Generales' : '常规级别'}>
+                    <option value="beginner">{t.classes.levels.beginner}</option>
+                    <option value="elementary">{t.classes.levels.elementary}</option>
+                    <option value="intermediate">{t.classes.levels.intermediate}</option>
+                    <option value="advanced">{t.classes.levels.advanced}</option>
+                    <option value="All">{t.classes.levels.All}</option>
+                  </optgroup>
+                  <optgroup label={locale === 'en' ? 'HSK Levels' : locale === 'es' ? 'Niveles HSK' : 'HSK级别'}>
+                    <option value="HSK 1">HSK 1</option>
+                    <option value="HSK 2">HSK 2</option>
+                    <option value="HSK 3">HSK 3</option>
+                    <option value="HSK 4">HSK 4</option>
+                    <option value="HSK 5">HSK 5</option>
+                    <option value="HSK 6">HSK 6</option>
+                  </optgroup>
+                </select>
+              </div>
 
-                <div>
-                  <Label htmlFor="price">Price (Colones)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={priceColones}
-                    onChange={(e) => setPriceColones(e.target.value)}
-                    placeholder="0.00"
-                    step="0.01"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="price">{t.classes.edit.priceLabel}</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  value={priceColones}
+                  onChange={(e) => setPriceColones(e.target.value)}
+                  placeholder="0.00"
+                  step="0.01"
+                  className="max-w-xs"
+                />
               </div>
 
               <div className="flex items-center gap-2">
@@ -268,7 +294,7 @@ export default function EditClassPage() {
                   onChange={(e) => setIsActive(e.target.checked)}
                   className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                 />
-                <Label htmlFor="isActive" className="mb-0">Active (visible on website)</Label>
+                <Label htmlFor="isActive" className="mb-0">{t.classes.edit.activeLabel}</Label>
               </div>
             </CardContent>
           </Card>
@@ -276,48 +302,42 @@ export default function EditClassPage() {
           {/* English Translation */}
           <Card>
             <CardHeader>
-              <CardTitle>English 🇺🇸</CardTitle>
+              <CardTitle>{t.classes.new.english} 🇺🇸</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="titleEn">Title *</Label>
+                <Label htmlFor="titleEn">{t.classes.edit.titleLabel} *</Label>
                 <Input
                   id="titleEn"
                   value={titleEn}
                   onChange={(e) => setTitleEn(e.target.value)}
-                  placeholder="Class title in English"
+                  placeholder={t.classes.new.titlePlaceholder}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="typeEn">Class Type (English)</Label>
+                <Label htmlFor="typeEn">{t.classes.edit.categoryEnglish}</Label>
                 <Input
                   id="typeEn"
                   value={typeEn}
                   onChange={(e) => setTypeEn(e.target.value)}
-                  placeholder="e.g., Cultural, Workshop, HSK, Language"
+                  placeholder="e.g., HSK Courses, Chinese Language Classes"
+                  className="bg-gray-50"
+                  readOnly
                 />
-                <p className="text-xs text-gray-500 mt-1">Translated class type for English</p>
+                <p className="text-xs text-gray-500 mt-1">{t.classes.edit.autoGenerated}</p>
               </div>
               <div>
-                <Label htmlFor="levelEn">Level (English)</Label>
+                <Label htmlFor="levelEn">{t.classes.edit.levelEnglish}</Label>
                 <Input
                   id="levelEn"
                   value={levelEn}
                   onChange={(e) => setLevelEn(e.target.value)}
                   placeholder="e.g., Beginner, Intermediate, Advanced"
+                  className="bg-gray-50"
+                  readOnly
                 />
-                <p className="text-xs text-gray-500 mt-1">Translated level for English</p>
-              </div>
-              <div>
-                <Label htmlFor="descEn">Description</Label>
-                <Textarea
-                  id="descEn"
-                  value={descEn}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescEn(e.target.value)}
-                  placeholder="Class description in English"
-                  rows={4}
-                />
+                <p className="text-xs text-gray-500 mt-1">{t.classes.edit.autoGeneratedLevel}</p>
               </div>
             </CardContent>
           </Card>
@@ -325,48 +345,42 @@ export default function EditClassPage() {
           {/* Spanish Translation */}
           <Card>
             <CardHeader>
-              <CardTitle>Español 🇪🇸</CardTitle>
+              <CardTitle>{t.classes.new.spanish} 🇪🇸</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="titleEs">Título *</Label>
+                <Label htmlFor="titleEs">{t.classes.new.titleLabelEs} *</Label>
                 <Input
                   id="titleEs"
                   value={titleEs}
                   onChange={(e) => setTitleEs(e.target.value)}
-                  placeholder="Título de la clase en español"
+                  placeholder={t.classes.new.titlePlaceholderEs}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="typeEs">Tipo de Clase (Español)</Label>
+                <Label htmlFor="typeEs">{t.classes.edit.categorySpanish}</Label>
                 <Input
                   id="typeEs"
                   value={typeEs}
                   onChange={(e) => setTypeEs(e.target.value)}
-                  placeholder="ej., Cultural, Taller, HSK, Idioma"
+                  placeholder="ej., Cursos HSK, Clases de Idioma Chino"
+                  className="bg-gray-50"
+                  readOnly
                 />
-                <p className="text-xs text-gray-500 mt-1">Tipo de clase traducido al español</p>
+                <p className="text-xs text-gray-500 mt-1">{t.classes.edit.autoGenerated}</p>
               </div>
               <div>
-                <Label htmlFor="levelEs">Nivel (Español)</Label>
+                <Label htmlFor="levelEs">{t.classes.edit.levelSpanish}</Label>
                 <Input
                   id="levelEs"
                   value={levelEs}
                   onChange={(e) => setLevelEs(e.target.value)}
                   placeholder="ej., Principiante, Intermedio, Avanzado"
+                  className="bg-gray-50"
+                  readOnly
                 />
-                <p className="text-xs text-gray-500 mt-1">Nivel traducido al español</p>
-              </div>
-              <div>
-                <Label htmlFor="descEs">Descripción</Label>
-                <Textarea
-                  id="descEs"
-                  value={descEs}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescEs(e.target.value)}
-                  placeholder="Descripción de la clase en español"
-                  rows={4}
-                />
+                <p className="text-xs text-gray-500 mt-1">{t.classes.edit.autoGeneratedLevel}</p>
               </div>
             </CardContent>
           </Card>
@@ -374,48 +388,42 @@ export default function EditClassPage() {
           {/* Chinese Translation */}
           <Card>
             <CardHeader>
-              <CardTitle>中文 🇨🇳</CardTitle>
+              <CardTitle>{t.classes.new.chinese} 🇨🇳</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="titleZh">标题 *</Label>
+                <Label htmlFor="titleZh">{t.classes.new.titleLabelZh} *</Label>
                 <Input
                   id="titleZh"
                   value={titleZh}
                   onChange={(e) => setTitleZh(e.target.value)}
-                  placeholder="中文课程标题"
+                  placeholder={t.classes.new.titlePlaceholderZh}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="typeZh">课程类型 (中文)</Label>
+                <Label htmlFor="typeZh">{t.classes.edit.categoryChinese}</Label>
                 <Input
                   id="typeZh"
                   value={typeZh}
                   onChange={(e) => setTypeZh(e.target.value)}
-                  placeholder="例如：文化、工作坊、HSK、语言"
+                  placeholder="例如：HSK课程、中文语言课程"
+                  className="bg-gray-50"
+                  readOnly
                 />
-                <p className="text-xs text-gray-500 mt-1">中文翻译的课程类型</p>
+                <p className="text-xs text-gray-500 mt-1">{t.classes.edit.autoGenerated}</p>
               </div>
               <div>
-                <Label htmlFor="levelZh">级别 (中文)</Label>
+                <Label htmlFor="levelZh">{t.classes.edit.levelChinese}</Label>
                 <Input
                   id="levelZh"
                   value={levelZh}
                   onChange={(e) => setLevelZh(e.target.value)}
                   placeholder="例如：初级、中级、高级"
+                  className="bg-gray-50"
+                  readOnly
                 />
-                <p className="text-xs text-gray-500 mt-1">中文翻译的级别</p>
-              </div>
-              <div>
-                <Label htmlFor="descZh">描述</Label>
-                <Textarea
-                  id="descZh"
-                  value={descZh}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescZh(e.target.value)}
-                  placeholder="中文课程描述"
-                  rows={4}
-                />
+                <p className="text-xs text-gray-500 mt-1">{t.classes.edit.autoGeneratedLevel}</p>
               </div>
             </CardContent>
           </Card>
@@ -429,7 +437,7 @@ export default function EditClassPage() {
               disabled={saving}
               className="cursor-pointer"
             >
-              Cancel
+              {t.classes.edit.cancel}
             </Button>
             <Button
               type="submit"
@@ -437,11 +445,11 @@ export default function EditClassPage() {
               disabled={saving}
             >
               {saving ? (
-                <>Saving...</>
+                <>{t.classes.edit.saving}</>
               ) : (
                 <>
                   <FontAwesomeIcon icon={faSave} className="mr-2" />
-                  Save Changes
+                  {t.classes.edit.saveChanges}
                 </>
               )}
             </Button>

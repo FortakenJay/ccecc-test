@@ -14,9 +14,9 @@ export default function Footer() {
 
     return (
         <footer
-            className="bg-linear-to-br from-gray-900 to-gray-800 text-white ">
+            className="bg-gradient-to-br from-gray-900 to-gray-800 text-white mt-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {/* About */}
                     <div>
                         <div className="flex items-center gap-3 mb-4">
@@ -29,7 +29,10 @@ export default function Footer() {
                             </div>
                             <div className="hidden sm:block">
                                 <div className="text-yellow-400 font-bold text-xl">CCECC</div>
-                                <div className="text-xs text-gray-300">Centro Cultural Chino</div>
+                                <div className="text-xs text-gray-300 leading-tight">
+                                    <div>Centro Cultural y Educativo </div>
+                                    <div>Costarricense Chino</div>
+                                </div>
                             </div>
                         </div>
                         <p className="text-gray-300 text-sm leading-relaxed">
@@ -41,19 +44,34 @@ export default function Footer() {
                     <div>
                         <h3 className="text-[#FFD700] mb-4">{t('contact')}</h3>
                         <div className="space-y-3 text-sm">
-                            <div className="flex items-start gap-2">
+                            <Link
+                                className="flex items-start gap-2 underline"
+                                target="_blank"
+                                href="https://maps.app.goo.gl/ftVNMZmbY8JwnX9d8">
+
                                 <FontAwesomeIcon
                                     icon={faMapPin}
                                     className="w-4 h-4 mt-1 text-[#FFD700] flex-shrink-0"/>
-                                <span className="text-gray-300">{t('location')}</span>
+                                <span className="text-gray-300">{t('location1')}</span>
+
+                            </Link>
+                            <Link
+                                className="flex items-start gap-2 underline"
+                                target="_blank"
+                                href="https://maps.app.goo.gl/3K4NTrG5J7ReCecDA">
+                                <FontAwesomeIcon
+                                    icon={faMapPin}
+                                    className="w-4 h-4 mt-1 text-[#FFD700] flex-shrink-0"/>
+                                <span className="text-gray-300">{t('location2')}</span>
+                            </Link>
+                            <div className="flex items-center gap-2 underline">
+                                <FontAwesomeIcon icon={faPhone} className="w-4 h-4 text-[#FFD700] "/>
+                                <a href="tel:+50621005188" className="text-gray-300">+506 2100 5188</a>
+                                <a href="tel:+50687830474" className="text-gray-300">+506 8783 0474</a>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <FontAwesomeIcon icon={faPhone} className="w-4 h-4 text-[#FFD700]"/>
-                                <span className="text-gray-300">+506 2222-3333</span>
-                            </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 underline">
                                 <FontAwesomeIcon icon={faEnvelope} className="w-4 h-4 text-[#FFD700]"/>
-                                <span className="text-gray-300">info@ccecc.cr</span>
+                                <a href="mailto:educacrchino@gmail.com" className="text-gray-300">educacrchino@gmail.com</a>
                             </div>
                         </div>
                     </div>
@@ -93,48 +111,21 @@ export default function Footer() {
                         </ul>
                     </div>
 
-                    {/* Newsletter */}
-                    <div>
-                        <h3 className="text-[#FFD700] mb-4">{t('newsletter')}</h3>
-                        <p className="text-gray-300 text-sm mb-4">
-                            {t('newsletterDesc')}
-                        </p>
-                        <div className="flex gap-2">
-                            <Input
-                                type="email"
-                                placeholder={t('emailPlaceholder')}
-                                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"/>
-                            <Button
-                                className="bg-[#C8102E] hover:cursor-pointer hover:bg-[#B00E29] text-white flex-shrink-0">
-                                <FontAwesomeIcon icon={faEnvelope} className="w-4 h-4"/>
-                            </Button>
-                        </div>
-
-                        {/* Social Media */}
-                        <div className="mt-6">
-                            <div className="flex gap-3">
-                                <Link
-                                    href="#"
-                                    className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#C8102E] transition-colors"
-                                    aria-label="Facebook">
-                                    <FontAwesomeIcon icon={faFacebookF} className="w-5 h-5"/>
-                                </Link>
-                                <Link
-                                    href="#"
-                                    className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-[#C8102E] transition-colors"
-                                    aria-label="Instagram">
-                                    <FontAwesomeIcon icon={faInstagram} className="w-5 h-5"/>
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
+                 
                 </div>
 
                 {/* Bottom Bar */}
                 <div
-                    className="mt-12 pt-8 border-t border-white/10 text-center text-sm text-gray-400">
-                    <p>{t('copyright')}
-                    </p>
+                    className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
+                    <p>{t('copyright')}</p>
+                    <Link href="/login">
+                        <Button 
+                            variant="outline" 
+                            className="bg-transparent cursor-pointer border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700] hover:text-gray-900 transition-colors"
+                        >
+                            {t('login')}
+                        </Button>
+                    </Link>
                 </div>
             </div>
         </footer>
